@@ -6,6 +6,10 @@ import { useState, useRef, useCallback, JSX } from "react";
 // Límite ~20 req/min y ~20,000 caracteres por request en el servidor gratuito.
 const LANGUAGETOOL_ENDPOINT = "https://api.languagetool.org/v2/check";
 
+// Límite real de la API: 20,000 caracteres. Usamos el 10% como margen de seguridad.
+const API_CHAR_LIMIT = 20000;
+const MAX_CHARS = Math.floor(API_CHAR_LIMIT * 0.10);
+
 type Status = "idle" | "checking" | "done" | "error";
 
 interface LTReplacement {
@@ -238,6 +242,9 @@ export default function ProofreaderForm() {
   };
 
   const errorCount = matches.length;
+  const charCount = text.length;
+  const isNearLimit = charCount >= MAX_CHARS * 0.9;
+  const isAtLimit = charCount >= MAX_CHARS;
 
   return (
     <div className="min-h-screen bg-slate-50 px-4 py-20">
@@ -277,9 +284,10 @@ export default function ProofreaderForm() {
             <textarea
               ref={textareaRef}
               value={text}
-              onChange={(e) => setText(e.target.value)}
+              onChange={(e) => setText(e.target.value.slice(0, MAX_CHARS))}
+              maxLength={MAX_CHARS}
               placeholder="Escribe o pega aquí el texto que quieres revisar…"
-              rows={9}
+              rows={4}
               className="w-full resize-y bg-transparent text-base leading-relaxed text-slate-800 outline-none placeholder:text-slate-400"
             />
           ) : (
@@ -288,6 +296,21 @@ export default function ProofreaderForm() {
             </div>
           )}
         </div>
+
+        {(status === "idle" || status === "error") && (
+          <p
+            className={`mt-2 text-right text-xs font-medium ${
+              isAtLimit
+                ? "text-red-500"
+                : isNearLimit
+                ? "text-amber-500"
+                : "text-slate-400"
+            }`}
+          >
+            {charCount.toLocaleString("es")} / {MAX_CHARS.toLocaleString("es")}{" "}
+            caracteres
+          </p>
+        )}
 
         {status === "error" && (
           <p className="mt-3 text-center text-sm font-medium text-red-600">
