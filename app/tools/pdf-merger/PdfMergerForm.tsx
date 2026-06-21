@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { PDFDocument } from 'pdf-lib';
 
-export default function PdfMerger() {
+export default function PdfMergerForm() {
   const [files, setFiles] = useState<File[]>([]);
   const [merging, setMerging] = useState(false);
 

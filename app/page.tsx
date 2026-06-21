@@ -91,6 +91,22 @@ export default function Home() {
                     Convierte texto a código binario y viceversa de forma rápida.
                   </p>
                 </Link>
+                <Link href="/tools/proofreader" className="block bg-white p-5 rounded-2xl shadow-sm border border-slate-100 hover:border-blue-300 hover:shadow-md transition-all group">
+                  <h4 className="text-lg font-bold text-slate-900 group-hover:text-blue-600 mb-1 transition-colors">
+                    Corrector de Texto
+                  </h4>
+                  <p className="text-slate-500 text-sm leading-relaxed">
+                    Corrige errores de ortografía y gramática en tu texto de forma rápida.
+                  </p>
+                </Link>
+                <Link href="/tools/translator" className="block bg-white p-5 rounded-2xl shadow-sm border border-slate-100 hover:border-blue-300 hover:shadow-md transition-all group">
+                  <h4 className="text-lg font-bold text-slate-900 group-hover:text-blue-600 mb-1 transition-colors">
+                    Traductor de Texto 
+                  </h4>
+                  <p className="text-slate-500 text-sm leading-relaxed">
+                    Traduce tu texto de un idioma a otro de forma rápida y sencilla.
+                  </p>
+                </Link>
               </div>
             </div>
 

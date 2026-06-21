@@ -1,7 +1,7 @@
 "use client";
 import { useState } from 'react';
 
-export default function GeneradorDeNumeros() {
+export default function RandomNumbersForm() {
   const [resultado, setResultado] = useState<number[]>([]);
   const [copiado, setCopiado] = useState(false);
   const [config, setConfig] = useState({

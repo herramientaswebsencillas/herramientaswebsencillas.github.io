@@ -9,7 +9,7 @@ interface AmortizationRow {
   balance: number;
 }
 
-export default function CompoundInterestCalculator() {
+export default function CompoundInterestCalculatorForm() {
   const [initialAmount, setInitialAmount] = useState<number>(10000);
   const [monthlyContribution, setMonthlyContribution] = useState<number>(1000);
   const [months, setMonths] = useState<number>(12);

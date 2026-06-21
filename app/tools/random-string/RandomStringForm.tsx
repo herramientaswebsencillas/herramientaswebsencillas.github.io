@@ -1,7 +1,7 @@
 "use client";
 import { useState } from 'react';
 
-export default function GeneradorDeTexto() {
+export default function RandomStringForm() {
   const [resultado, setResultado] = useState("");
   const [longitud, setLongitud] = useState(12);
   const [copiado, setCopiado] = useState(false);

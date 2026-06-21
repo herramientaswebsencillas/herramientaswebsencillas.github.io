@@ -13,7 +13,7 @@ interface LoanRow {
   balance: number;
 }
 
-export default function LoanCalculator() {
+export default function LoanCalculatorForm() {
   const [loanAmount, setLoanAmount] = useState<number>(100000);
   const [annualRate, setAnnualRate] = useState<number>(12);
   const [months, setMonths] = useState<number>(24);
