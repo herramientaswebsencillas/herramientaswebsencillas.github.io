@@ -1,36 +1,42 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Herramientas Web Sencillas
 
-## Getting Started
+Pequeña colección de utilidades web implementadas con Next.js (app dir). Cada herramienta está en `app/tools/` como una página independiente.
 
-First, run the development server:
+**Demo local**: ejecuta la app en modo desarrollo y abre http://localhost:3000
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## Comandos útiles
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+- **Instalar dependencias**: `npm install`
+- **Desarrollo**: `npm run dev` — arranca el servidor en modo desarrollo (puerto 3000)
+- **Construir**: `npm run build` — prepara la aplicación para producción
+- **Iniciar**: `npm run start` — arranca la app en modo producción (tras `npm run build`)
+- **Lint**: `npm run lint`
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+> Nota: los scripts están definidos en `package.json`.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Herramientas incluidas
 
-## Learn More
+- **Base64 Converter** (`app/tools/base64-converter`): codificar/decodificar texto en Base64.
+- **Base64 File Converter** (`app/tools/base64-file-converter`): convertir archivos a Base64 y descargar el resultado.
+- **Compound Interest Calculator** (`app/tools/compound-interest-calculator`): calculadora de interés compuesto.
+- **Loan Calculator** (`app/tools/loan-calculator`): calculadora de préstamos y cuotas.
+- **PDF Merger** (`app/tools/pdf-merger`): combinar varios PDFs en uno.
+- **PDF Page Splitter** (`app/tools/pdf-page-splitter`): extraer o dividir páginas de un PDF.
+- **Random Numbers** (`app/tools/random-numbers`): generar números aleatorios.
+- **Random String** (`app/tools/random-string`): generar cadenas aleatorias.
+- **Text To Binary** (`app/tools/text-to-binary`): convertir texto a binario y viceversa.
 
-To learn more about Next.js, take a look at the following resources:
+## Estructura relevante
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- `app/` — directorio principal de la aplicación (Next.js app router)
+- `app/tools/` — cada subcarpeta contiene una herramienta con su `page.tsx` y el componente del formulario
+- `components/` — componentes compartidos (por ejemplo, `Navbar.tsx`)
+- `public/` — activos estáticos
+- `next.config.ts`, `package.json`, `tsconfig.json` — configuración del proyecto
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Contribuir
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+1. Crea una rama nueva para tu cambio.
+2. Añade la nueva herramienta dentro de `app/tools/` como una carpeta con `page.tsx` y el componente necesario.
+3. Asegúrate de que el componente funcione en `npm run dev`.
+4. Envía un pull request describiendo los cambios.
