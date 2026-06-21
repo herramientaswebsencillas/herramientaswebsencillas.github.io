@@ -14,18 +14,6 @@ Pequeña colección de utilidades web implementadas con Next.js (app dir). Cada 
 
 > Nota: los scripts están definidos en `package.json`.
 
-## Herramientas incluidas
-
-- **Base64 Converter** (`app/tools/base64-converter`): codificar/decodificar texto en Base64.
-- **Base64 File Converter** (`app/tools/base64-file-converter`): convertir archivos a Base64 y descargar el resultado.
-- **Compound Interest Calculator** (`app/tools/compound-interest-calculator`): calculadora de interés compuesto.
-- **Loan Calculator** (`app/tools/loan-calculator`): calculadora de préstamos y cuotas.
-- **PDF Merger** (`app/tools/pdf-merger`): combinar varios PDFs en uno.
-- **PDF Page Splitter** (`app/tools/pdf-page-splitter`): extraer o dividir páginas de un PDF.
-- **Random Numbers** (`app/tools/random-numbers`): generar números aleatorios.
-- **Random String** (`app/tools/random-string`): generar cadenas aleatorias.
-- **Text To Binary** (`app/tools/text-to-binary`): convertir texto a binario y viceversa.
-
 ## Estructura relevante
 
 - `app/` — directorio principal de la aplicación (Next.js app router)
