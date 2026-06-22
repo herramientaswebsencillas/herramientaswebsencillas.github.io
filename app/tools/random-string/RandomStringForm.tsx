@@ -73,7 +73,7 @@ export default function RandomStringForm() {
     <div className="min-h-screen bg-slate-50 py-20 px-4">
       <div className="max-w-md mx-auto bg-white rounded-3xl shadow-xl border border-gray-100 p-8">
         <h2 className="text-2xl font-extrabold mb-6 text-slate-800 tracking-tight text-center">
-          Generador de Cadena de Caracteres Aleatorios
+          Generador de Cadena de Caracteres
         </h2>
 
         <div className="mb-8">
@@ -114,7 +114,7 @@ export default function RandomStringForm() {
           onClick={generarCadena}
           className="w-full bg-blue-600 text-white font-bold py-4 rounded-2xl hover:bg-blue-700 shadow-lg shadow-blue-100 transition-all active:scale-[0.97] mb-6"
         >
-          Generar Texto
+          Generar Cadena de Caracteres
         </button>
 
         {resultado && (
