@@ -69,10 +69,10 @@ export default function Home() {
               <div className="space-y-4">
                 <Link href="/tools/random-string" className="block bg-white p-5 rounded-2xl shadow-sm border border-slate-100 hover:border-amber-300 hover:shadow-md transition-all group">
                   <h4 className="text-lg font-bold text-slate-900 group-hover:text-amber-600 mb-1 transition-colors">
-                    Generador de Texto Aleatorio
+                    Generador de Cadena de Caracteres Aleatorios
                   </h4>
                   <p className="text-slate-500 text-sm leading-relaxed">
-                    Crea cadenas de texto, contraseñas seguras y secuencias de caracteres aleatorias al instante.
+                    Crea contraseñas seguras y secuencias de caracteres aleatorias al instante. Personaliza longitud, símbolos y números.
                   </p>
                 </Link>
                 <Link href="/tools/random-numbers" className="block bg-white p-5 rounded-2xl shadow-sm border border-slate-100 hover:border-amber-300 hover:shadow-md transition-all group">
