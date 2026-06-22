@@ -34,12 +34,7 @@ export default function AboutPage() {
             >
               repositorio en GitHub
             </a>
-            . Las contribuciones son bienvenidas: cualquiera puede crear una
-            rama, añadir una herramienta nueva dentro de{' '}
-            <code className="bg-slate-100 text-slate-700 px-1.5 py-0.5 rounded text-sm">
-              app/tools/
-            </code>{' '}
-            y enviar un pull request.
+            .
           </p>
         </div>
       </div>

@@ -187,8 +187,17 @@ export default function TranslatorForm() {
                   </button>
                 )}
               </div>
-              <p className="text-xs text-slate-400 italic text-center">
-                Traducción automática vía MyMemory API · calidad variable.
+              <p className="text-sm text-slate-500 italic text-center">
+                Traducción automática vía{" "}
+                <a
+                  href="https://mymemory.translated.net/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-semibold underline-offset-2 hover:text-blue-600 hover:underline"
+                >
+                  MyMemory API
+                </a>{" "}
+                · calidad variable. El texto que ingreses se comparte con este servicio.
               </p>
             </div>
           </div>

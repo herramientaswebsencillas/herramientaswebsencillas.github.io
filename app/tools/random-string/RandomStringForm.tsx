@@ -73,7 +73,7 @@ export default function RandomStringForm() {
     <div className="min-h-screen bg-slate-50 py-20 px-4">
       <div className="max-w-md mx-auto bg-white rounded-3xl shadow-xl border border-gray-100 p-8">
         <h2 className="text-2xl font-extrabold mb-6 text-slate-800 tracking-tight text-center">
-          Generador de Texto
+          Generador de Cadena de Caracteres Aleatorios
         </h2>
 
         <div className="mb-8">

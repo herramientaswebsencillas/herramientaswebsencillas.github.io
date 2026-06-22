@@ -359,7 +359,7 @@ export default function ProofreaderForm() {
           </div>
         </div>
 
-        <p className="mt-6 text-center text-xs text-slate-400">
+        <p className="mt-6 text-center text-sm text-slate-500">
           Corrección de texto impulsada por{" "}
           <a
             href="https://languagetool.org"
@@ -369,6 +369,7 @@ export default function ProofreaderForm() {
           >
             LanguageTool
           </a>
+          . El texto que ingreses para corregir se comparte con este servicio.
         </p>
       </div>
     </div>
