@@ -2,8 +2,6 @@
 
 Pequeña colección de utilidades web implementadas con Next.js (app dir). Cada herramienta está en `app/tools/` como una página independiente.
 
-**Demo local**: ejecuta la app en modo desarrollo y abre http://localhost:3000
-
 ## Comandos útiles
 
 - **Instalar dependencias**: `npm install`
