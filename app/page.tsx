@@ -119,6 +119,14 @@ export default function Home() {
                 Convertidores
               </h3>
               <div className="space-y-4">
+                <Link href="/tools/speech-converter" className="block bg-white p-5 rounded-2xl shadow-sm border border-slate-100 hover:border-blue-300 hover:shadow-md transition-all group">
+                  <h4 className="text-lg font-bold text-slate-900 group-hover:text-blue-600 mb-1 transition-colors">
+                    Convertidor de Texto a Voz y Voz a Texto
+                  </h4>
+                  <p className="text-slate-500 text-sm leading-relaxed">
+                    Escucha cualquier texto en voz alta o dicta con el micrófono para convertir tu voz en texto.
+                  </p>
+                </Link>
                 <Link href="/tools/base64-converter" className="block bg-white p-5 rounded-2xl shadow-sm border border-slate-100 hover:border-blue-300 hover:shadow-md transition-all group">
                   <h4 className="text-lg font-bold text-slate-900 group-hover:text-blue-600 mb-1 transition-colors">
                     Convertidor Base64
