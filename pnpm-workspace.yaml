@@ -1,0 +1,24 @@
+# Configuración de pnpm. Desde pnpm 11 estos ajustes ya no se leen del campo
+# "pnpm" de package.json, aunque el proyecto no sea un monorepo.
+
+# Versiones forzadas de dependencias transitivas con avisos de seguridad.
+# next fija postcss 8.4.31 de forma exacta, de ahí que haga falta el override.
+overrides:
+  # GHSA-r28c-9q8g-f849 — path traversal al cargar sourceMappingURL.
+  postcss: ^8.5.18
+  # GHSA-52cp-r559-cp3m — consumo cuadrático de CPU con cadenas de merge keys.
+  js-yaml@>=4.0.0 <4.3.0: 4.3.0
+  # GHSA-3jxr-9vmj-r5cp — expansión exponencial de grupos {} consecutivos.
+  # La rama 1.x no recibió parche para GHSA-mh99-v99m-4gvg (solo existe en 5.0.8),
+  # y saltar de 1.x a 5.x rompería minimatch 3.x, así que ahí queda sin corregir.
+  brace-expansion@<1.1.16: 1.1.16
+  # GHSA-3jxr-9vmj-r5cp y GHSA-mh99-v99m-4gvg en la rama moderna.
+  brace-expansion@>=3.0.0 <5.0.8: 5.0.8
+
+# pnpm bloquea por defecto los scripts de instalación y exige decidir uno a uno.
+# unrs-resolver compila el binario que usa el resolver de eslint-config-next.
+# sharp solo hace falta para optimizar imágenes, y este sitio se exporta
+# estático con images.unoptimized, así que no se compila.
+allowBuilds:
+  sharp: false
+  unrs-resolver: true

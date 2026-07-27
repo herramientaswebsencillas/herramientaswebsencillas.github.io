@@ -4,11 +4,13 @@ Pequeña colección de utilidades web implementadas con Next.js (app dir). Cada 
 
 ## Comandos útiles
 
-- **Instalar dependencias**: `npm install`
-- **Desarrollo**: `npm run dev` — arranca el servidor en modo desarrollo (puerto 3000)
-- **Construir**: `npm run build` — prepara la aplicación para producción
-- **Iniciar**: `npm run start` — arranca la app en modo producción (tras `npm run build`)
-- **Lint**: `npm run lint`
+El proyecto usa [pnpm](https://pnpm.io/). Si no lo tienes, actívalo con `corepack enable`.
+
+- **Instalar dependencias**: `pnpm install`
+- **Desarrollo**: `pnpm dev` — arranca el servidor en modo desarrollo (puerto 3000)
+- **Construir**: `pnpm build` — prepara la aplicación para producción
+- **Iniciar**: `pnpm start` — arranca la app en modo producción (tras `pnpm build`)
+- **Lint**: `pnpm lint`
 
 > Nota: los scripts están definidos en `package.json`.
 
@@ -19,3 +21,4 @@ Pequeña colección de utilidades web implementadas con Next.js (app dir). Cada 
 - `components/` — componentes compartidos (por ejemplo, `Navbar.tsx`)
 - `public/` — activos estáticos
 - `next.config.ts`, `package.json`, `tsconfig.json` — configuración del proyecto
+- `pnpm-workspace.yaml` — ajustes de pnpm (overrides de seguridad y scripts de instalación permitidos)
