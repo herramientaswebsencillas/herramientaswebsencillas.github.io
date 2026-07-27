@@ -59,8 +59,9 @@ export default function RootLayout({
     // a fonts.googleapis.com/fonts.gstatic.com en runtime.
     "font-src 'self'",
     "img-src 'self' data:",
-    // Dominios de las APIs públicas usadas por proofreader y translator.
-    "connect-src 'self' https://api.languagetool.org https://api.mymemory.translated.net",
+    // Dominios de las APIs públicas usadas por proofreader, translator y
+    // currency-converter.
+    "connect-src 'self' https://api.languagetool.org https://api.mymemory.translated.net https://api.frankfurter.dev",
     "object-src 'none'",
     "base-uri 'self'",
     "form-action 'self'",
