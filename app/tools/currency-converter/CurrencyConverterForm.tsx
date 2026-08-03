@@ -230,7 +230,7 @@ export default function CurrencyConverterForm() {
         </div>
 
         {/* ----------------------------- Conversión ---------------------------- */}
-        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden mb-8">
+        <div className="bg-surface rounded-2xl shadow-sm border border-slate-200 overflow-hidden mb-8">
           <div className="bg-teal-700 p-4">
             <h2 className="text-white font-semibold flex items-center gap-2">
               💱 Conversión
@@ -269,7 +269,7 @@ export default function CurrencyConverterForm() {
                   id="from"
                   value={from}
                   onChange={(e) => setFrom(e.target.value)}
-                  className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-slate-700 font-medium shadow-sm focus:ring-2 focus:ring-teal-500 outline-none"
+                  className="w-full px-4 py-3 bg-surface border border-slate-200 rounded-xl text-slate-700 font-medium shadow-sm focus:ring-2 focus:ring-teal-500 outline-none"
                 >
                   {renderOptions()}
                 </select>
@@ -295,7 +295,7 @@ export default function CurrencyConverterForm() {
                   id="to"
                   value={to}
                   onChange={(e) => setTo(e.target.value)}
-                  className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-slate-700 font-medium shadow-sm focus:ring-2 focus:ring-teal-500 outline-none"
+                  className="w-full px-4 py-3 bg-surface border border-slate-200 rounded-xl text-slate-700 font-medium shadow-sm focus:ring-2 focus:ring-teal-500 outline-none"
                 >
                   {renderOptions()}
                 </select>
@@ -348,7 +348,7 @@ export default function CurrencyConverterForm() {
         </div>
 
         {/* ------------------------------ Histórico ---------------------------- */}
-        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+        <div className="bg-surface rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
           <div className="bg-slate-800 p-4">
             <h2 className="text-white font-semibold flex items-center gap-2">
               📈 Evolución histórica
@@ -390,7 +390,7 @@ export default function CurrencyConverterForm() {
                       className={`px-4 py-2 rounded-xl text-sm font-semibold transition-colors ${
                         range === option.id
                           ? "bg-teal-700 text-white shadow-sm"
-                          : "bg-white border border-slate-200 text-slate-600 hover:border-slate-300"
+                          : "bg-surface border border-slate-200 text-slate-600 hover:border-slate-300"
                       }`}
                     >
                       {option.label}

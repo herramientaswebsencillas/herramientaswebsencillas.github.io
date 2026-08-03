@@ -69,7 +69,7 @@ export default function CompoundInterestCalculatorForm() {
 
       <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8">
         
-        <div className="bg-white p-8 rounded-3xl shadow-lg border border-slate-200 h-fit">
+        <div className="bg-surface p-8 rounded-3xl shadow-lg border border-slate-200 h-fit">
           <h2 className="text-xl font-black text-slate-800 mb-6 uppercase tracking-tight">Configuración</h2>
           <div className="space-y-4">
             <div>
@@ -115,7 +115,7 @@ export default function CompoundInterestCalculatorForm() {
         </div>
 
         <div className="lg:col-span-2 space-y-6">
-          <div className="bg-white p-8 rounded-3xl shadow-lg border border-slate-200">
+          <div className="bg-surface p-8 rounded-3xl shadow-lg border border-slate-200">
             <h2 className="text-xl font-black text-slate-800 mb-6 uppercase">Crecimiento del Capital</h2>
             <div className="flex items-end gap-1 h-48 bg-slate-50 rounded-xl p-4 border border-dashed border-slate-300">
               {amortizationTable.filter((_, i) => i % Math.max(1, Math.floor(months / 20)) === 0).map((data, idx) => (
@@ -132,36 +132,41 @@ export default function CompoundInterestCalculatorForm() {
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
-              <div className="p-4 bg-emerald-50 rounded-2xl border border-emerald-100 flex justify-between items-center">
-                <span className="text-xs font-bold text-emerald-700 uppercase">Capital Invertido</span>
-                <span className="text-lg font-black text-emerald-900">${totals.invested.toLocaleString()}</span>
+              {/* El color vive solo en la etiqueta y en un fondo muy claro; la
+                  cifra va en gris oscuro. Se evitan además el verde/ámbar de
+                  "correcto" y "advertencia": aquí nada es una alerta. */}
+              <div className="p-4 bg-teal-50/70 rounded-2xl border border-teal-100 flex justify-between items-center">
+                <span className="text-xs font-bold text-teal-700 uppercase">Capital Invertido</span>
+                <span className="text-lg font-black text-slate-800">${totals.invested.toLocaleString()}</span>
               </div>
-              <div className="p-4 bg-amber-50 rounded-2xl border border-amber-100 flex justify-between items-center">
-                <span className="text-xs font-bold text-amber-700 uppercase">Interés Generado</span>
-                <span className="text-lg font-black text-amber-900">${totals.interest.toLocaleString(undefined, { maximumFractionDigits: 2 })}</span>
+              <div className="p-4 bg-sky-50/70 rounded-2xl border border-sky-100 flex justify-between items-center">
+                <span className="text-xs font-bold text-sky-700 uppercase">Interés Generado</span>
+                <span className="text-lg font-black text-slate-800">${totals.interest.toLocaleString(undefined, { maximumFractionDigits: 2 })}</span>
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-3xl shadow-lg border border-slate-200 overflow-hidden">
+          <div className="bg-surface rounded-3xl shadow-lg border border-slate-200 overflow-hidden">
             <div className="p-6 border-b border-slate-100">
               <h2 className="text-xl font-black text-slate-800 uppercase">Tabla de Proyección</h2>
             </div>
-            <div className="max-h-[350px] overflow-y-auto">
+            {/* Fondo gris claro en lugar de blanco: una tabla larga a pantalla
+                completa en blanco puro deslumbra al leerla. */}
+            <div className="max-h-[350px] overflow-y-auto bg-slate-50">
               <table className="w-full text-left border-collapse">
-                <thead className="bg-slate-50 sticky top-0">
+                <thead className="bg-slate-100 sticky top-0">
                   <tr>
                     <th className="p-4 text-[10px] font-bold text-slate-500 uppercase">Mes</th>
                     <th className="p-4 text-[10px] font-bold text-slate-500 uppercase">Saldo Acumulado</th>
                     <th className="p-4 text-[10px] font-bold text-slate-500 uppercase">Rendimiento</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100 text-slate-900">
+                <tbody className="divide-y divide-slate-200 text-slate-900">
                   {amortizationTable.map((row) => (
-                    <tr key={row.month} className="hover:bg-slate-50 transition-colors">
+                    <tr key={row.month} className="hover:bg-slate-100 transition-colors">
                       <td className="p-4 font-bold text-slate-400">{row.month}</td>
                       <td className="p-4 font-bold">${row.balance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-                      <td className="p-4 text-emerald-600 font-semibold">+${row.interest.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                      <td className="p-4 text-sky-700 font-semibold">+${row.interest.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
                     </tr>
                   ))}
                 </tbody>

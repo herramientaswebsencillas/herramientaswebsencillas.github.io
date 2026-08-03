@@ -10,7 +10,7 @@ export default function AboutPage() {
   return (
     <main className="min-h-screen bg-[#f8fafc]">
       <div className="max-w-3xl mx-auto px-4 py-20">
-        <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-8 sm:p-10">
+        <div className="bg-surface rounded-2xl shadow-sm border border-slate-100 p-8 sm:p-10">
           <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight mb-6">
             Acerca de este sitio
           </h1>

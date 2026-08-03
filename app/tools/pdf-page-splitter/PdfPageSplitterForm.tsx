@@ -66,7 +66,7 @@ export default function PdfPageSplitterForm() {
           <p className="text-slate-500 mt-2">Separa cada página de tu PDF en archivos individuales dentro de un ZIP.</p>
         </div>
 
-        <div className="bg-white rounded-3xl shadow-xl shadow-slate-200/60 border border-slate-100 overflow-hidden">
+        <div className="bg-surface rounded-3xl shadow-xl shadow-slate-200/60 border border-slate-100 overflow-hidden">
           <div className="p-8 md:p-12">
             <div className={`relative border-2 border-dashed rounded-2xl p-8 transition-all flex flex-col items-center justify-center
               ${file ? 'border-emerald-200 bg-emerald-50/30' : 'border-slate-200 bg-slate-50 hover:border-red-300'}`}>
@@ -80,7 +80,7 @@ export default function PdfPageSplitterForm() {
 
               {!file ? (
                 <>
-                  <div className="w-16 h-16 bg-white rounded-full shadow-sm flex items-center justify-center mb-4">
+                  <div className="w-16 h-16 bg-surface rounded-full shadow-sm flex items-center justify-center mb-4">
                     <svg className="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
                     </svg>

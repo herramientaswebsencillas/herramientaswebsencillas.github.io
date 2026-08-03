@@ -128,9 +128,9 @@ export default function LoanCalculatorForm() {
       <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8">
         
         {/* COLUMNA IZQUIERDA: CONFIGURACIÓN */}
-        <div className="bg-white p-8 rounded-3xl shadow-lg border border-slate-200 h-fit">
+        <div className="bg-surface p-8 rounded-3xl shadow-lg border border-slate-200 h-fit">
           <h2 className="text-xl font-black text-slate-800 mb-6 uppercase tracking-tight flex items-center gap-2">
-            <svg className="w-5 h-5 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-5 h-5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
             </svg>
             Configuración
@@ -143,7 +143,7 @@ export default function LoanCalculatorForm() {
                 type="number" 
                 value={loanAmount} 
                 onChange={(e) => setLoanAmount(Number(e.target.value))} 
-                className="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 font-bold outline-none focus:ring-2 focus:ring-rose-500 transition-shadow" 
+                className="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 font-bold outline-none focus:ring-2 focus:ring-indigo-500 transition-shadow" 
               />
             </div>
             
@@ -154,7 +154,7 @@ export default function LoanCalculatorForm() {
                   type="number" 
                   value={annualRate} 
                   onChange={(e) => setAnnualRate(Number(e.target.value))} 
-                  className="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 font-bold outline-none focus:ring-2 focus:ring-rose-500 transition-shadow" 
+                  className="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 font-bold outline-none focus:ring-2 focus:ring-indigo-500 transition-shadow" 
                 />
               </div>
               <div>
@@ -163,7 +163,7 @@ export default function LoanCalculatorForm() {
                   type="number" 
                   value={months} 
                   onChange={(e) => setMonths(Number(e.target.value))} 
-                  className="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 font-bold outline-none focus:ring-2 focus:ring-rose-500 transition-shadow" 
+                  className="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 font-bold outline-none focus:ring-2 focus:ring-indigo-500 transition-shadow" 
                 />
               </div>
             </div>
@@ -174,7 +174,7 @@ export default function LoanCalculatorForm() {
                 <select 
                   value={amortizationSystem} 
                   onChange={(e) => setAmortizationSystem(e.target.value as "frances" | "aleman" | "americano")}
-                  className="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 font-bold outline-none focus:ring-2 focus:ring-rose-500 transition-shadow cursor-pointer"
+                  className="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 font-bold outline-none focus:ring-2 focus:ring-indigo-500 transition-shadow cursor-pointer"
                 >
                   <option value="frances">Sistema Francés (Cuota Fija)</option>
                   <option value="aleman">Sistema Alemán (Cuota Decreciente)</option>
@@ -189,7 +189,7 @@ export default function LoanCalculatorForm() {
                     type="number" 
                     value={monthlyInsurance} 
                     onChange={(e) => setMonthlyInsurance(Number(e.target.value))} 
-                    className="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 font-bold outline-none focus:ring-2 focus:ring-rose-500 transition-shadow" 
+                    className="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 font-bold outline-none focus:ring-2 focus:ring-indigo-500 transition-shadow" 
                   />
                 </div>
                 <div>
@@ -198,14 +198,14 @@ export default function LoanCalculatorForm() {
                     type="number" 
                     value={taxRate} 
                     onChange={(e) => setTaxRate(Number(e.target.value))} 
-                    className="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 font-bold outline-none focus:ring-2 focus:ring-rose-500 transition-shadow" 
+                    className="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 font-bold outline-none focus:ring-2 focus:ring-indigo-500 transition-shadow" 
                   />
                 </div>
               </div>
             </div>
           </div>
 
-          <div className="mt-8 p-6 bg-rose-600 rounded-2xl text-white shadow-xl shadow-rose-200 text-center relative overflow-hidden">
+          <div className="mt-8 p-6 bg-indigo-600 rounded-2xl text-white shadow-xl shadow-indigo-200 text-center relative overflow-hidden">
             <div className="absolute top-0 right-0 w-24 h-24 bg-white opacity-5 rounded-full -mr-10 -mt-10 pointer-events-none"></div>
             <span className="text-xs font-bold opacity-90 uppercase tracking-widest block mb-1">
               Cuota Inicial (Mes 1)
@@ -223,19 +223,21 @@ export default function LoanCalculatorForm() {
         <div className="lg:col-span-2 space-y-6">
           
           {/* Tarjeta Informativa del Sistema */}
-          <div className="bg-sky-50 border border-sky-200 p-5 rounded-2xl flex items-start gap-4 shadow-sm">
-            <div className="bg-sky-100 p-2 rounded-lg flex-shrink-0">
-              <svg className="w-6 h-6 text-sky-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          {/* Nota explicativa, no un dato: se queda en gris para que cada color
+              del panel siga significando un concepto del préstamo. */}
+          <div className="bg-surface border border-slate-200 p-5 rounded-2xl flex items-start gap-4 shadow-sm">
+            <div className="bg-indigo-50 p-2 rounded-lg flex-shrink-0">
+              <svg className="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             </div>
             <div>
-              <h4 className="text-sky-900 font-bold text-base">
+              <h4 className="text-slate-800 font-bold text-base">
                 {amortizationSystem === "frances" && "Sistema Francés (El más común)"}
                 {amortizationSystem === "aleman" && "Sistema Alemán (Cuota Decreciente)"}
                 {amortizationSystem === "americano" && "Sistema Americano (Solo Intereses)"}
               </h4>
-              <p className="text-sky-800 text-sm mt-1 leading-relaxed">
+              <p className="text-slate-600 text-sm mt-1 leading-relaxed">
                 {amortizationSystem === "frances" && "Pagas una cuota mensual constante. Al inicio del crédito, la mayor parte de tu cuota se va a pagar intereses, y al final, la mayor parte va al capital."}
                 {amortizationSystem === "aleman" && "Abonas una cantidad fija al capital de tu deuda cada mes. Como tu deuda baja constantemente, los intereses son menores cada mes y tu cuota total disminuye."}
                 {amortizationSystem === "americano" && "Pagas una cuota fija que cubre únicamente los intereses generados en el mes, sin reducir tu deuda. El último mes del crédito debes liquidar el 100% del capital original más el último interés."}
@@ -243,7 +245,7 @@ export default function LoanCalculatorForm() {
             </div>
           </div>
 
-          <div className="bg-white p-8 rounded-3xl shadow-lg border border-slate-200">
+          <div className="bg-surface p-8 rounded-3xl shadow-lg border border-slate-200">
             <h2 className="text-xl font-black text-slate-800 mb-6 uppercase">Evolución de la Deuda</h2>
             
             {/* Gráfico de barras decreciente */}
@@ -251,7 +253,7 @@ export default function LoanCalculatorForm() {
               {amortizationTable.filter((_, i) => i % Math.max(1, Math.floor(months / 20)) === 0).map((data, idx) => (
                 <div 
                   key={idx} 
-                  className="bg-rose-400 w-full rounded-t-sm hover:bg-rose-500 transition-all cursor-help relative group"
+                  className="bg-indigo-400 w-full rounded-t-sm hover:bg-indigo-500 transition-all cursor-help relative group"
                   style={{ height: `${(data.balance / loanAmount) * 100}%` }}
                 >
                   <span className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 bg-slate-800 text-white text-[10px] p-1.5 rounded opacity-0 group-hover:opacity-100 whitespace-nowrap z-10 shadow-lg">
@@ -262,33 +264,39 @@ export default function LoanCalculatorForm() {
             </div>
             
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
-              <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 flex flex-col justify-center">
-                <span className="text-[10px] font-bold text-slate-500 uppercase mb-1">Capital Prestado</span>
+              {/* El color vive solo en la etiqueta y en un fondo muy claro; la
+                  cifra va en gris oscuro. Así cada tarjeta sigue identificando
+                  su concepto sin que la vista tenga que aguantar un bloque
+                  saturado, y ninguna cifra parece una alerta. */}
+              <div className="p-4 bg-teal-50/70 rounded-2xl border border-teal-100 flex flex-col justify-center">
+                <span className="text-[10px] font-bold text-teal-700 uppercase mb-1">Capital Prestado</span>
                 <span className="text-lg font-black text-slate-800">${loanAmount.toLocaleString(undefined, { maximumFractionDigits: 2 })}</span>
               </div>
-              <div className="p-4 bg-rose-50 rounded-2xl border border-rose-100 flex flex-col justify-center">
-                <span className="text-[10px] font-bold text-rose-700 uppercase mb-1">Costo Intereses</span>
-                <span className="text-lg font-black text-rose-600">${totals.totalInterest.toLocaleString(undefined, { maximumFractionDigits: 2 })}</span>
+              <div className="p-4 bg-sky-50/70 rounded-2xl border border-sky-100 flex flex-col justify-center">
+                <span className="text-[10px] font-bold text-sky-700 uppercase mb-1">Costo Intereses</span>
+                <span className="text-lg font-black text-slate-800">${totals.totalInterest.toLocaleString(undefined, { maximumFractionDigits: 2 })}</span>
               </div>
-              <div className="p-4 bg-amber-50 rounded-2xl border border-amber-100 flex flex-col justify-center">
-                <span className="text-[10px] font-bold text-amber-700 uppercase mb-1">Impuestos ({taxRate}%)</span>
-                <span className="text-lg font-black text-amber-600">${totals.totalTax.toLocaleString(undefined, { maximumFractionDigits: 2 })}</span>
+              <div className="p-4 bg-indigo-50/70 rounded-2xl border border-indigo-100 flex flex-col justify-center">
+                <span className="text-[10px] font-bold text-indigo-600 uppercase mb-1">Impuestos ({taxRate}%)</span>
+                <span className="text-lg font-black text-slate-800">${totals.totalTax.toLocaleString(undefined, { maximumFractionDigits: 2 })}</span>
               </div>
-              <div className="p-4 bg-indigo-50 rounded-2xl border border-indigo-100 flex flex-col justify-center">
-                <span className="text-[10px] font-bold text-indigo-700 uppercase mb-1">Gastos Extra</span>
-                <span className="text-lg font-black text-indigo-600">${totals.totalInsurance.toLocaleString(undefined, { maximumFractionDigits: 2 })}</span>
+              <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 flex flex-col justify-center">
+                <span className="text-[10px] font-bold text-slate-500 uppercase mb-1">Gastos Extra</span>
+                <span className="text-lg font-black text-slate-800">${totals.totalInsurance.toLocaleString(undefined, { maximumFractionDigits: 2 })}</span>
               </div>
             </div>
           </div>
 
           {/* TABLA DE AMORTIZACIÓN */}
-          <div className="bg-white rounded-3xl shadow-lg border border-slate-200 overflow-hidden">
+          <div className="bg-surface rounded-3xl shadow-lg border border-slate-200 overflow-hidden">
             <div className="p-6 border-b border-slate-100">
               <h2 className="text-xl font-black text-slate-800 uppercase">Tabla de Amortización</h2>
             </div>
-            <div className="max-h-[400px] overflow-y-auto custom-scrollbar">
+            {/* Fondo gris claro en lugar de blanco: una tabla larga a pantalla
+                completa en blanco puro deslumbra al leerla. */}
+            <div className="max-h-[400px] overflow-y-auto custom-scrollbar bg-slate-50">
               <table className="w-full text-left border-collapse">
-                <thead className="bg-slate-50 sticky top-0 z-10 shadow-sm">
+                <thead className="bg-slate-100 sticky top-0 z-10 shadow-sm">
                   <tr>
                     <th className="p-4 text-[10px] font-bold text-slate-500 uppercase whitespace-nowrap">Mes</th>
                     <th className="p-4 text-[10px] font-bold text-slate-500 uppercase whitespace-nowrap">Cuota Total</th>
@@ -303,26 +311,26 @@ export default function LoanCalculatorForm() {
                     <th className="p-4 text-[10px] font-bold text-slate-500 uppercase whitespace-nowrap">Saldo Pendiente</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100 text-slate-900">
+                <tbody className="divide-y divide-slate-200 text-slate-900">
                   {amortizationTable.map((row) => (
-                    <tr key={row.month} className="hover:bg-rose-50/50 transition-colors">
+                    <tr key={row.month} className="hover:bg-slate-100 transition-colors">
                       <td className="p-4 font-bold text-slate-400">{row.month}</td>
                       <td className="p-4 font-bold text-slate-800">
                         ${row.totalPayment.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                       </td>
-                      <td className="p-4 text-slate-600 hidden sm:table-cell">
+                      <td className="p-4 text-teal-700 hidden sm:table-cell">
                         ${row.principal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                       </td>
-                      <td className="p-4 text-rose-500 hidden sm:table-cell">
+                      <td className="p-4 text-sky-800 hidden sm:table-cell">
                         ${row.interest.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                       </td>
                       {taxRate > 0 && (
-                        <td className="p-4 text-amber-500 hidden md:table-cell">
+                        <td className="p-4 text-indigo-600 hidden md:table-cell">
                           ${row.tax.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                         </td>
                       )}
                       {monthlyInsurance > 0 && (
-                        <td className="p-4 text-indigo-500 hidden md:table-cell">
+                        <td className="p-4 text-slate-500 hidden md:table-cell">
                           ${row.insurance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                         </td>
                       )}

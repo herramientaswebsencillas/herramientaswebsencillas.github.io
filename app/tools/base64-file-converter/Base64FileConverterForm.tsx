@@ -53,7 +53,7 @@ export default function Base64FileConverterForm() {
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           
-          <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+          <div className="bg-surface rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
             <div className="bg-emerald-700 p-4">
               <h2 className="text-white font-semibold flex items-center gap-2">
                 📁 Archivo a Base64
@@ -84,7 +84,7 @@ export default function Base64FileConverterForm() {
             </div>
           </div>
 
-          <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+          <div className="bg-surface rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
             <div className="bg-blue-700 p-4">
               <h2 className="text-white font-semibold flex items-center gap-2">
                 🔗 Base64 a Archivo

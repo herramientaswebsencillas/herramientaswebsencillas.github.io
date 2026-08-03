@@ -75,7 +75,7 @@ export default function PdfMergerForm() {
         </div>
 
         {/* Cuadro Blanco (Solo la funcionalidad) */}
-        <div className="w-full bg-white rounded-3xl shadow-lg shadow-slate-200/50 border border-slate-100 p-8 md:p-10 transition-all">
+        <div className="w-full bg-surface rounded-3xl shadow-lg shadow-slate-200/50 border border-slate-100 p-8 md:p-10 transition-all">
           <div className="space-y-6">
             
             {/* Zona de Carga */}
@@ -116,7 +116,7 @@ export default function PdfMergerForm() {
                 </div>
                 <ul className="space-y-2 max-h-48 overflow-y-auto pr-2 custom-scrollbar">
                   {files.map((f, i) => (
-                    <li key={i} className="flex items-center gap-3 bg-white p-3 rounded-xl border border-slate-200 shadow-sm">
+                    <li key={i} className="flex items-center gap-3 bg-surface p-3 rounded-xl border border-slate-200 shadow-sm">
                       <span className="flex-shrink-0 flex items-center justify-center w-6 h-6 rounded-full bg-slate-100 text-xs font-bold text-slate-500">
                         {i + 1}
                       </span>

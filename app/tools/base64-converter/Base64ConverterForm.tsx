@@ -41,7 +41,7 @@ export default function Base64ConverterForm() {
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* SECCIÓN: ENCODE */}
-          <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+          <div className="bg-surface rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
             <div className="bg-slate-800 p-4">
               <h2 className="text-white font-semibold flex items-center gap-2">
                 <span className="text-emerald-400">{"<>"}</span> Texto a Base64
@@ -80,7 +80,7 @@ export default function Base64ConverterForm() {
           </div>
 
           {/* SECCIÓN: DECODE */}
-          <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+          <div className="bg-surface rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
             <div className="bg-slate-800 p-4">
               <h2 className="text-white font-semibold flex items-center gap-2">
                 <span className="text-blue-400">{"</>"}</span> Base64 a Texto

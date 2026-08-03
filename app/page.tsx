@@ -30,7 +30,7 @@ export default function Home() {
                       <Link
                         key={tool.slug}
                         href={`/tools/${tool.slug}`}
-                        className={`block bg-white p-5 rounded-2xl shadow-sm border border-slate-100 hover:shadow-md transition-all group ${accent.card}`}
+                        className={`block bg-surface p-5 rounded-2xl shadow-sm border border-slate-100 hover:shadow-md transition-all group ${accent.card}`}
                       >
                         <h4
                           className={`text-lg font-bold text-slate-900 mb-1 transition-colors ${accent.title}`}

@@ -99,7 +99,7 @@ export default function TranslatorForm() {
           <select
             value={sourceLang}
             onChange={(e) => setSourceLang(e.target.value)}
-            className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-slate-700 font-medium shadow-sm focus:ring-2 focus:ring-emerald-500 outline-none"
+            className="px-4 py-2 bg-surface border border-slate-200 rounded-xl text-slate-700 font-medium shadow-sm focus:ring-2 focus:ring-emerald-500 outline-none"
           >
             {LANGUAGES.map((lang) => (
               <option key={lang.code} value={lang.code}>
@@ -119,7 +119,7 @@ export default function TranslatorForm() {
           <select
             value={targetLang}
             onChange={(e) => setTargetLang(e.target.value)}
-            className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-slate-700 font-medium shadow-sm focus:ring-2 focus:ring-blue-500 outline-none"
+            className="px-4 py-2 bg-surface border border-slate-200 rounded-xl text-slate-700 font-medium shadow-sm focus:ring-2 focus:ring-blue-500 outline-none"
           >
             {LANGUAGES.map((lang) => (
               <option key={lang.code} value={lang.code}>
@@ -131,7 +131,7 @@ export default function TranslatorForm() {
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Texto origen */}
-          <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+          <div className="bg-surface rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
             <div className="bg-emerald-700 p-4">
               <h2 className="text-white font-semibold flex items-center gap-2">
                 📝 Texto original
@@ -164,7 +164,7 @@ export default function TranslatorForm() {
           </div>
 
           {/* Texto traducido */}
-          <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+          <div className="bg-surface rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
             <div className="bg-blue-700 p-4">
               <h2 className="text-white font-semibold flex items-center gap-2">
                 🌐 Traducción

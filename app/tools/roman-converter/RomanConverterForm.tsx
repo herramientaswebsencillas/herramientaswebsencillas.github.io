@@ -111,7 +111,7 @@ export default function RomanConverterForm() {
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* SECCIÓN: DECIMAL A ROMANO */}
-          <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+          <div className="bg-surface rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
             <div className="bg-slate-800 p-4">
               <h2 className="text-white font-semibold flex items-center gap-2">
                 <span className="text-emerald-400 font-mono">123</span> Decimal a Romano
@@ -153,7 +153,7 @@ export default function RomanConverterForm() {
           </div>
 
           {/* SECCIÓN: ROMANO A DECIMAL */}
-          <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+          <div className="bg-surface rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
             <div className="bg-slate-800 p-4">
               <h2 className="text-white font-semibold flex items-center gap-2">
                 <span className="text-blue-400 font-mono">MD</span> Romano a Decimal

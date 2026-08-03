@@ -62,6 +62,10 @@ export const ACCENTS = {
   },
 } as const;
 
+/* El orden importa para el maquetado: la página de inicio reparte estas
+   categorías en dos columnas CSS y el navegador solo puede cortar entre una
+   categoría y la siguiente. Al añadir herramientas conviene comprobar que las
+   dos columnas siguen quedando parejas y, si no, mover una categoría de sitio. */
 export const CATEGORIES: Category[] = [
   {
     name: "Calculadoras",
@@ -80,6 +84,12 @@ export const CATEGORIES: Category[] = [
         description:
           "Calcula tu cuota, compara sistemas de amortización y visualiza tu tabla de pagos incluyendo seguros u otros gastos.",
       },
+      {
+        slug: "date-difference-calculator",
+        name: "Calculadora de Tiempo entre Fechas",
+        description:
+          "Calcula cuántos días, semanas, meses y años hay a partir de una fecha, desde el inicio del año en curso hasta hoy.",
+      },
     ],
   },
   {
@@ -88,10 +98,16 @@ export const CATEGORIES: Category[] = [
     accent: "blue",
     tools: [
       {
-        slug: "speech-converter",
-        name: "Convertidor de Texto a Voz y Voz a Texto",
+        slug: "text-to-speech",
+        name: "Convertidor de Texto a Voz",
         description:
-          "Escucha cualquier texto en voz alta o dicta con el micrófono para convertir tu voz en texto.",
+          "Escucha cualquier texto en voz alta con las voces de tu sistema y ajusta velocidad, tono y volumen.",
+      },
+      {
+        slug: "speech-to-text",
+        name: "Convertidor de Voz a Texto",
+        description:
+          "Dicta con el micrófono y convierte tu voz en texto que puedes editar, copiar o descargar.",
       },
       {
         slug: "roman-converter",
@@ -104,6 +120,25 @@ export const CATEGORIES: Category[] = [
         name: "Conversor de Divisas y Tipo de Cambio",
         description:
           "Convierte entre 165 monedas y consulta la evolución histórica del tipo de cambio.",
+      },
+    ],
+  },
+  {
+    name: "Manejo de Archivos",
+    criterion: "operaciones sobre archivos que sube el usuario",
+    accent: "emerald",
+    tools: [
+      {
+        slug: "pdf-page-splitter",
+        name: "Divisor de Páginas de PDF",
+        description:
+          "Segmenta archivos PDF en documentos individuales por página de manera segura.",
+      },
+      {
+        slug: "pdf-merger",
+        name: "Unir PDF",
+        description:
+          "Combina múltiples archivos PDF en un solo documento de forma segura.",
       },
     ],
   },
@@ -129,25 +164,6 @@ export const CATEGORIES: Category[] = [
         name: "Convertidor de Texto a Binario",
         description:
           "Convierte texto a código binario y viceversa de forma rápida.",
-      },
-    ],
-  },
-  {
-    name: "Manejo de Archivos",
-    criterion: "operaciones sobre archivos que sube el usuario",
-    accent: "emerald",
-    tools: [
-      {
-        slug: "pdf-page-splitter",
-        name: "Divisor de Páginas de PDF",
-        description:
-          "Segmenta archivos PDF en documentos individuales por página de manera segura.",
-      },
-      {
-        slug: "pdf-merger",
-        name: "Unir PDF",
-        description:
-          "Combina múltiples archivos PDF en un solo documento de forma segura.",
       },
     ],
   },

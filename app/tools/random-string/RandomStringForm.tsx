@@ -71,7 +71,7 @@ export default function RandomStringForm() {
 
   return (
     <div className="min-h-screen bg-slate-50 py-20 px-4">
-      <div className="max-w-md mx-auto bg-white rounded-3xl shadow-xl border border-gray-100 p-8">
+      <div className="max-w-md mx-auto bg-surface rounded-3xl shadow-xl border border-gray-100 p-8">
         <h2 className="text-2xl font-extrabold mb-6 text-slate-800 tracking-tight text-center">
           Generador de Cadena de Caracteres
         </h2>

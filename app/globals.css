@@ -12,6 +12,16 @@
   --font-mono: var(--font-geist-mono);
 }
 
+/* Color de las superficies (tarjetas, paneles, botones claros) en lugar de
+   blanco puro: el blanco a pantalla completa deslumbra. Es el punto medio
+   exacto entre #ffffff y slate-50 (#f8fafc), que es el fondo de las tablas,
+   así que estas se siguen distinguiendo dentro de su tarjeta.
+   Tailwind genera de aquí las utilidades bg-surface, text-surface y
+   border-surface. */
+@theme {
+  --color-surface: #fcfdfe;
+}
+
 @media (prefers-color-scheme: dark) {
   :root {
     --background: #0a0a0a;

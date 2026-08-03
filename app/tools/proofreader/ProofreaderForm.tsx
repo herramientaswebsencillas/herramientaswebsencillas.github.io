@@ -178,10 +178,10 @@ export default function ProofreaderForm() {
           {isActive && (
             <span
               onClick={(e) => e.stopPropagation()}
-              className="absolute left-1/2 top-full z-20 mt-2 w-72 -translate-x-1/2 rounded-2xl border border-slate-200 bg-white p-4 text-left shadow-xl"
+              className="absolute left-1/2 top-full z-20 mt-2 w-72 -translate-x-1/2 rounded-2xl border border-slate-200 bg-surface p-4 text-left shadow-xl"
             >
               {/* Flechita apuntando a la palabra */}
-              <span className="absolute -top-1.5 left-1/2 h-3 w-3 -translate-x-1/2 rotate-45 border-l border-t border-slate-200 bg-white" />
+              <span className="absolute -top-1.5 left-1/2 h-3 w-3 -translate-x-1/2 rotate-45 border-l border-t border-slate-200 bg-surface" />
 
               <span
                 className={`mb-2 inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide ${
@@ -248,7 +248,7 @@ export default function ProofreaderForm() {
 
   return (
     <div className="min-h-screen bg-slate-50 px-4 py-20">
-      <div className="mx-auto max-w-2xl rounded-3xl border border-gray-100 bg-white p-8 shadow-xl">
+      <div className="mx-auto max-w-2xl rounded-3xl border border-gray-100 bg-surface p-8 shadow-xl">
         <h2 className="mb-2 text-center text-2xl font-extrabold tracking-tight text-slate-800">
           Corrector de texto
         </h2>
@@ -269,7 +269,7 @@ export default function ProofreaderForm() {
             value={language}
             onChange={(e) => setLanguage(e.target.value)}
             disabled={status === "checking"}
-            className="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-sm font-semibold text-slate-700 outline-none transition-colors hover:border-slate-300 focus:border-blue-300 disabled:cursor-not-allowed disabled:opacity-50"
+            className="rounded-xl border border-slate-200 bg-surface px-3 py-1.5 text-sm font-semibold text-slate-700 outline-none transition-colors hover:border-slate-300 focus:border-blue-300 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {LANGUAGES.map((lang) => (
               <option key={lang.code} value={lang.code}>

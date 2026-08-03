@@ -18,7 +18,7 @@ function Code({ children }: { children: React.ReactNode }) {
 
 export default function VoiceInstallGuide() {
   return (
-    <section className="mt-12 bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+    <section className="mt-12 bg-surface rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
       <div className="bg-slate-800 p-4">
         <h2 className="text-white font-semibold flex items-center gap-2">
           📖 ¿No aparece tu idioma? Cómo instalar más voces
