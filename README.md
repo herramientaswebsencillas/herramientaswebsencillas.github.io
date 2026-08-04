@@ -63,6 +63,19 @@ Casi todas las herramientas funcionan íntegramente en el navegador. Las que con
 
 **Al añadir una herramienta que llame a un servicio externo hay que incluir su dominio en `connect-src`**, dentro de la CSP definida en `app/layout.tsx`. Sin eso el navegador bloquea las peticiones. La CSP va en una etiqueta `<meta>` porque GitHub Pages no permite configurar cabeceras HTTP; es una cobertura parcial, y el propio archivo explica sus límites.
 
+## Parámetros de URL
+
+La calculadora de tiempo entre fechas lee su estado de la barra de direcciones, así que un rango se puede consultar con un enlace. Son enlaces que la gente comparte y guarda, de modo que **este contrato no se puede cambiar sin romperlos**:
+
+| Parámetro | Formato | Ausente |
+|---|---|---|
+| `desde` | `dd/mm/aaaa` | Se completa con hoy |
+| `hasta` | `dd/mm/aaaa` | Se completa con hoy |
+
+Un valor que no exista como fecha (`31/02/2024`) se ignora y cae en el valor por defecto. Sin ningún parámetro se muestra el rango del año en curso.
+
+Que el extremo ausente sea hoy es lo que hace útil al enlace corto: `?hasta=25/12/2026` cuenta lo que falta para esa fecha y se recalcula en cada visita, en vez de quedar congelado en el día de quien lo compartió. Por eso, al escribir la URL, el extremo que coincide con hoy se omite en lugar de fijarse.
+
 ## Despliegue
 
 Cada push a `main` dispara el workflow de GitHub Actions, que instala con `pnpm install --frozen-lockfile`, ejecuta `pnpm build` y publica el contenido de `out/` en GitHub Pages.

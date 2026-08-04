@@ -88,7 +88,7 @@ export const CATEGORIES: Category[] = [
         slug: "date-difference-calculator",
         name: "Calculadora de Tiempo entre Fechas",
         description:
-          "Calcula cuántos días, semanas, meses y años hay a partir de una fecha, desde el inicio del año en curso hasta hoy.",
+          "Calcula cuántos días, semanas, meses y años hay entre dos fechas, y crea enlaces de cuenta regresiva para compartir.",
       },
     ],
   },
