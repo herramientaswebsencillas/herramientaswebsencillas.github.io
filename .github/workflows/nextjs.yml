@@ -24,7 +24,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
       # Debe ir antes de setup-node: la caché de pnpm necesita el binario ya
       # disponible. La versión sale del campo "packageManager" de package.json.
       - name: Install pnpm
