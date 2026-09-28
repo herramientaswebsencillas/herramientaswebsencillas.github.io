@@ -1,7 +1,7 @@
 // Sirve el export estático de out/ para previsualizar el build y para las
 // pruebas E2E. `next start` no sirve aquí: es incompatible con output: 'export'.
-// Imita a GitHub Pages en lo que importa: /ruta/ → /ruta/index.html y 404.html
-// para lo que no existe.
+// Imita a GitHub Pages en lo que importa: /ruta → ruta.html, /ruta/ →
+// ruta/index.html y 404.html para lo que no existe.
 
 import { createReadStream, existsSync, statSync } from "node:fs";
 import { createServer } from "node:http";
@@ -49,12 +49,12 @@ function resolvePath(urlPath) {
   const file = join(ROOT, path);
   // Nada fuera de out/, aunque la ruta traiga "..".
   if (file !== ROOT && !file.startsWith(ROOT + sep)) return null;
-  if (!existsSync(file)) return null;
-  if (statSync(file).isDirectory()) {
-    const index = join(file, "index.html");
-    return existsSync(index) ? index : null;
-  }
-  return file;
+  if (existsSync(file) && statSync(file).isFile()) return file;
+  // Como GitHub Pages: /ruta sirve ruta.html (trailingSlash: false) y, si no
+  // existe, la carpeta con su index.html.
+  if (existsSync(`${file}.html`)) return `${file}.html`;
+  const index = join(file, "index.html");
+  return existsSync(index) ? index : null;
 }
 
 createServer((req, res) => {

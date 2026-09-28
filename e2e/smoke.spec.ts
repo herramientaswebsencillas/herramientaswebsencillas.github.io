@@ -3,16 +3,16 @@ import { CATEGORIES } from "../lib/tools";
 
 const PAGES = [
   "/",
-  "/about/",
-  "/privacy/",
-  ...CATEGORIES.flatMap((category) => category.tools.map((tool) => `/tools/${tool.slug}/`)),
+  "/about",
+  "/privacy",
+  ...CATEGORIES.flatMap((category) => category.tools.map((tool) => `/tools/${tool.slug}`)),
 ];
 
 /* Violaciones conocidas e inofensivas. jszip arrastra is-generator-function,
    que prueba Function("return function*() {}") dentro de un try/catch para
    detectar soporte: la CSP lo bloquea, el catch lo absorbe y nada se rompe. */
 const TOLERATED_VIOLATIONS: Record<string, RegExp> = {
-  "/tools/pdf-page-splitter/": /^script-src → eval /,
+  "/tools/pdf-page-splitter": /^script-src → eval /,
 };
 
 declare global {
@@ -77,7 +77,7 @@ for (const path of PAGES) {
 
 test("el encriptador cifra y descifra en el navegador", async ({ page }) => {
   const check = await watchPage(page);
-  await page.goto("/tools/text-encryptor/");
+  await page.goto("/tools/text-encryptor");
 
   await page.getByPlaceholder("Escribe el mensaje que quieres proteger…").fill("Mensaje de prueba ñ 🔐");
   await page.getByPlaceholder("Tu clave compartida").fill("frase de prueba");
@@ -93,7 +93,7 @@ test("el encriptador cifra y descifra en el navegador", async ({ page }) => {
 
 test("la calculadora de fechas lee el rango de la URL", async ({ page }) => {
   const check = await watchPage(page);
-  await page.goto("/tools/date-difference-calculator/?desde=01/01/2024&hasta=01/01/2025");
+  await page.goto("/tools/date-difference-calculator?desde=01/01/2024&hasta=01/01/2025");
   await expect(page.getByText("366", { exact: true })).toBeVisible();
   await check();
 });
