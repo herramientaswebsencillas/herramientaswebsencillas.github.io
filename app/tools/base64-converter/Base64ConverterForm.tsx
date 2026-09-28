@@ -12,7 +12,7 @@ export default function Base64ConverterForm() {
     try {
       const encoded = btoa(unescape(encodeURIComponent(textInput)));
       setBase64Output(encoded);
-    } catch (e) {
+    } catch {
       setBase64Output("Error: No se pudo codificar el texto.");
     }
   };
@@ -21,7 +21,7 @@ export default function Base64ConverterForm() {
     try {
       const decoded = decodeURIComponent(escape(atob(base64Input.trim())));
       setTextOutput(decoded);
-    } catch (e) {
+    } catch {
       setTextOutput("Error: El código Base64 no es válido.");
     }
   };

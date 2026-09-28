@@ -20,7 +20,7 @@ const binToText = (bin: string): string => {
         return String.fromCharCode(parseInt(b, 2));
       })
       .join("");
-  } catch (e) {
+  } catch {
     return "Entrada binaria no válida...";
   }
 };

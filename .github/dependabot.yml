@@ -1,0 +1,17 @@
+# Propone actualizaciones de dependencias y de acciones de GitHub cada semana.
+# Cada PR pasa por el workflow de verificación antes de poder integrarse.
+version: 2
+updates:
+  - package-ecosystem: npm # Dependabot detecta pnpm por pnpm-lock.yaml.
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      # Parches y menores en un solo PR para no saturar la bandeja.
+      minor-and-patch:
+        update-types: [minor, patch]
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly

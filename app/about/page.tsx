@@ -1,4 +1,5 @@
 import { Metadata } from "next";
+import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "Acerca de este sitio",
@@ -35,6 +36,19 @@ export default function AboutPage() {
               repositorio en GitHub
             </a>
             .
+          </p>
+
+          <p className="text-slate-600 text-base leading-relaxed mt-4">
+            El sitio no tiene cuentas ni analítica, y casi todo ocurre en tu
+            navegador. En{" "}
+            <Link
+              href="/privacy"
+              className="text-blue-600 hover:text-blue-700 font-medium underline underline-offset-2"
+            >
+              Privacidad
+            </Link>{" "}
+            se detalla qué herramientas usan un servicio externo y qué datos le
+            envían.
           </p>
         </div>
       </div>

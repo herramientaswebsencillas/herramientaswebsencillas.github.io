@@ -1,34 +1,6 @@
 "use client";
 import { useState } from 'react';
-
-/**
- * Genera una cadena aleatoria criptográficamente segura a partir de un alfabeto dado.
- * Usa crypto.getRandomValues y descarta bytes que generarían sesgo de módulo
- * (cuando 256 no es múltiplo exacto de la longitud del alfabeto).
- */
-function randomString(length: number, alphabet: string): string {
-  if (alphabet.length === 0) return "";
-
-  const alphabetLength = alphabet.length;
-  const maxByte = Math.floor(256 / alphabetLength) * alphabetLength;
-
-  let result = "";
-  const chunkSize = Math.max(length, 16);
-  const bytes = new Uint8Array(chunkSize);
-  let i = chunkSize; // fuerza a generar el primer lote
-
-  while (result.length < length) {
-    if (i >= bytes.length) {
-      crypto.getRandomValues(bytes);
-      i = 0;
-    }
-    const byte = bytes[i++];
-    if (byte < maxByte) {
-      result += alphabet[byte % alphabetLength];
-    }
-  }
-  return result;
-}
+import { randomString } from "@/lib/random";
 
 export default function RandomStringForm() {
   const [resultado, setResultado] = useState("");

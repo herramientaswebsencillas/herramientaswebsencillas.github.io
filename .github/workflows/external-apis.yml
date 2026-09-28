@@ -1,0 +1,40 @@
+# Monitoreo diario de LanguageTool, MyMemory y Frankfurter.
+#
+# Hace una consulta real a cada servicio con lib/external.live.test.ts. Si
+# alguno deja de responder o cambia el formato de su respuesta, el workflow
+# falla y GitHub envía un correo a quien modificó por última vez este archivo
+# (notificaciones de Actions activas en la cuenta).
+#
+# Qué hacer si falla: ver "Servicios externos" en el README.
+name: External APIs
+
+on:
+  schedule:
+    - cron: "17 13 * * *" # Todos los días, 7:17 en la Ciudad de México.
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - lib/external.ts
+      - lib/external.live.test.ts
+      - .github/workflows/external-apis.yml
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Check external services
+        run: pnpm test:apis

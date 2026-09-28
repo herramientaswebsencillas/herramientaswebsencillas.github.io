@@ -1,114 +1,29 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import CryptoJS from "crypto-js";
+import { useState } from "react";
+import {
+  CipherError,
+  LEGACY_ALGORITHMS,
+  PBKDF2_ITERATIONS,
+  decryptText,
+  detectFormat,
+  encryptText,
+  type LegacyAlgorithm,
+} from "@/lib/cipher";
 
 /* ----------------------------- Algoritmos ----------------------------- */
 
-type AlgorithmId = "AES" | "TripleDES" | "Rabbit" | "RC4";
+const CURRENT_LABEL = "AES-256-GCM";
+const CURRENT_NOTE = `Clave derivada con PBKDF2-SHA256 (${PBKDF2_ITERATIONS.toLocaleString(
+  "es-MX"
+)} iteraciones). Detecta si el texto fue alterado.`;
 
-interface AlgorithmInfo {
-  id: AlgorithmId;
-  label: string;
-  keySize: string;
-  note: string;
-  strength: 1 | 2 | 3 | 4; // 1 = débil, 4 = fuerte
-}
-
-const ALGORITHMS: AlgorithmInfo[] = [
-  {
-    id: "AES",
-    label: "AES",
-    keySize: "256 bits",
-    note: "Estándar actual. Recomendado para uso general.",
-    strength: 4,
-  },
-  {
-    id: "TripleDES",
-    label: "Triple DES",
-    keySize: "168 bits",
-    note: "Más lento. Conservado por compatibilidad histórica.",
-    strength: 3,
-  },
-  {
-    id: "Rabbit",
-    label: "Rabbit",
-    keySize: "128 bits",
-    note: "Cifrado de flujo, alto rendimiento.",
-    strength: 2,
-  },
-  {
-    id: "RC4",
-    label: "RC4",
-    keySize: "variable",
-    note: "Obsoleto. Solo con fines educativos.",
-    strength: 1,
-  },
-];
-
-function getAlgorithm(id: AlgorithmId): AlgorithmInfo {
-  const found = ALGORITHMS.find((a) => a.id === id);
-  if (!found) throw new Error(`Algoritmo desconocido: ${id}`);
-  return found;
-}
-
-const engines: Record<
-  AlgorithmId,
-  {
-    encrypt: (text: string, pass: string) => string;
-    decrypt: (cipher: string, pass: string) => string;
-  }
-> = {
-  AES: {
-    encrypt: (text, pass) => CryptoJS.AES.encrypt(text, pass).toString(),
-    decrypt: (cipher, pass) =>
-      CryptoJS.AES.decrypt(cipher, pass).toString(CryptoJS.enc.Utf8),
-  },
-  TripleDES: {
-    encrypt: (text, pass) => CryptoJS.TripleDES.encrypt(text, pass).toString(),
-    decrypt: (cipher, pass) =>
-      CryptoJS.TripleDES.decrypt(cipher, pass).toString(CryptoJS.enc.Utf8),
-  },
-  Rabbit: {
-    encrypt: (text, pass) => CryptoJS.Rabbit.encrypt(text, pass).toString(),
-    decrypt: (cipher, pass) =>
-      CryptoJS.Rabbit.decrypt(cipher, pass).toString(CryptoJS.enc.Utf8),
-  },
-  RC4: {
-    encrypt: (text, pass) => CryptoJS.RC4.encrypt(text, pass).toString(),
-    decrypt: (cipher, pass) =>
-      CryptoJS.RC4.decrypt(cipher, pass).toString(CryptoJS.enc.Utf8),
-  },
+const LEGACY_LABELS: Record<LegacyAlgorithm, string> = {
+  AES: "AES",
+  TripleDES: "Triple DES",
+  Rabbit: "Rabbit",
+  RC4: "RC4",
 };
-
-class CipherError extends Error {}
-
-function encryptText(text: string, pass: string, algorithm: AlgorithmId) {
-  if (!text) throw new CipherError("Ingresa un texto para encriptar.");
-  if (!pass) throw new CipherError("Ingresa una frase secreta.");
-  try {
-    return engines[algorithm].encrypt(text, pass);
-  } catch {
-    throw new CipherError("No se pudo encriptar el texto. Intenta nuevamente.");
-  }
-}
-
-function decryptText(cipherText: string, pass: string, algorithm: AlgorithmId) {
-  if (!cipherText) throw new CipherError("Ingresa un texto para desencriptar.");
-  if (!pass) throw new CipherError("Ingresa una frase secreta.");
-  let result: string;
-  try {
-    result = engines[algorithm].decrypt(cipherText, pass);
-  } catch {
-    throw new CipherError("El texto encriptado no es válido para este algoritmo.");
-  }
-  if (!result) {
-    throw new CipherError(
-      "No se pudo desencriptar. Verifica la frase secreta y el algoritmo."
-    );
-  }
-  return result;
-}
 
 /* -------------------------------- Página -------------------------------- */
 
@@ -116,34 +31,38 @@ type Mode = "encrypt" | "decrypt";
 
 // Qué se copió por última vez, para mostrar el check de confirmación
 // en el botón correcto sin mezclar estados.
-type CopiedTarget = "result" | "passphrase" | "algorithm" | null;
+type CopiedTarget = "result" | "passphrase" | null;
 
 export default function TextEncryptorForm() {
   const [mode, setMode] = useState<Mode>("encrypt");
   const [input, setInput] = useState("");
   const [passphrase, setPassphrase] = useState("");
-  const [algorithm, setAlgorithm] = useState<AlgorithmId>("AES");
+  const [legacyAlgorithm, setLegacyAlgorithm] = useState<LegacyAlgorithm>("AES");
   const [showPassphrase, setShowPassphrase] = useState(false);
   const [result, setResult] = useState("");
   const [error, setError] = useState("");
   const [copied, setCopied] = useState<CopiedTarget>(null);
+  const [busy, setBusy] = useState(false);
 
-  const algoInfo = useMemo(() => getAlgorithm(algorithm), [algorithm]);
+  const isLegacyInput = mode === "decrypt" && detectFormat(input) === "legacy";
 
-  function runCipher() {
+  async function runCipher() {
     setError("");
     setCopied(null);
+    setBusy(true);
     try {
       const output =
         mode === "encrypt"
-          ? encryptText(input, passphrase, algorithm)
-          : decryptText(input, passphrase, algorithm);
+          ? await encryptText(input, passphrase)
+          : await decryptText(input, passphrase, legacyAlgorithm);
       setResult(output);
     } catch (err) {
       setResult("");
       setError(
         err instanceof CipherError ? err.message : "Ocurrió un error inesperado."
       );
+    } finally {
+      setBusy(false);
     }
   }
 
@@ -173,8 +92,8 @@ export default function TextEncryptorForm() {
           Encripta un texto con tu propia frase secreta
         </h1>
         <p className="text-slate-400 mt-3 text-sm sm:text-base max-w-lg mx-auto">
-          Elige un algoritmo, escribe una frase secreta y protege cualquier
-          mensaje. Todo ocurre en tu navegador, nada se guarda ni se envía.
+          Escribe una frase secreta y protege cualquier mensaje con AES-256.
+          Todo ocurre en tu navegador, nada se guarda ni se envía.
         </p>
       </div>
 
@@ -224,8 +143,8 @@ export default function TextEncryptorForm() {
             />
           </label>
 
-          {/* Frase secreta + algoritmo */}
-          <div className="grid sm:grid-cols-[1fr_auto] gap-4">
+          {/* Frase secreta + algoritmo heredado */}
+          <div className={`grid gap-4 ${isLegacyInput ? "sm:grid-cols-[1fr_auto]" : ""}`}>
             <label className="block">
               <span className="block text-xs text-slate-400 mb-1.5 uppercase tracking-wide">
                 Frase secreta
@@ -258,53 +177,58 @@ export default function TextEncryptorForm() {
               </div>
             </label>
 
-            <label className="block">
-              <span className="block text-xs text-slate-400 mb-1.5 uppercase tracking-wide">
-                Algoritmo
-              </span>
-              <div className="flex gap-2">
+            {isLegacyInput && (
+              <label className="block">
+                <span className="block text-xs text-slate-400 mb-1.5 uppercase tracking-wide">
+                  Algoritmo
+                </span>
                 <select
-                  value={algorithm}
-                  onChange={(e) => setAlgorithm(e.target.value as AlgorithmId)}
-                  className="rounded-lg border border-slate-700 bg-slate-950 px-3.5 py-2.5 text-slate-100 outline-none focus:border-teal-400 cursor-pointer sm:w-36"
+                  value={legacyAlgorithm}
+                  onChange={(e) => setLegacyAlgorithm(e.target.value as LegacyAlgorithm)}
+                  className="rounded-lg border border-slate-700 bg-slate-950 px-3.5 py-2.5 text-slate-100 outline-none focus:border-teal-400 cursor-pointer w-full sm:w-36"
                 >
-                  {ALGORITHMS.map((a) => (
-                    <option key={a.id} value={a.id}>
-                      {a.label}
+                  {LEGACY_ALGORITHMS.map((id) => (
+                    <option key={id} value={id}>
+                      {LEGACY_LABELS[id]}
                     </option>
                   ))}
                 </select>
-                <button
-                  type="button"
-                  onClick={() =>
-                    copyToClipboard(`${algoInfo.label} · ${algoInfo.keySize}`, "algorithm")
-                  }
-                  title="Copiar algoritmo y tamaño de clave"
-                  className="rounded-lg border border-slate-700 bg-slate-950 px-3 text-slate-500 hover:text-teal-400 hover:border-teal-400 text-xs cursor-pointer transition-colors"
-                >
-                  {copied === "algorithm" ? "✓" : "copiar"}
-                </button>
-              </div>
-            </label>
+              </label>
+            )}
           </div>
 
-          {/* Indicador del algoritmo seleccionado */}
-          <div className="flex items-center justify-between rounded-lg border border-slate-800 bg-slate-950 px-3.5 py-2.5">
-            <p className="text-xs text-slate-200">
-              {algoInfo.label}{" "}
-              <span className="text-slate-500">· {algoInfo.keySize}</span>
-            </p>
-            <p className="text-[11px] text-slate-500 hidden sm:block max-w-[16rem] text-right">
-              {algoInfo.note}
-            </p>
+          {/* Indicador del formato */}
+          <div className="flex items-center justify-between gap-4 rounded-lg border border-slate-800 bg-slate-950 px-3.5 py-2.5">
+            {isLegacyInput ? (
+              <>
+                <p className="text-xs text-amber-300">Formato anterior</p>
+                <p className="text-[11px] text-slate-500 max-w-[20rem] text-right">
+                  Texto cifrado con la versión previa de esta herramienta. Elige
+                  el algoritmo con el que se encriptó; si vuelves a encriptarlo,
+                  se usará el formato actual, más seguro.
+                </p>
+              </>
+            ) : (
+              <>
+                <p className="text-xs text-slate-200 whitespace-nowrap">{CURRENT_LABEL}</p>
+                <p className="text-[11px] text-slate-500 hidden sm:block max-w-[20rem] text-right">
+                  {CURRENT_NOTE}
+                </p>
+              </>
+            )}
           </div>
 
           <button
             type="button"
             onClick={runCipher}
-            className="w-full rounded-lg bg-teal-400 text-slate-950 font-semibold py-3 hover:bg-teal-300 transition-colors cursor-pointer"
+            disabled={busy}
+            className="w-full rounded-lg bg-teal-400 text-slate-950 font-semibold py-3 hover:bg-teal-300 transition-colors cursor-pointer disabled:opacity-60 disabled:cursor-wait"
           >
-            {mode === "encrypt" ? "Encriptar texto" : "Desencriptar texto"}
+            {busy
+              ? "Procesando…"
+              : mode === "encrypt"
+                ? "Encriptar texto"
+                : "Desencriptar texto"}
           </button>
 
           {error && (

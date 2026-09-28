@@ -6,6 +6,7 @@ import {
   CURRENCY_CODES,
   ECB_CURRENCIES,
 } from "@/lib/currencies";
+import { parseFrankfurterRates } from "@/lib/external";
 import RateChart, { RatePoint } from "./RateChart";
 
 const API = "https://api.frankfurter.dev";
@@ -81,7 +82,7 @@ export default function CurrencyConverterForm() {
   const [seriesResult, setSeriesResult] = useState<SeriesResult | null>(null);
 
   const sameCurrency = from === to;
-  // La gráfica sale de /v1, que solo cubre las divisas de referencia del BCE.
+  // La gráfica usa solo los datos del BCE (ver ECB_CURRENCIES).
   const chartSupported =
     ECB_CURRENCIES.has(from) && ECB_CURRENCIES.has(to) && !sameCurrency;
   const seriesKey = `${from}|${to}|${range}`;
@@ -96,12 +97,11 @@ export default function CurrencyConverterForm() {
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         return res.json();
       })
-      .then((data: { quote: string; rate: number; date: string }[]) => {
-        if (!Array.isArray(data) || data.length === 0) {
-          throw new Error("Respuesta vacía");
-        }
+      .then((data: unknown) => {
+        const entries = parseFrankfurterRates(data);
+        if (entries.length === 0) throw new Error("Respuesta vacía");
         const quotes: Record<string, Quote> = {};
-        for (const entry of data) {
+        for (const entry of entries) {
           quotes[entry.quote] = { rate: entry.rate, date: entry.date };
         }
         setRates({ quotes, error: "" });
@@ -131,18 +131,18 @@ export default function CurrencyConverterForm() {
     const controller = new AbortController();
 
     fetch(
-      `${API}/v1/${toApiDate(start)}..${toApiDate(end)}?base=${from}&symbols=${to}`,
+      `${API}/v2/rates?from=${toApiDate(start)}&to=${toApiDate(end)}&base=${from}&quotes=${to}&providers=ECB`,
       { signal: controller.signal }
     )
       .then((res) => {
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         return res.json();
       })
-      .then((data: { rates: Record<string, Record<string, number>> }) => {
-        const points = Object.entries(data.rates ?? {})
-          .map(([date, values]) => ({ date, value: values[to] }))
-          .filter((point) => typeof point.value === "number")
-          // El objeto llega ordenado, pero el orden de claves no está garantizado.
+      .then((data: unknown) => {
+        const points = parseFrankfurterRates(data)
+          .filter((entry) => entry.quote === to)
+          .map((entry) => ({ date: entry.date, value: entry.rate }))
+          // La lista llega ordenada, pero la API no lo garantiza.
           .sort((a, b) => a.date.localeCompare(b.date));
         setSeriesResult({ key, points, error: "" });
       })

@@ -117,6 +117,8 @@ export default function TextToSpeechForm() {
     setProgress({ current: 0, total: 0 });
   }, []);
 
+  const selectedVoice = voices.find((v) => v.voiceURI === voiceURI) ?? null;
+
   const speak = () => {
     if (!isSupported) return;
 
@@ -126,8 +128,6 @@ export default function TextToSpeechForm() {
     const synth = window.speechSynthesis;
     synth.cancel();
     setError("");
-
-    const selectedVoice = voices.find((v) => v.voiceURI === voiceURI) ?? null;
 
     const utterances = chunks.map((chunk, index) => {
       const utterance = new SpeechSynthesisUtterance(chunk);
@@ -191,8 +191,8 @@ export default function TextToSpeechForm() {
             Convertidor de Texto a Voz
           </h1>
           <p className="text-slate-500">
-            Escucha cualquier texto en voz alta con las voces de tu sistema.
-            Todo ocurre en tu navegador.
+            Escucha cualquier texto en voz alta con las voces de tu sistema
+            o de tu navegador.
           </p>
         </div>
 
@@ -249,6 +249,15 @@ export default function TextToSpeechForm() {
                   </option>
                 ))}
               </select>
+              {/* Las voces remotas (en Chrome, las "Google …") sintetizan el
+                  texto en los servidores del proveedor, no en el equipo. */}
+              {selectedVoice && !selectedVoice.localService && (
+                <p className="mt-2 text-xs text-amber-700">
+                  Esta voz funciona en línea: tu navegador envía el texto a su
+                  proveedor para generar el audio. Elige una voz del sistema si
+                  prefieres que no salga de tu equipo.
+                </p>
+              )}
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">

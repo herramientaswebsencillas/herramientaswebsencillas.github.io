@@ -1,116 +1,28 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-
-interface LoanRow {
-  month: number;
-  totalPayment: number;
-  basePayment: number;
-  insurance: number;
-  principal: number;
-  interest: number;
-  tax: number; // NUEVO: Impuesto sobre el interés
-  balance: number;
-}
+import { useMemo, useState } from "react";
+import { calculateLoan, type AmortizationSystem } from "@/lib/finance";
 
 export default function LoanCalculatorForm() {
   const [loanAmount, setLoanAmount] = useState<number>(100000);
   const [annualRate, setAnnualRate] = useState<number>(12);
   const [months, setMonths] = useState<number>(24);
   const [monthlyInsurance, setMonthlyInsurance] = useState<number>(250);
-  const [taxRate, setTaxRate] = useState<number>(16); // NUEVO: Porcentaje de impuesto (ej. IVA)
-  const [amortizationSystem, setAmortizationSystem] = useState<"frances" | "aleman" | "americano">("frances");
-  
-  const [amortizationTable, setAmortizationTable] = useState<LoanRow[]>([]);
-  const [totals, setTotals] = useState({ 
-    firstPayment: 0, 
-    totalInterest: 0, 
-    totalInsurance: 0,
-    totalTax: 0, // NUEVO: Total de impuestos pagados
-    totalPaid: 0 
-  });
+  const [taxRate, setTaxRate] = useState<number>(16); // Porcentaje de impuesto sobre el interés (ej. IVA)
+  const [amortizationSystem, setAmortizationSystem] = useState<AmortizationSystem>("frances");
 
-  useEffect(() => {
-    const runCalculation = () => {
-      const r = annualRate > 0 ? (annualRate / 100) / 12 : 0;
-      const n = months;
-      
-      let currentBalance = loanAmount;
-      let totalInterestAccumulated = 0;
-      let totalTaxAccumulated = 0;
-      let firstMonthPayment = 0;
-      const table: LoanRow[] = [];
-
-      for (let i = 1; i <= n; i++) {
-        let interestPayment = currentBalance * r;
-        let principalPayment = 0;
-        let baseMonthlyPayment = 0;
-
-        // LÓGICA SEGÚN EL SISTEMA DE AMORTIZACIÓN
-        if (amortizationSystem === "frances") {
-          // Cuota base constante
-          const p = r > 0 ? (loanAmount * r) / (1 - Math.pow(1 + r, -n)) : loanAmount / n;
-          principalPayment = p - interestPayment;
-          baseMonthlyPayment = p;
-        } 
-        else if (amortizationSystem === "aleman") {
-          // Abono a capital constante
-          principalPayment = loanAmount / n;
-          baseMonthlyPayment = principalPayment + interestPayment;
-        } 
-        else if (amortizationSystem === "americano") {
-          // Solo intereses, capital al final
-          interestPayment = loanAmount * r; 
-          principalPayment = i === n ? loanAmount : 0;
-          baseMonthlyPayment = principalPayment + interestPayment;
-        }
-
-        // NUEVO: Cálculo del impuesto sobre los intereses de este mes
-        const taxPayment = interestPayment * (taxRate / 100);
-
-        currentBalance -= principalPayment;
-        // Evitar números negativos ínfimos por redondeo de JavaScript
-        if (currentBalance < 0.01) currentBalance = 0; 
-
-        totalInterestAccumulated += interestPayment;
-        totalTaxAccumulated += taxPayment;
-        
-        // La cuota total ahora incluye el impuesto
-        const totalMonthlyPayment = baseMonthlyPayment + monthlyInsurance + taxPayment;
-
-        if (i === 1) {
-          firstMonthPayment = totalMonthlyPayment;
-        }
-
-        table.push({
-          month: i,
-          totalPayment: totalMonthlyPayment,
-          basePayment: baseMonthlyPayment,
-          insurance: monthlyInsurance,
-          principal: principalPayment,
-          interest: interestPayment,
-          tax: taxPayment,
-          balance: currentBalance,
-        });
-      }
-
-      const totalInsuranceAccumulated = monthlyInsurance * n;
-
-      setTotals({
-        firstPayment: firstMonthPayment,
-        totalInterest: totalInterestAccumulated,
-        totalInsurance: totalInsuranceAccumulated,
-        totalTax: totalTaxAccumulated,
-        totalPaid: loanAmount + totalInterestAccumulated + totalInsuranceAccumulated + totalTaxAccumulated,
-      });
-      
-      setAmortizationTable(table);
-    };
-
-    if (loanAmount > 0 && months > 0) {
-      runCalculation();
-    }
-  }, [loanAmount, annualRate, months, monthlyInsurance, taxRate, amortizationSystem]);
+  const { table: amortizationTable, totals } = useMemo(
+    () =>
+      calculateLoan({
+        loanAmount,
+        annualRate,
+        months,
+        monthlyInsurance,
+        taxRate,
+        system: amortizationSystem,
+      }),
+    [loanAmount, annualRate, months, monthlyInsurance, taxRate, amortizationSystem]
+  );
 
   return (
     <main className="min-h-screen bg-slate-100 py-10 px-4 md:px-10 font-sans">
@@ -173,7 +85,7 @@ export default function LoanCalculatorForm() {
                 <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Sistema de Pago</label>
                 <select 
                   value={amortizationSystem} 
-                  onChange={(e) => setAmortizationSystem(e.target.value as "frances" | "aleman" | "americano")}
+                  onChange={(e) => setAmortizationSystem(e.target.value as AmortizationSystem)}
                   className="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 font-bold outline-none focus:ring-2 focus:ring-indigo-500 transition-shadow cursor-pointer"
                 >
                   <option value="frances">Sistema Francés (Cuota Fija)</option>

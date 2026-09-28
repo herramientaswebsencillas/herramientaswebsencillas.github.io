@@ -1,5 +1,10 @@
 "use client";
 import { useState, ChangeEvent } from "react";
+import {
+  ExternalServiceError,
+  MYMEMORY_QUOTA_MESSAGE,
+  parseMyMemoryTranslation,
+} from "@/lib/external";
 
 const LANGUAGES = [
   { code: "es", label: "Español" },
@@ -64,17 +69,16 @@ export default function TranslatorForm() {
         )}&langpair=${sourceLang}|${targetLang}`
       );
 
-      if (!res.ok) throw new Error("La solicitud a la API falló.");
+      if (res.status === 429) throw new ExternalServiceError(MYMEMORY_QUOTA_MESSAGE);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
-      const data = await res.json();
-
-      if (data.responseStatus !== 200 && data.responseStatus !== "200") {
-        throw new Error(data.responseDetails || "No se pudo traducir el texto.");
-      }
-
-      setTranslatedText(data.responseData.translatedText);
+      setTranslatedText(parseMyMemoryTranslation(await res.json()));
     } catch (e) {
-      setError("Error: No se pudo completar la traducción. Intenta de nuevo.");
+      setError(
+        e instanceof ExternalServiceError
+          ? e.message
+          : "Error: No se pudo completar la traducción. Intenta de nuevo."
+      );
     } finally {
       setIsLoading(false);
     }
@@ -197,7 +201,7 @@ export default function TranslatorForm() {
                 >
                   MyMemory API
                 </a>{" "}
-                · calidad variable. El texto que ingreses se comparte con este servicio.
+                · calidad variable. El texto que ingreses se comparte con este servicio, que lo conserva: no traduzcas datos personales ni confidenciales.
               </p>
             </div>
           </div>

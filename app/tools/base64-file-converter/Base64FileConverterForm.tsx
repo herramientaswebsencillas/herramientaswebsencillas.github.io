@@ -33,7 +33,7 @@ export default function Base64FileConverterForm() {
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-    } catch (e) {
+    } catch {
       alert("Error: El código Base64 no es válido o no tiene el formato correcto.");
     }
   };

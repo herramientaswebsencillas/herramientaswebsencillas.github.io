@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useCallback, JSX } from "react";
+import { parseLanguageToolMatches, type LTMatch } from "@/lib/external";
 
 // LanguageTool: API pública, sin key, ideal para uso personal/demo.
 // Límite ~20 req/min y ~20,000 caracteres por request en el servidor gratuito.
@@ -11,32 +12,6 @@ const API_CHAR_LIMIT = 20000;
 const MAX_CHARS = Math.floor(API_CHAR_LIMIT * 0.10);
 
 type Status = "idle" | "checking" | "done" | "error";
-
-interface LTReplacement {
-  value: string;
-}
-
-interface LTCategory {
-  id: string;
-  name?: string;
-}
-
-interface LTRule {
-  id?: string;
-  category?: LTCategory;
-}
-
-interface LTMatch {
-  message: string;
-  offset: number;
-  length: number;
-  replacements: LTReplacement[];
-  rule?: LTRule;
-}
-
-interface LTResponse {
-  matches: LTMatch[];
-}
 
 interface LanguageOption {
   code: string;
@@ -106,8 +81,7 @@ export default function ProofreaderForm() {
 
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
-      const data: LTResponse = await res.json();
-      setMatches(data.matches || []);
+      setMatches(parseLanguageToolMatches(await res.json(), text));
       setStatus("done");
     } catch (err) {
       console.error(err);

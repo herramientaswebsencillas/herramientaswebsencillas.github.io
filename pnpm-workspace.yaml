@@ -6,14 +6,17 @@
 overrides:
   # GHSA-r28c-9q8g-f849 — path traversal al cargar sourceMappingURL.
   postcss: ^8.5.18
-  # GHSA-52cp-r559-cp3m — consumo cuadrático de CPU con cadenas de merge keys.
-  js-yaml@>=4.0.0 <4.3.0: 4.3.0
-  # GHSA-3jxr-9vmj-r5cp — expansión exponencial de grupos {} consecutivos.
-  # La rama 1.x no recibió parche para GHSA-mh99-v99m-4gvg (solo existe en 5.0.8),
-  # y saltar de 1.x a 5.x rompería minimatch 3.x, así que ahí queda sin corregir.
-  brace-expansion@<1.1.16: 1.1.16
-  # GHSA-3jxr-9vmj-r5cp y GHSA-mh99-v99m-4gvg en la rama moderna.
-  brace-expansion@>=3.0.0 <5.0.8: 5.0.8
+  # GHSA-52cp-r559-cp3m, GHSA-5p4m-2wfm-xmqj y GHSA-2883-xcg3-v3hh — consumo
+  # de CPU con merge keys y con !!omap.
+  js-yaml@>=4.0.0 <4.3.2: 4.3.2
+  # GHSA-3jxr-9vmj-r5cp, GHSA-mh99-v99m-4gvg y GHSA-rgw5-rvv9-x895 — expansión
+  # sin límite de grupos {}. La rama 1.x se queda en 1.x porque saltar a 5.x
+  # rompería minimatch 3.x.
+  brace-expansion@<1.1.21: 1.1.21
+  brace-expansion@>=3.0.0 <5.0.12: 5.0.12
+  # GHSA-c83g-rgw3-j3cx y GHSA-73wf-gq98-2v4g — memoria sin límite y escritura
+  # en el prototipo con consultas no confiables. Llega vía @babel/core de next.
+  browserslist@<4.28.7: ^4.28.7
 
 # pnpm bloquea por defecto los scripts de instalación y exige decidir uno a uno.
 # unrs-resolver compila el binario que usa el resolver de eslint-config-next.

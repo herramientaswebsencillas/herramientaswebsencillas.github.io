@@ -171,9 +171,11 @@ export const CURRENCIES: Record<string, string> = {
   ZWG: "Zimbabue Gold",
 };
 
-/* Las 30 divisas de referencia del Banco Central Europeo. Son las únicas que
-   sirve /v1, que es el endpoint con series temporales, así que la gráfica
-   histórica solo puede dibujarse cuando ambas monedas del par están aquí. */
+/* Las 30 divisas de referencia del Banco Central Europeo. La gráfica histórica
+   pide la serie a /v2/rates solo con datos del BCE (providers=ECB): es la serie
+   más larga y consistente, mientras que la combinada de v2 llega con poca
+   precisión en bases menores (COP → USD, con dos cifras significativas). Por
+   eso la gráfica solo se dibuja cuando ambas monedas del par están aquí. */
 export const ECB_CURRENCIES = new Set([
   "AUD", "BRL", "CAD", "CHF", "CNY", "CZK", "DKK", "EUR", "GBP", "HKD",
   "HUF", "IDR", "ILS", "INR", "ISK", "JPY", "KRW", "MXN", "MYR", "NOK",

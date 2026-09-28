@@ -1,13 +1,7 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-
-interface AmortizationRow {
-  month: number;
-  interest: number;
-  contribution: number;
-  balance: number;
-}
+import { useMemo, useState } from "react";
+import { calculateCompoundInterest } from "@/lib/finance";
 
 export default function CompoundInterestCalculatorForm() {
   const [initialAmount, setInitialAmount] = useState<number>(10000);
@@ -15,45 +9,11 @@ export default function CompoundInterestCalculatorForm() {
   const [months, setMonths] = useState<number>(12);
   const [rate, setRate] = useState<number>(12);
   const [frequency, setFrequency] = useState<number>(12);
-  
-  const [amortizationTable, setAmortizationTable] = useState<AmortizationRow[]>([]);
-  const [totals, setTotals] = useState({ final: 0, invested: 0, interest: 0 });
 
-  useEffect(() => {
-    const runCalculation = () => {
-      let currentBalance = initialAmount;
-      let totalInvested = initialAmount;
-      
-      const r = rate / 100;
-      const n = frequency;
-      
-      const effectiveMonthlyRate = Math.pow(1 + r / n, n / 12) - 1;
-      
-      const table: AmortizationRow[] = [];
-
-      for (let i = 1; i <= months; i++) {
-        const interestEarned = currentBalance * effectiveMonthlyRate;
-        currentBalance += interestEarned + monthlyContribution;
-        totalInvested += monthlyContribution;
-
-        table.push({
-          month: i,
-          interest: interestEarned,
-          contribution: monthlyContribution,
-          balance: currentBalance,
-        });
-      }
-
-      setTotals({
-        final: currentBalance,
-        invested: totalInvested,
-        interest: currentBalance - totalInvested,
-      });
-      setAmortizationTable(table);
-    };
-
-    runCalculation();
-  }, [initialAmount, monthlyContribution, months, rate, frequency]);
+  const { table: amortizationTable, totals } = useMemo(
+    () => calculateCompoundInterest({ initialAmount, monthlyContribution, months, rate, frequency }),
+    [initialAmount, monthlyContribution, months, rate, frequency]
+  );
 
   return (
     <main className="min-h-screen bg-slate-100 py-10 px-4 md:px-10 font-sans">

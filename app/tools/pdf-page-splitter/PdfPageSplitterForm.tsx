@@ -15,10 +15,18 @@ export default function PdfPageSplitterForm() {
       return;
     }
 
-    setFile(selectedFile);
-    const arrayBuffer = await selectedFile.arrayBuffer();
-    const pdfDoc = await PDFDocument.load(arrayBuffer);
-    setPageCount(pdfDoc.getPageCount());
+    // El tipo lo deduce el navegador de la extensión: solo cargar el archivo
+    // confirma que de verdad es un PDF legible.
+    try {
+      const pdfDoc = await PDFDocument.load(await selectedFile.arrayBuffer());
+      setFile(selectedFile);
+      setPageCount(pdfDoc.getPageCount());
+    } catch {
+      setFile(null);
+      setPageCount(null);
+      e.target.value = "";
+      alert("No se pudo leer el PDF. Puede estar dañado o protegido con contraseña.");
+    }
   };
 
   const splitPDFToZip = async () => {
@@ -41,10 +49,12 @@ export default function PdfPageSplitterForm() {
       }
 
       const zipBlob = await zip.generateAsync({ type: "blob" });
+      const url = URL.createObjectURL(zipBlob);
       const link = document.createElement("a");
-      link.href = URL.createObjectURL(zipBlob);
+      link.href = url;
       link.download = `${baseName}-individual-pages.zip`;
       link.click();
+      URL.revokeObjectURL(url);
     } catch (error) {
       console.error(error);
       alert("Error al procesar el PDF.");
