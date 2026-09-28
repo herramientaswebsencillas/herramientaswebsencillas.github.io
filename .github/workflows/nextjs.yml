@@ -28,7 +28,7 @@ jobs:
       # Debe ir antes de setup-node: la caché de pnpm necesita el binario ya
       # disponible. La versión sale del campo "packageManager" de package.json.
       - name: Install pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@v6
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
