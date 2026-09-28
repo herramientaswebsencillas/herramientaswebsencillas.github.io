@@ -43,7 +43,7 @@ jobs:
         if: github.event_name != 'pull_request'
         uses: actions/configure-pages@v5
       - name: Restore cache
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: |
             .next/cache
