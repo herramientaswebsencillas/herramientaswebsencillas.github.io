@@ -48,10 +48,8 @@ export default function RateChart({ points, from, to }: Props) {
   // Un periodo plano dejaría el rango en cero y la línea saldría fuera del área.
   const span = max - min || max || 1;
 
-  const x = (index: number) =>
-    PAD_X + (index * (WIDTH - PAD_X * 2)) / (points.length - 1);
-  const y = (value: number) =>
-    HEIGHT - PAD_Y - ((value - min) / span) * (HEIGHT - PAD_Y * 2);
+  const x = (index: number) => PAD_X + (index * (WIDTH - PAD_X * 2)) / (points.length - 1);
+  const y = (value: number) => HEIGHT - PAD_Y - ((value - min) / span) * (HEIGHT - PAD_Y * 2);
 
   const line = points.map((p, i) => `${x(i)},${y(p.value)}`).join(" ");
   const area = `${PAD_X},${HEIGHT - PAD_Y} ${line} ${WIDTH - PAD_X},${HEIGHT - PAD_Y}`;
@@ -77,10 +75,8 @@ export default function RateChart({ points, from, to }: Props) {
         <p className="text-sm text-slate-500">
           {active ? (
             <>
-              <span className="font-semibold text-slate-700">
-                {active.value.toFixed(4)}
-              </span>{" "}
-              {to} el {formatDate(active.date)}
+              <span className="font-semibold text-slate-700">{active.value.toFixed(4)}</span> {to}{" "}
+              el {formatDate(active.date)}
             </>
           ) : (
             <>
@@ -88,11 +84,7 @@ export default function RateChart({ points, from, to }: Props) {
             </>
           )}
         </p>
-        <p
-          className={`text-sm font-semibold ${
-            change >= 0 ? "text-emerald-600" : "text-red-600"
-          }`}
-        >
+        <p className={`text-sm font-semibold ${change >= 0 ? "text-emerald-600" : "text-red-600"}`}>
           {change >= 0 ? "▲" : "▼"} {Math.abs(change).toFixed(2)}% en el periodo
         </p>
       </div>

@@ -16,17 +16,15 @@ export default function AboutPage() {
             Acerca de este sitio
           </h1>
           <p className="text-slate-600 text-base leading-relaxed">
-            Herramientas Web Sencillas es una colección gratuita de utilidades
-            en línea pensadas para resolver tareas comunes en segundos:
-            calculadoras, generadores, convertidores y herramientas para
-            manejo de archivos, todo en una sola página, sin registros ni
+            Herramientas Web Sencillas es una colección gratuita de utilidades en línea pensadas
+            para resolver tareas comunes en segundos: calculadoras, generadores, convertidores y
+            herramientas para manejo de archivos, todo en una sola página, sin registros ni
             instalaciones, y siempre accesible desde el navegador.
           </p>
 
           <p className="text-slate-600 text-base leading-relaxed mt-4">
-            Este es un proyecto de código abierto. Si quieres revisar el
-            código, reportar un error o proponer una nueva herramienta,
-            puedes visitar el{' '}
+            Este es un proyecto de código abierto. Si quieres revisar el código, reportar un error o
+            proponer una nueva herramienta, puedes visitar el{" "}
             <a
               href="https://github.com/herramientaswebsencillas/herramientaswebsencillas.github.io"
               target="_blank"
@@ -39,16 +37,14 @@ export default function AboutPage() {
           </p>
 
           <p className="text-slate-600 text-base leading-relaxed mt-4">
-            El sitio no tiene cuentas ni analítica, y casi todo ocurre en tu
-            navegador. En{" "}
+            El sitio no tiene cuentas ni analítica, y casi todo ocurre en tu navegador. En{" "}
             <Link
               href="/privacy"
               className="text-blue-600 hover:text-blue-700 font-medium underline underline-offset-2"
             >
               Privacidad
             </Link>{" "}
-            se detalla qué herramientas usan un servicio externo y qué datos le
-            envían.
+            se detalla qué herramientas usan un servicio externo y qué datos le envían.
           </p>
         </div>
       </div>

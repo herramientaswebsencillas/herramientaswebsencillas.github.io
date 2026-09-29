@@ -9,7 +9,7 @@ const LANGUAGETOOL_ENDPOINT = "https://api.languagetool.org/v2/check";
 
 // Límite real de la API: 20,000 caracteres. Usamos el 10% como margen de seguridad.
 const API_CHAR_LIMIT = 20000;
-const MAX_CHARS = Math.floor(API_CHAR_LIMIT * 0.10);
+const MAX_CHARS = Math.floor(API_CHAR_LIMIT * 0.1);
 
 type Status = "idle" | "checking" | "done" | "error";
 
@@ -100,9 +100,7 @@ export default function ProofreaderForm() {
     setMatches((prev) =>
       prev
         .filter((m) => m !== match)
-        .map((m) =>
-          m.offset > match.offset ? { ...m, offset: m.offset + delta } : m
-        )
+        .map((m) => (m.offset > match.offset ? { ...m, offset: m.offset + delta } : m))
     );
     setActiveId(null);
   };
@@ -124,9 +122,7 @@ export default function ProofreaderForm() {
 
     sorted.forEach((m, i) => {
       if (m.offset > cursor) {
-        segments.push(
-          <span key={`plain-${i}`}>{text.slice(cursor, m.offset)}</span>
-        );
+        segments.push(<span key={`plain-${i}`}>{text.slice(cursor, m.offset)}</span>);
       }
       const errorText = text.slice(m.offset, m.offset + m.length);
       const id = `${m.offset}-${m.length}-${i}`;
@@ -141,9 +137,7 @@ export default function ProofreaderForm() {
             role="button"
             aria-expanded={isActive}
             className={`cursor-pointer rounded px-0.5 bg-transparent underline decoration-wavy decoration-2 underline-offset-2 transition-colors ${
-              spelling
-                ? "decoration-red-500"
-                : "decoration-amber-500"
+              spelling ? "decoration-red-500" : "decoration-amber-500"
             } ${isActive ? (spelling ? "bg-red-50" : "bg-amber-50") : ""}`}
           >
             {errorText}
@@ -159,22 +153,16 @@ export default function ProofreaderForm() {
 
               <span
                 className={`mb-2 inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide ${
-                  spelling
-                    ? "bg-red-50 text-red-700"
-                    : "bg-amber-50 text-amber-700"
+                  spelling ? "bg-red-50 text-red-700" : "bg-amber-50 text-amber-700"
                 }`}
               >
                 <span
-                  className={`h-1.5 w-1.5 rounded-full ${
-                    spelling ? "bg-red-500" : "bg-amber-500"
-                  }`}
+                  className={`h-1.5 w-1.5 rounded-full ${spelling ? "bg-red-500" : "bg-amber-500"}`}
                 />
                 {categoryLabel(m)}
               </span>
 
-              <p className="mb-3 text-sm leading-snug text-slate-700">
-                {m.message}
-              </p>
+              <p className="mb-3 text-sm leading-snug text-slate-700">{m.message}</p>
 
               {m.replacements?.length > 0 && (
                 <div className="mb-3">
@@ -227,8 +215,7 @@ export default function ProofreaderForm() {
           Corrector de texto
         </h2>
         <p className="mb-8 text-center text-sm font-medium text-slate-400">
-          Escribe tu texto, revisa las observaciones y aplica las correcciones
-          con un clic.
+          Escribe tu texto, revisa las observaciones y aplica las correcciones con un clic.
         </p>
 
         <div className="mb-4 flex items-center justify-between gap-3">
@@ -274,39 +261,29 @@ export default function ProofreaderForm() {
         {(status === "idle" || status === "error") && (
           <p
             className={`mt-2 text-right text-xs font-medium ${
-              isAtLimit
-                ? "text-red-500"
-                : isNearLimit
-                ? "text-amber-500"
-                : "text-slate-400"
+              isAtLimit ? "text-red-500" : isNearLimit ? "text-amber-500" : "text-slate-400"
             }`}
           >
-            {charCount.toLocaleString("es")} / {MAX_CHARS.toLocaleString("es")}{" "}
-            caracteres
+            {charCount.toLocaleString("es")} / {MAX_CHARS.toLocaleString("es")} caracteres
           </p>
         )}
 
         {status === "error" && (
           <p className="mt-3 text-center text-sm font-medium text-red-600">
-            ⚠️ No se pudo conectar con el servicio de corrección. Intenta de
-            nuevo en un momento.
+            ⚠️ No se pudo conectar con el servicio de corrección. Intenta de nuevo en un momento.
           </p>
         )}
 
         <div className="mt-6 flex items-center justify-between gap-3">
           <span className="text-sm font-semibold text-slate-500">
-            {status === "checking" && (
-              <span className="animate-pulse">Revisando…</span>
-            )}
+            {status === "checking" && <span className="animate-pulse">Revisando…</span>}
             {status === "done" &&
               (errorCount === 0 ? (
-                <span className="text-green-600">
-                  ✓ Sin observaciones — buena prueba
-                </span>
+                <span className="text-green-600">✓ Sin observaciones — buena prueba</span>
               ) : (
                 <span>
-                  {errorCount} observación{errorCount === 1 ? "" : "es"}{" "}
-                  encontrada{errorCount === 1 ? "" : "s"}
+                  {errorCount} observación{errorCount === 1 ? "" : "es"} encontrada
+                  {errorCount === 1 ? "" : "s"}
                 </span>
               ))}
           </span>

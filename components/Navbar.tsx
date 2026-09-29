@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import Link from 'next/link';
-import { useState } from 'react';
+import Link from "next/link";
+import { useState } from "react";
 
 const Navbar = () => {
   const [menuAbierto, setMenuAbierto] = useState(false);
@@ -33,7 +33,7 @@ const Navbar = () => {
             type="button"
             onClick={() => setMenuAbierto((abierto) => !abierto)}
             className="sm:hidden shrink-0 p-2 -mr-2 text-slate-200 hover:text-blue-400 transition-colors"
-            aria-label={menuAbierto ? 'Cerrar menú' : 'Abrir menú'}
+            aria-label={menuAbierto ? "Cerrar menú" : "Abrir menú"}
             aria-expanded={menuAbierto}
           >
             {menuAbierto ? (

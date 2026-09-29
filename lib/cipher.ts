@@ -151,9 +151,7 @@ async function decryptLegacy(
     result = "";
   }
   if (!result) {
-    throw new CipherError(
-      "No se pudo desencriptar. Verifica la frase secreta y el algoritmo."
-    );
+    throw new CipherError("No se pudo desencriptar. Verifica la frase secreta y el algoritmo.");
   }
   return result;
 }

@@ -16,7 +16,7 @@ El sitio se genera como export estático (`output: 'export'`) y se publica en Gi
 - **Construir**: `pnpm build` — genera el sitio estático en `out/` y le inserta la CSP con los hashes de cada página (`scripts/csp-hashes.mjs`)
 - **Previsualizar el build**: `pnpm start` — sirve `out/` en el puerto 3000 con `scripts/serve-out.mjs` (`next start` no sirve con `output: 'export'`)
 - **Lint**: `pnpm lint`
-- **Formato**: `pnpm format` aplica Prettier; `pnpm format:check` solo comprueba
+- **Formato**: `pnpm format` aplica Prettier; `pnpm format:check` solo comprueba, como hace el CI
 - **Comprobar tipos**: `pnpm exec tsc --noEmit`
 - **Pruebas unitarias**: `pnpm test` — Vitest sobre la lógica de `lib/`
 - **Servicios externos**: `pnpm test:apis` — consulta de verdad LanguageTool, MyMemory y Frankfurter y comprueba el formato de sus respuestas
@@ -104,7 +104,7 @@ Que el extremo ausente sea hoy es lo que hace útil al enlace corto: `?hasta=25/
 
 ## Despliegue
 
-Cada push a `main` dispara el workflow de GitHub Actions. Instala con `pnpm install --frozen-lockfile`, ejecuta lint, `pnpm audit`, las pruebas unitarias, `pnpm build` y las pruebas E2E, y solo si todo pasa publica `out/` en GitHub Pages. En los pull request se ejecutan las mismas verificaciones sin publicar. Cada publicación deja además un SBOM (inventario de dependencias en formato CycloneDX) como artefacto de la ejecución, en la pestaña **Actions**.
+Cada push a `main` dispara el workflow de GitHub Actions. Instala con `pnpm install --frozen-lockfile`, ejecuta lint, la comprobación de formato, `pnpm audit`, las pruebas unitarias, `pnpm build` y las pruebas E2E, y solo si todo pasa publica `out/` en GitHub Pages. En los pull request se ejecutan las mismas verificaciones sin publicar. Cada publicación deja además un SBOM (inventario de dependencias en formato CycloneDX) como artefacto de la ejecución, en la pestaña **Actions**.
 
 Las acciones de los workflows se fijan por SHA, con la versión en un comentario. Dependabot las actualiza igual que las dependencias.
 

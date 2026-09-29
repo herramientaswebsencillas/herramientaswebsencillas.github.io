@@ -44,7 +44,8 @@ const DATA_URL = /^data:([\w.+-]+\/[\w.+-]+)?((?:;[\w.+-]+=[^;,]*)*);base64,/i;
 const BASE64 = /^[A-Za-z0-9+/]*={0,2}$/;
 // Tipos que el navegador interpreta como documento y en los que puede correr
 // un script: HTML, XHTML, SVG y cualquier XML.
-const ACTIVE_TYPE = /^(text\/html|application\/xhtml\+xml|image\/svg\+xml|(text|application)\/xml|[\w.-]+\/[\w.-]+\+xml)$/;
+const ACTIVE_TYPE =
+  /^(text\/html|application\/xhtml\+xml|image\/svg\+xml|(text|application)\/xml|[\w.-]+\/[\w.-]+\+xml)$/;
 
 /**
  * Decodifica Base64 puro o un data URL con Base64 a bytes.
@@ -70,14 +71,16 @@ export function decodeBase64File(input: string): DecodedFile {
     text = text.slice(header[0].length);
   } else if (/^[a-z][\w+.-]*:/i.test(text)) {
     throw new FileToolError(
-      "Solo se aceptan datos Base64, solos o con la cabecera \"data:tipo/subtipo;base64,\"."
+      'Solo se aceptan datos Base64, solos o con la cabecera "data:tipo/subtipo;base64,".'
     );
   }
 
   const payload = text.replace(/\s+/g, "");
   if (!payload) throw new FileToolError("Pega el código Base64 del archivo.");
   if (!BASE64.test(payload) || payload.length % 4 === 1) {
-    throw new FileToolError("El código Base64 no es válido: tiene caracteres fuera del alfabeto o está incompleto.");
+    throw new FileToolError(
+      "El código Base64 no es válido: tiene caracteres fuera del alfabeto o está incompleto."
+    );
   }
 
   const binary = atob(payload);

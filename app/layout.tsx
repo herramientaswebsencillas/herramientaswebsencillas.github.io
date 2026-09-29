@@ -19,8 +19,9 @@ export const metadata: Metadata = {
     default: "Herramientas Web Sencillas",
     template: "%s | Herramientas Web Sencillas",
   },
-  description: "Colección de herramientas web rápidas, gratuitas y fáciles de usar para mejorar tu productividad y resolver tareas comunes en segundos.",
-  metadataBase: new URL('https://herramientaswebsencillas.github.io'),
+  description:
+    "Colección de herramientas web rápidas, gratuitas y fáciles de usar para mejorar tu productividad y resolver tareas comunes en segundos.",
+  metadataBase: new URL("https://herramientaswebsencillas.github.io"),
   // GitHub Pages no permite la cabecera Referrer-Policy, pero la etiqueta
   // <meta> equivalente sí funciona: a otros sitios solo llega el origen.
   referrer: "strict-origin-when-cross-origin",

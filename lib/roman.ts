@@ -1,6 +1,5 @@
 /* Conversión entre números decimales y romanos (1 a 3999). */
 
-
 const ROMAN_MAP: [number, string][] = [
   [1000, "M"],
   [900, "CM"],

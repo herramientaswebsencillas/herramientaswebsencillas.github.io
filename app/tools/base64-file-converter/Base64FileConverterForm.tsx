@@ -26,7 +26,9 @@ export default function Base64FileConverterForm() {
       assertMaxSize([file], MAX_BASE64_FILE_BYTES);
     } catch (error) {
       e.target.value = "";
-      setUploadError(error instanceof FileToolError ? error.message : "No se pudo leer el archivo.");
+      setUploadError(
+        error instanceof FileToolError ? error.message : "No se pudo leer el archivo."
+      );
       return;
     }
 
@@ -69,11 +71,12 @@ export default function Base64FileConverterForm() {
       <div className="max-w-5xl mx-auto">
         <div className="mb-10 text-center">
           <h1 className="text-3xl font-bold text-slate-800 mb-2">Convertidor de Archivos Base64</h1>
-          <p className="text-slate-500">Convierte imágenes, PDFs o cualquier archivo a Base64 y viceversa.</p>
+          <p className="text-slate-500">
+            Convierte imágenes, PDFs o cualquier archivo a Base64 y viceversa.
+          </p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          
           <div className="bg-surface rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
             <div className="bg-emerald-700 p-4">
               <h2 className="text-white font-semibold flex items-center gap-2">
@@ -103,7 +106,7 @@ export default function Base64FileConverterForm() {
                   readOnly
                 />
                 {base64Output && (
-                  <button 
+                  <button
                     onClick={() => copyToClipboard(base64Output)}
                     className="absolute top-2 right-2 p-2 bg-slate-700 hover:bg-slate-600 rounded-lg text-xs text-white transition-colors"
                   >
@@ -142,11 +145,11 @@ export default function Base64FileConverterForm() {
                 Descargar Archivo Reconstruido
               </button>
               <p className="text-xs text-slate-400 italic text-center">
-                Nota: incluye la cabecera &quot;data:tipo/subtipo;base64,&quot; para que el archivo conserve su tipo.
+                Nota: incluye la cabecera &quot;data:tipo/subtipo;base64,&quot; para que el archivo
+                conserve su tipo.
               </p>
             </div>
           </div>
-
         </div>
       </div>
     </main>

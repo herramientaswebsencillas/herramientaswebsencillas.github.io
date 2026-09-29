@@ -20,11 +20,7 @@ function makeDate(year: number, month: number, day: number): Date | null {
 
   // Descarta fechas inexistentes (31/02, por ejemplo): el constructor las
   // desborda al mes siguiente en vez de fallar.
-  if (
-    date.getFullYear() !== year ||
-    date.getMonth() !== month - 1 ||
-    date.getDate() !== day
-  ) {
+  if (date.getFullYear() !== year || date.getMonth() !== month - 1 || date.getDate() !== day) {
     return null;
   }
 
@@ -60,18 +56,12 @@ export function diffInDays(from: Date, to: Date) {
 export function addMonths(date: Date, months: number) {
   const month = date.getMonth() + months;
   const lastDayOfTarget = new Date(date.getFullYear(), month + 1, 0).getDate();
-  return new Date(
-    date.getFullYear(),
-    month,
-    Math.min(date.getDate(), lastDayOfTarget),
-  );
+  return new Date(date.getFullYear(), month, Math.min(date.getDate(), lastDayOfTarget));
 }
 
 /** Meses completos entre dos fechas, contando el calendario real. */
 export function diffInMonths(from: Date, to: Date) {
-  const estimate =
-    (to.getFullYear() - from.getFullYear()) * 12 +
-    (to.getMonth() - from.getMonth());
+  const estimate = (to.getFullYear() - from.getFullYear()) * 12 + (to.getMonth() - from.getMonth());
 
   // El estimado se pasa cuando el día del mes destino aún no ha llegado.
   return addMonths(from, estimate) > to ? estimate - 1 : estimate;

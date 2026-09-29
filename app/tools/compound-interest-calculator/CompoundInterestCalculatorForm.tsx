@@ -11,7 +11,8 @@ export default function CompoundInterestCalculatorForm() {
   const [frequency, setFrequency] = useState<number>(12);
 
   const { table: amortizationTable, totals } = useMemo(
-    () => calculateCompoundInterest({ initialAmount, monthlyContribution, months, rate, frequency }),
+    () =>
+      calculateCompoundInterest({ initialAmount, monthlyContribution, months, rate, frequency }),
     [initialAmount, monthlyContribution, months, rate, frequency]
   );
 
@@ -23,40 +24,72 @@ export default function CompoundInterestCalculatorForm() {
           Calculadora de Interés Compuesto
         </h1>
         <p className="text-slate-500 text-lg max-w-2xl">
-          Herramienta para calcular el crecimiento del interés a lo largo del tiempo basado en la frecuencia, capital y tasa.
+          Herramienta para calcular el crecimiento del interés a lo largo del tiempo basado en la
+          frecuencia, capital y tasa.
         </p>
       </div>
 
       <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8">
-        
         <div className="bg-surface p-8 rounded-3xl shadow-lg border border-slate-200 h-fit">
-          <h2 className="text-xl font-black text-slate-800 mb-6 uppercase tracking-tight">Configuración</h2>
+          <h2 className="text-xl font-black text-slate-800 mb-6 uppercase tracking-tight">
+            Configuración
+          </h2>
           <div className="space-y-4">
             <div>
-              <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Inversión Inicial ($)</label>
-              <input type="number" value={initialAmount} onChange={(e) => setInitialAmount(Number(e.target.value))} className="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 font-bold outline-none focus:ring-2 focus:ring-indigo-500" />
+              <label className="block text-xs font-bold text-slate-500 uppercase mb-1">
+                Inversión Inicial ($)
+              </label>
+              <input
+                type="number"
+                value={initialAmount}
+                onChange={(e) => setInitialAmount(Number(e.target.value))}
+                className="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 font-bold outline-none focus:ring-2 focus:ring-indigo-500"
+              />
             </div>
-            
+
             <div>
-              <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Aportación Mensual ($)</label>
-              <input type="number" value={monthlyContribution} onChange={(e) => setMonthlyContribution(Number(e.target.value))} className="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 font-bold outline-none focus:ring-2 focus:ring-indigo-500" />
+              <label className="block text-xs font-bold text-slate-500 uppercase mb-1">
+                Aportación Mensual ($)
+              </label>
+              <input
+                type="number"
+                value={monthlyContribution}
+                onChange={(e) => setMonthlyContribution(Number(e.target.value))}
+                className="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 font-bold outline-none focus:ring-2 focus:ring-indigo-500"
+              />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Tasa Anual %</label>
-                <input type="number" value={rate} onChange={(e) => setRate(Number(e.target.value))} className="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 font-bold outline-none focus:ring-2 focus:ring-indigo-500" />
+                <label className="block text-xs font-bold text-slate-500 uppercase mb-1">
+                  Tasa Anual %
+                </label>
+                <input
+                  type="number"
+                  value={rate}
+                  onChange={(e) => setRate(Number(e.target.value))}
+                  className="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 font-bold outline-none focus:ring-2 focus:ring-indigo-500"
+                />
               </div>
               <div>
-                <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Meses</label>
-                <input type="number" value={months} onChange={(e) => setMonths(Number(e.target.value))} className="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 font-bold outline-none focus:ring-2 focus:ring-indigo-500" />
+                <label className="block text-xs font-bold text-slate-500 uppercase mb-1">
+                  Meses
+                </label>
+                <input
+                  type="number"
+                  value={months}
+                  onChange={(e) => setMonths(Number(e.target.value))}
+                  className="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 font-bold outline-none focus:ring-2 focus:ring-indigo-500"
+                />
               </div>
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Frecuencia de Rendimientos</label>
-              <select 
-                value={frequency} 
+              <label className="block text-xs font-bold text-slate-500 uppercase mb-1">
+                Frecuencia de Rendimientos
+              </label>
+              <select
+                value={frequency}
                 onChange={(e) => setFrequency(Number(e.target.value))}
                 className="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 font-bold outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer"
               >
@@ -69,39 +102,52 @@ export default function CompoundInterestCalculatorForm() {
           </div>
 
           <div className="mt-8 p-6 bg-indigo-600 rounded-2xl text-white shadow-xl shadow-indigo-200 text-center">
-            <span className="text-xs font-bold opacity-80 uppercase tracking-widest">Saldo Final</span>
-            <div className="text-3xl font-black">${totals.final.toLocaleString(undefined, { maximumFractionDigits: 2 })}</div>
+            <span className="text-xs font-bold opacity-80 uppercase tracking-widest">
+              Saldo Final
+            </span>
+            <div className="text-3xl font-black">
+              ${totals.final.toLocaleString(undefined, { maximumFractionDigits: 2 })}
+            </div>
           </div>
         </div>
 
         <div className="lg:col-span-2 space-y-6">
           <div className="bg-surface p-8 rounded-3xl shadow-lg border border-slate-200">
-            <h2 className="text-xl font-black text-slate-800 mb-6 uppercase">Crecimiento del Capital</h2>
+            <h2 className="text-xl font-black text-slate-800 mb-6 uppercase">
+              Crecimiento del Capital
+            </h2>
             <div className="flex items-end gap-1 h-48 bg-slate-50 rounded-xl p-4 border border-dashed border-slate-300">
-              {amortizationTable.filter((_, i) => i % Math.max(1, Math.floor(months / 20)) === 0).map((data, idx) => (
-                <div 
-                  key={idx} 
-                  className="bg-indigo-500 w-full rounded-t-sm hover:bg-indigo-400 transition-all cursor-help relative group"
-                  style={{ height: `${(data.balance / totals.final) * 100}%` }}
-                >
-                  <span className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 bg-slate-800 text-white text-[10px] p-1 rounded opacity-0 group-hover:opacity-100 whitespace-nowrap z-10">
-                    Mes {data.month}: ${data.balance.toLocaleString(undefined, { maximumFractionDigits: 0 })}
-                  </span>
-                </div>
-              ))}
+              {amortizationTable
+                .filter((_, i) => i % Math.max(1, Math.floor(months / 20)) === 0)
+                .map((data, idx) => (
+                  <div
+                    key={idx}
+                    className="bg-indigo-500 w-full rounded-t-sm hover:bg-indigo-400 transition-all cursor-help relative group"
+                    style={{ height: `${(data.balance / totals.final) * 100}%` }}
+                  >
+                    <span className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 bg-slate-800 text-white text-[10px] p-1 rounded opacity-0 group-hover:opacity-100 whitespace-nowrap z-10">
+                      Mes {data.month}: $
+                      {data.balance.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                    </span>
+                  </div>
+                ))}
             </div>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
               {/* El color vive solo en la etiqueta y en un fondo muy claro; la
                   cifra va en gris oscuro. Se evitan además el verde/ámbar de
                   "correcto" y "advertencia": aquí nada es una alerta. */}
               <div className="p-4 bg-teal-50/70 rounded-2xl border border-teal-100 flex justify-between items-center">
                 <span className="text-xs font-bold text-teal-700 uppercase">Capital Invertido</span>
-                <span className="text-lg font-black text-slate-800">${totals.invested.toLocaleString()}</span>
+                <span className="text-lg font-black text-slate-800">
+                  ${totals.invested.toLocaleString()}
+                </span>
               </div>
               <div className="p-4 bg-sky-50/70 rounded-2xl border border-sky-100 flex justify-between items-center">
                 <span className="text-xs font-bold text-sky-700 uppercase">Interés Generado</span>
-                <span className="text-lg font-black text-slate-800">${totals.interest.toLocaleString(undefined, { maximumFractionDigits: 2 })}</span>
+                <span className="text-lg font-black text-slate-800">
+                  ${totals.interest.toLocaleString(undefined, { maximumFractionDigits: 2 })}
+                </span>
               </div>
             </div>
           </div>
@@ -117,16 +163,32 @@ export default function CompoundInterestCalculatorForm() {
                 <thead className="bg-slate-100 sticky top-0">
                   <tr>
                     <th className="p-4 text-[10px] font-bold text-slate-500 uppercase">Mes</th>
-                    <th className="p-4 text-[10px] font-bold text-slate-500 uppercase">Saldo Acumulado</th>
-                    <th className="p-4 text-[10px] font-bold text-slate-500 uppercase">Rendimiento</th>
+                    <th className="p-4 text-[10px] font-bold text-slate-500 uppercase">
+                      Saldo Acumulado
+                    </th>
+                    <th className="p-4 text-[10px] font-bold text-slate-500 uppercase">
+                      Rendimiento
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-200 text-slate-900">
                   {amortizationTable.map((row) => (
                     <tr key={row.month} className="hover:bg-slate-100 transition-colors">
                       <td className="p-4 font-bold text-slate-400">{row.month}</td>
-                      <td className="p-4 font-bold">${row.balance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-                      <td className="p-4 text-sky-700 font-semibold">+${row.interest.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                      <td className="p-4 font-bold">
+                        $
+                        {row.balance.toLocaleString(undefined, {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2,
+                        })}
+                      </td>
+                      <td className="p-4 text-sky-700 font-semibold">
+                        +$
+                        {row.interest.toLocaleString(undefined, {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2,
+                        })}
+                      </td>
                     </tr>
                   ))}
                 </tbody>

@@ -22,8 +22,13 @@ for (const path of PAGES) {
 
 test("lo publicado no admite scripts inline sin hash", async ({ page }) => {
   await page.goto("/");
-  const csp = await page.locator('meta[http-equiv="Content-Security-Policy"]').getAttribute("content");
-  const scriptSrc = csp?.split(";").map((d) => d.trim()).find((d) => d.startsWith("script-src "));
+  const csp = await page
+    .locator('meta[http-equiv="Content-Security-Policy"]')
+    .getAttribute("content");
+  const scriptSrc = csp
+    ?.split(";")
+    .map((d) => d.trim())
+    .find((d) => d.startsWith("script-src "));
   expect(scriptSrc).toBeDefined();
   expect(scriptSrc).not.toContain("'unsafe-inline'");
   expect(scriptSrc).toMatch(/'sha256-[A-Za-z0-9+/]+=*'/);
@@ -61,7 +66,9 @@ test("el encriptador cifra y descifra en el navegador", async ({ page }) => {
   const check = await watchPage(page);
   await page.goto("/tools/text-encryptor");
 
-  await page.getByPlaceholder("Escribe el mensaje que quieres proteger…").fill("Mensaje de prueba ñ 🔐");
+  await page
+    .getByPlaceholder("Escribe el mensaje que quieres proteger…")
+    .fill("Mensaje de prueba ñ 🔐");
   await page.getByPlaceholder("Tu clave compartida").fill("frase de prueba");
   await page.getByRole("button", { name: "Encriptar texto" }).click();
   await expect(page.getByText(/^v2:/)).toBeVisible();

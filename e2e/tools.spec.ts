@@ -156,7 +156,10 @@ test("el corrector muestra y aplica las sugerencias de LanguageTool", async ({ p
             offset: 0,
             length: 4,
             replacements: [{ value: "Había" }],
-            rule: { id: "MORFOLOGIK_RULE_ES", category: { id: "TYPOS", name: "Errores ortográficos" } },
+            rule: {
+              id: "MORFOLOGIK_RULE_ES",
+              category: { id: "TYPOS", name: "Errores ortográficos" },
+            },
           },
         ],
       },
@@ -191,7 +194,9 @@ test.describe("traductor", () => {
 
     await page.getByPlaceholder(/Escribe o pega el texto/).fill("hola mundo");
     await page.getByRole("button", { name: "Traducir", exact: true }).click();
-    await expect(page.getByPlaceholder("La traducción aparecerá aquí...")).toHaveValue("hello world");
+    await expect(page.getByPlaceholder("La traducción aparecerá aquí...")).toHaveValue(
+      "hello world"
+    );
     await check();
   });
 

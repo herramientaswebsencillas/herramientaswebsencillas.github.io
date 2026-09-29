@@ -44,7 +44,9 @@ describe("decodeBase64File", () => {
   });
 
   it("conserva los tipos inertes", () => {
-    expect(decodeBase64File("data:application/pdf;base64,JVBERg==").mimeType).toBe("application/pdf");
+    expect(decodeBase64File("data:application/pdf;base64,JVBERg==").mimeType).toBe(
+      "application/pdf"
+    );
     expect(decodeBase64File("data:image/png;base64,iVBORw==").mimeType).toBe("image/png");
   });
 
@@ -68,7 +70,9 @@ describe("decodeBase64File", () => {
 
 describe("assertMaxSize", () => {
   it("deja pasar archivos dentro del límite", () => {
-    expect(() => assertMaxSize([{ name: "a.pdf", size: MAX_PDF_BYTES }], MAX_PDF_BYTES)).not.toThrow();
+    expect(() =>
+      assertMaxSize([{ name: "a.pdf", size: MAX_PDF_BYTES }], MAX_PDF_BYTES)
+    ).not.toThrow();
   });
 
   it("nombra el archivo que se pasa del límite", () => {
