@@ -95,7 +95,9 @@ export default function TranslatorForm() {
       <div className="max-w-5xl mx-auto">
         <div className="mb-10 text-center">
           <h1 className="text-3xl font-bold text-slate-800 mb-2">Traductor de Texto</h1>
-          <p className="text-slate-500">Traduce texto entre múltiples idiomas usando una API gratuita.</p>
+          <p className="text-slate-500">
+            Traduce texto entre múltiples idiomas usando una API gratuita.
+          </p>
         </div>
 
         {/* Selector de idiomas */}
@@ -152,9 +154,7 @@ export default function TranslatorForm() {
                 <span className={isOverLimit ? "text-red-500 font-semibold" : "text-slate-400"}>
                   {charCount} caracteres · {byteCount} / {MAX_CHARS} bytes
                 </span>
-                {isOverLimit && (
-                  <span className="text-red-500 font-semibold">Límite excedido</span>
-                )}
+                {isOverLimit && <span className="text-red-500 font-semibold">Límite excedido</span>}
               </div>
               <button
                 onClick={translateText}
@@ -170,9 +170,7 @@ export default function TranslatorForm() {
           {/* Texto traducido */}
           <div className="bg-surface rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
             <div className="bg-blue-700 p-4">
-              <h2 className="text-white font-semibold flex items-center gap-2">
-                🌐 Traducción
-              </h2>
+              <h2 className="text-white font-semibold flex items-center gap-2">🌐 Traducción</h2>
             </div>
             <div className="p-6 space-y-4">
               <div className="relative">
@@ -201,7 +199,8 @@ export default function TranslatorForm() {
                 >
                   MyMemory API
                 </a>{" "}
-                · calidad variable. El texto que ingreses se comparte con este servicio, que lo conserva: no traduzcas datos personales ni confidenciales.
+                · calidad variable. El texto que ingreses se comparte con este servicio, que lo
+                conserva: no traduzcas datos personales ni confidenciales.
               </p>
             </div>
           </div>

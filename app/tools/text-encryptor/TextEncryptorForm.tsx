@@ -58,9 +58,7 @@ export default function TextEncryptorForm() {
       setResult(output);
     } catch (err) {
       setResult("");
-      setError(
-        err instanceof CipherError ? err.message : "Ocurrió un error inesperado."
-      );
+      setError(err instanceof CipherError ? err.message : "Ocurrió un error inesperado.");
     } finally {
       setBusy(false);
     }
@@ -92,8 +90,8 @@ export default function TextEncryptorForm() {
           Encripta un texto con tu propia frase secreta
         </h1>
         <p className="text-slate-400 mt-3 text-sm sm:text-base max-w-lg mx-auto">
-          Escribe una frase secreta y protege cualquier mensaje con AES-256.
-          Todo ocurre en tu navegador, nada se guarda ni se envía.
+          Escribe una frase secreta y protege cualquier mensaje con AES-256. Todo ocurre en tu
+          navegador, nada se guarda ni se envía.
         </p>
       </div>
 
@@ -203,9 +201,8 @@ export default function TextEncryptorForm() {
               <>
                 <p className="text-xs text-amber-300">Formato anterior</p>
                 <p className="text-[11px] text-slate-500 max-w-[20rem] text-right">
-                  Texto cifrado con la versión previa de esta herramienta. Elige
-                  el algoritmo con el que se encriptó; si vuelves a encriptarlo,
-                  se usará el formato actual, más seguro.
+                  Texto cifrado con la versión previa de esta herramienta. Elige el algoritmo con el
+                  que se encriptó; si vuelves a encriptarlo, se usará el formato actual, más seguro.
                 </p>
               </>
             ) : (
@@ -224,11 +221,7 @@ export default function TextEncryptorForm() {
             disabled={busy}
             className="w-full rounded-lg bg-teal-400 text-slate-950 font-semibold py-3 hover:bg-teal-300 transition-colors cursor-pointer disabled:opacity-60 disabled:cursor-wait"
           >
-            {busy
-              ? "Procesando…"
-              : mode === "encrypt"
-                ? "Encriptar texto"
-                : "Desencriptar texto"}
+            {busy ? "Procesando…" : mode === "encrypt" ? "Encriptar texto" : "Desencriptar texto"}
           </button>
 
           {error && (

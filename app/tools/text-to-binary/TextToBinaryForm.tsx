@@ -59,7 +59,6 @@ export default function TextToBinaryForm() {
         </header>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          
           <div className="flex flex-col">
             <label className="mb-2 ml-1 text-sm font-semibold text-blue-400 uppercase tracking-wider">
               Entrada de Texto

@@ -1,11 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import {
-  CURRENCIES,
-  CURRENCY_CODES,
-  ECB_CURRENCIES,
-} from "@/lib/currencies";
+import { CURRENCIES, CURRENCY_CODES, ECB_CURRENCIES } from "@/lib/currencies";
 import { parseFrankfurterRates } from "@/lib/external";
 import RateChart, { RatePoint } from "./RateChart";
 
@@ -83,8 +79,7 @@ export default function CurrencyConverterForm() {
 
   const sameCurrency = from === to;
   // La gráfica usa solo los datos del BCE (ver ECB_CURRENCIES).
-  const chartSupported =
-    ECB_CURRENCIES.has(from) && ECB_CURRENCIES.has(to) && !sameCurrency;
+  const chartSupported = ECB_CURRENCIES.has(from) && ECB_CURRENCIES.has(to) && !sameCurrency;
   const seriesKey = `${from}|${to}|${range}`;
 
   /* ------------------------------ Cotizaciones ----------------------------- */
@@ -185,21 +180,18 @@ export default function CurrencyConverterForm() {
      más antigua de las dos. */
   const rateDate = sameCurrency
     ? ""
-    : [fromQuote?.date, toQuote?.date].filter(Boolean).sort()[0] ?? "";
+    : ([fromQuote?.date, toQuote?.date].filter(Boolean).sort()[0] ?? "");
 
   const busy = !sameCurrency && !rates;
-  const failed = sameCurrency ? "" : rates?.error ?? "";
-  const missingQuote =
-    !busy && !failed && !sameCurrency && (!fromQuote || !toQuote);
+  const failed = sameCurrency ? "" : (rates?.error ?? "");
+  const missingQuote = !busy && !failed && !sameCurrency && (!fromQuote || !toQuote);
 
   const converted =
-    effectiveRate !== null && numericAmount !== null
-      ? numericAmount * effectiveRate
-      : null;
+    effectiveRate !== null && numericAmount !== null ? numericAmount * effectiveRate : null;
 
   const settledSeries = seriesResult?.key === seriesKey ? seriesResult : null;
   const loadingSeries = chartSupported && !settledSeries;
-  const seriesError = chartSupported ? settledSeries?.error ?? "" : "";
+  const seriesError = chartSupported ? (settledSeries?.error ?? "") : "";
   const series = settledSeries?.points ?? [];
 
   const outsideEcb = [from, to].filter((code) => !ECB_CURRENCIES.has(code));
@@ -224,17 +216,14 @@ export default function CurrencyConverterForm() {
             Conversor de Divisas y Tipo de Cambio
           </h1>
           <p className="text-slate-500">
-            Convierte entre 165 monedas y consulta cómo ha evolucionado el tipo
-            de cambio.
+            Convierte entre 165 monedas y consulta cómo ha evolucionado el tipo de cambio.
           </p>
         </div>
 
         {/* ----------------------------- Conversión ---------------------------- */}
         <div className="bg-surface rounded-2xl shadow-sm border border-slate-200 overflow-hidden mb-8">
           <div className="bg-teal-700 p-4">
-            <h2 className="text-white font-semibold flex items-center gap-2">
-              💱 Conversión
-            </h2>
+            <h2 className="text-white font-semibold flex items-center gap-2">💱 Conversión</h2>
           </div>
 
           <div className="p-6 space-y-5">
@@ -304,13 +293,9 @@ export default function CurrencyConverterForm() {
 
             {/* Resultado */}
             <div className="bg-slate-50 border border-slate-200 rounded-xl p-5 text-center">
-              {busy && (
-                <p className="text-slate-400 text-sm">Consultando tasas...</p>
-              )}
+              {busy && <p className="text-slate-400 text-sm">Consultando tasas...</p>}
 
-              {!busy && failed && (
-                <p className="text-red-500 text-sm">{failed}</p>
-              )}
+              {!busy && failed && <p className="text-red-500 text-sm">{failed}</p>}
 
               {missingQuote && (
                 <p className="text-amber-700 text-sm">
@@ -321,8 +306,7 @@ export default function CurrencyConverterForm() {
               {!busy && !failed && !missingQuote && converted !== null && (
                 <>
                   <p className="text-3xl font-bold text-slate-800 break-words">
-                    {formatAmount(converted)}{" "}
-                    <span className="text-lg text-slate-500">{to}</span>
+                    {formatAmount(converted)} <span className="text-lg text-slate-500">{to}</span>
                   </p>
                   {effectiveRate !== null && !sameCurrency && (
                     <p className="text-sm text-slate-500 mt-2">
@@ -331,9 +315,7 @@ export default function CurrencyConverterForm() {
                     </p>
                   )}
                   {rateDate && (
-                    <p className="text-xs text-slate-400 mt-1">
-                      Tasa del {formatDate(rateDate)}
-                    </p>
+                    <p className="text-xs text-slate-400 mt-1">Tasa del {formatDate(rateDate)}</p>
                   )}
                 </>
               )}
@@ -358,24 +340,18 @@ export default function CurrencyConverterForm() {
           <div className="p-6 space-y-4">
             {sameCurrency && (
               <p className="text-sm text-slate-500 text-center py-12">
-                Elige dos monedas distintas para ver la evolución del tipo de
-                cambio.
+                Elige dos monedas distintas para ver la evolución del tipo de cambio.
               </p>
             )}
 
             {!sameCurrency && !chartSupported && (
               <div className="text-sm text-amber-800 bg-amber-50 border border-amber-200 rounded-xl p-4 text-center">
-                <p className="font-semibold mb-1">
-                  Gráfica no disponible para este par
-                </p>
+                <p className="font-semibold mb-1">Gráfica no disponible para este par</p>
                 <p>
-                  El histórico solo existe para las 30 divisas de referencia del
-                  Banco Central Europeo, y{" "}
-                  {outsideEcb
-                    .map((code) => `${CURRENCIES[code]} (${code})`)
-                    .join(" y ")}{" "}
-                  {outsideEcb.length > 1 ? "no están incluidas" : "no está incluida"}
-                  . La conversión de arriba sí funciona con normalidad.
+                  El histórico solo existe para las 30 divisas de referencia del Banco Central
+                  Europeo, y {outsideEcb.map((code) => `${CURRENCIES[code]} (${code})`).join(" y ")}{" "}
+                  {outsideEcb.length > 1 ? "no están incluidas" : "no está incluida"}. La conversión
+                  de arriba sí funciona con normalidad.
                 </p>
               </div>
             )}
@@ -403,15 +379,11 @@ export default function CurrencyConverterForm() {
                 </p>
 
                 {loadingSeries && (
-                  <p className="text-slate-400 text-sm text-center py-12">
-                    Cargando histórico...
-                  </p>
+                  <p className="text-slate-400 text-sm text-center py-12">Cargando histórico...</p>
                 )}
 
                 {!loadingSeries && seriesError && (
-                  <p className="text-red-500 text-sm text-center py-12">
-                    {seriesError}
-                  </p>
+                  <p className="text-red-500 text-sm text-center py-12">{seriesError}</p>
                 )}
 
                 {!loadingSeries && !seriesError && (
@@ -432,10 +404,10 @@ export default function CurrencyConverterForm() {
           >
             Frankfurter
           </a>
-          . Los pares que no incluyen el dólar se calculan cruzando ambas
-          cotizaciones sobre él. No son precios de mercado en tiempo real ni
-          incluyen las comisiones de tu banco, así que sirven para orientarte,
-          no para operar. Solo se envía el par consultado, ningún dato personal.
+          . Los pares que no incluyen el dólar se calculan cruzando ambas cotizaciones sobre él. No
+          son precios de mercado en tiempo real ni incluyen las comisiones de tu banco, así que
+          sirven para orientarte, no para operar. Solo se envía el par consultado, ningún dato
+          personal.
         </p>
       </div>
     </main>

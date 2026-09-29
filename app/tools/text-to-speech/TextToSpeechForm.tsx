@@ -139,8 +139,7 @@ export default function TextToSpeechForm() {
       utterance.pitch = pitch;
       utterance.volume = volume;
 
-      utterance.onstart = () =>
-        setProgress({ current: index + 1, total: chunks.length });
+      utterance.onstart = () => setProgress({ current: index + 1, total: chunks.length });
 
       utterance.onerror = (event) => {
         // "interrupted"/"canceled" son consecuencia de pulsar Detener.
@@ -187,26 +186,21 @@ export default function TextToSpeechForm() {
     <main className="min-h-screen bg-slate-50 py-12 px-6">
       <div className="max-w-3xl mx-auto">
         <div className="mb-10 text-center">
-          <h1 className="text-3xl font-bold text-slate-800 mb-2">
-            Convertidor de Texto a Voz
-          </h1>
+          <h1 className="text-3xl font-bold text-slate-800 mb-2">Convertidor de Texto a Voz</h1>
           <p className="text-slate-500">
-            Escucha cualquier texto en voz alta con las voces de tu sistema
-            o de tu navegador.
+            Escucha cualquier texto en voz alta con las voces de tu sistema o de tu navegador.
           </p>
         </div>
 
         <div className="bg-surface rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
           <div className="bg-indigo-700 p-4">
-            <h2 className="text-white font-semibold flex items-center gap-2">
-              🔊 Texto a voz
-            </h2>
+            <h2 className="text-white font-semibold flex items-center gap-2">🔊 Texto a voz</h2>
           </div>
           <div className="p-6 space-y-4">
             {isSupported === false && (
               <p className="text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded-xl p-3">
-                Tu navegador no admite la síntesis de voz. Prueba con Chrome,
-                Edge o Safari actualizados.
+                Tu navegador no admite la síntesis de voz. Prueba con Chrome, Edge o Safari
+                actualizados.
               </p>
             )}
 
@@ -240,9 +234,7 @@ export default function TextToSpeechForm() {
                 disabled={!voices.length || isSpeaking}
                 className="w-full px-4 py-2 bg-surface border border-slate-200 rounded-xl text-slate-700 text-sm font-medium shadow-sm focus:ring-2 focus:ring-indigo-500 outline-none disabled:bg-slate-100 disabled:text-slate-400"
               >
-                {voices.length === 0 && (
-                  <option value="">Cargando voces disponibles...</option>
-                )}
+                {voices.length === 0 && <option value="">Cargando voces disponibles...</option>}
                 {voices.map((voice) => (
                   <option key={voice.voiceURI} value={voice.voiceURI}>
                     {voice.name} ({voice.lang})
@@ -253,9 +245,9 @@ export default function TextToSpeechForm() {
                   texto en los servidores del proveedor, no en el equipo. */}
               {selectedVoice && !selectedVoice.localService && (
                 <p className="mt-2 text-xs text-amber-700">
-                  Esta voz funciona en línea: tu navegador envía el texto a su
-                  proveedor para generar el audio. Elige una voz del sistema si
-                  prefieres que no salga de tu equipo.
+                  Esta voz funciona en línea: tu navegador envía el texto a su proveedor para
+                  generar el audio. Elige una voz del sistema si prefieres que no salga de tu
+                  equipo.
                 </p>
               )}
             </div>
@@ -344,9 +336,8 @@ export default function TextToSpeechForm() {
             {error && <p className="text-xs text-red-500 text-center">{error}</p>}
 
             <p className="text-xs text-slate-400 text-center">
-              Las voces disponibles las aporta tu sistema operativo y navegador,
-              por lo que cambian de un equipo a otro. Si falta tu idioma, revisa
-              la guía del final de la página.
+              Las voces disponibles las aporta tu sistema operativo y navegador, por lo que cambian
+              de un equipo a otro. Si falta tu idioma, revisa la guía del final de la página.
             </p>
           </div>
         </div>

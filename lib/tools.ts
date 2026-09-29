@@ -112,8 +112,7 @@ export const CATEGORIES: Category[] = [
       {
         slug: "roman-converter",
         name: "Convertidor de Números Romanos",
-        description:
-          "Convierte números decimales a romanos y viceversa de forma instantánea.",
+        description: "Convierte números decimales a romanos y viceversa de forma instantánea.",
       },
       {
         slug: "currency-converter",
@@ -137,8 +136,7 @@ export const CATEGORIES: Category[] = [
       {
         slug: "pdf-merger",
         name: "Unir PDF",
-        description:
-          "Combina múltiples archivos PDF en un solo documento de forma segura.",
+        description: "Combina múltiples archivos PDF en un solo documento de forma segura.",
       },
     ],
   },
@@ -162,8 +160,7 @@ export const CATEGORIES: Category[] = [
       {
         slug: "text-to-binary",
         name: "Convertidor de Texto a Binario",
-        description:
-          "Convierte texto a código binario y viceversa de forma rápida.",
+        description: "Convierte texto a código binario y viceversa de forma rápida.",
       },
     ],
   },
@@ -194,14 +191,12 @@ export const CATEGORIES: Category[] = [
       {
         slug: "proofreader",
         name: "Corrector de Texto",
-        description:
-          "Corrige errores de ortografía y gramática en tu texto de forma rápida.",
+        description: "Corrige errores de ortografía y gramática en tu texto de forma rápida.",
       },
       {
         slug: "translator",
         name: "Traductor de Texto",
-        description:
-          "Traduce tu texto de un idioma a otro de forma rápida y sencilla.",
+        description: "Traduce tu texto de un idioma a otro de forma rápida y sencilla.",
       },
     ],
   },
@@ -213,8 +208,7 @@ export const CATEGORIES: Category[] = [
       {
         slug: "text-encryptor",
         name: "Encriptador y Desencriptador de Texto",
-        description:
-          "Encripta y desencripta tu texto con AES-256 y una frase secreta que elijas.",
+        description: "Encripta y desencripta tu texto con AES-256 y una frase secreta que elijas.",
       },
     ],
   },

@@ -37,7 +37,9 @@ export default function RomanConverterForm() {
       <div className="max-w-5xl mx-auto">
         <div className="mb-10 text-center">
           <h1 className="text-3xl font-bold text-slate-800 mb-2">Convertidor de Números Romanos</h1>
-          <p className="text-slate-500">Convierte números decimales a romanos y viceversa de forma instantánea.</p>
+          <p className="text-slate-500">
+            Convierte números decimales a romanos y viceversa de forma instantánea.
+          </p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -127,7 +129,10 @@ export default function RomanConverterForm() {
 
         <div className="mt-12 text-center text-slate-400 text-sm">
           <p>Herramienta procesada localmente en tu navegador para mayor privacidad.</p>
-          <p>Rango válido: del {MIN_VALUE} al {MAX_VALUE} (el sistema romano clásico no representa números mayores).</p>
+          <p>
+            Rango válido: del {MIN_VALUE} al {MAX_VALUE} (el sistema romano clásico no representa
+            números mayores).
+          </p>
         </div>
       </div>
     </main>

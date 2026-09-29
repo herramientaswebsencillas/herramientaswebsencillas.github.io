@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { downloadBlob } from "@/lib/files";
 
 /* ------------------------- Tipos de reconocimiento -------------------------
    La Web Speech API de reconocimiento no forma parte de lib.dom de TypeScript,
@@ -95,8 +96,7 @@ const RECOGNITION_ERRORS: Record<string, string> = {
     "El navegador bloqueó el micrófono. Concede el permiso desde el candado de la barra de direcciones.",
   "service-not-allowed":
     "El servicio de reconocimiento no está disponible en este navegador o está bloqueado.",
-  "audio-capture":
-    "No se detectó ningún micrófono. Conecta uno y vuelve a intentarlo.",
+  "audio-capture": "No se detectó ningún micrófono. Conecta uno y vuelve a intentarlo.",
   network: "Error de red durante el reconocimiento de voz. Revisa tu conexión.",
   "no-speech": "No se detectó ninguna voz. Habla más cerca del micrófono.",
 };
@@ -158,8 +158,7 @@ export default function SpeechToTextForm() {
     recognition.onerror = (event) => {
       if (event.error === "aborted") return;
       setError(
-        RECOGNITION_ERRORS[event.error] ??
-          "Ocurrió un error durante el reconocimiento de voz."
+        RECOGNITION_ERRORS[event.error] ?? "Ocurrió un error durante el reconocimiento de voz."
       );
       // Ante un fallo de permisos o de hardware no tiene sentido reintentar.
       if (event.error !== "no-speech") {
@@ -217,12 +216,7 @@ export default function SpeechToTextForm() {
   const downloadTranscript = () => {
     if (!transcript) return;
     const blob = new Blob([transcript], { type: "text/plain;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = "transcripcion.txt";
-    link.click();
-    URL.revokeObjectURL(url);
+    downloadBlob(blob, "transcripcion.txt");
   };
 
   const clearTranscript = () => {
@@ -235,26 +229,22 @@ export default function SpeechToTextForm() {
     <main className="min-h-screen bg-slate-50 py-12 px-6">
       <div className="max-w-3xl mx-auto">
         <div className="mb-10 text-center">
-          <h1 className="text-3xl font-bold text-slate-800 mb-2">
-            Convertidor de Voz a Texto
-          </h1>
+          <h1 className="text-3xl font-bold text-slate-800 mb-2">Convertidor de Voz a Texto</h1>
           <p className="text-slate-500">
-            Dicta con el micrófono y convierte tu voz en texto que puedes
-            editar, copiar o descargar.
+            Dicta con el micrófono y convierte tu voz en texto que puedes editar, copiar o
+            descargar.
           </p>
         </div>
 
         <div className="bg-surface rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
           <div className="bg-rose-700 p-4">
-            <h2 className="text-white font-semibold flex items-center gap-2">
-              🎤 Voz a texto
-            </h2>
+            <h2 className="text-white font-semibold flex items-center gap-2">🎤 Voz a texto</h2>
           </div>
           <div className="p-6 space-y-4">
             {isSupported === false && (
               <p className="text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded-xl p-3">
-                Tu navegador no admite el reconocimiento de voz. Está disponible
-                en Chrome, Edge y Safari; Firefox aún no lo implementa.
+                Tu navegador no admite el reconocimiento de voz. Está disponible en Chrome, Edge y
+                Safari; Firefox aún no lo implementa.
               </p>
             )}
 
@@ -304,9 +294,7 @@ export default function SpeechToTextForm() {
 
             <div className="flex items-center justify-between text-xs text-slate-400">
               <span>{transcript.length} caracteres</span>
-              {isListening && (
-                <span className="text-rose-600 font-semibold">Escuchando...</span>
-              )}
+              {isListening && <span className="text-rose-600 font-semibold">Escuchando...</span>}
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -336,9 +324,8 @@ export default function SpeechToTextForm() {
             {error && <p className="text-xs text-red-500 text-center">{error}</p>}
 
             <p className="text-xs text-slate-400 text-center">
-              El dictado necesita permiso del micrófono. En Chrome y Edge el
-              audio se procesa en los servidores del navegador, no en esta
-              página.
+              El dictado necesita permiso del micrófono. En Chrome y Edge el audio se procesa en los
+              servidores del navegador, no en esta página.
             </p>
           </div>
         </div>

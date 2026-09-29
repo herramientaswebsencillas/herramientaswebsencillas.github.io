@@ -8,6 +8,8 @@
 
 import { describe, expect, it } from "vitest";
 import {
+  ExternalServiceError,
+  MYMEMORY_QUOTA_MESSAGE,
   parseFrankfurterRates,
   parseLanguageToolMatches,
   parseMyMemoryTranslation,
@@ -32,9 +34,33 @@ describe("servicios externos", () => {
     expect(typo?.replacements.map((r) => r.value)).toContain("prueba");
   });
 
-  it("MyMemory traduce una palabra sencilla", async () => {
-    const data = await fetchJson("https://api.mymemory.translated.net/get?q=gato&langpair=es|en");
-    expect(parseMyMemoryTranslation(data).toLowerCase()).toContain("cat");
+  /* MyMemory cuenta su cuota gratuita por IP, y los runners de GitHub
+     comparten IPs con otros proyectos: a veces la cuota ya está gastada cuando
+     llega esta prueba. Eso no es una falla del servicio ni del sitio, que ante
+     el 429 o el aviso de cuota muestra MYMEMORY_QUOTA_MESSAGE (lo cubre
+     e2e/tools.spec.ts). En ese caso la prueba se omite con una nota; cualquier
+     otra respuesta inesperada sigue haciéndola fallar. */
+  it("MyMemory traduce una palabra sencilla", async (ctx) => {
+    const url = "https://api.mymemory.translated.net/get?q=gato&langpair=es|en";
+    const res = await fetch(url, { signal: AbortSignal.timeout(15_000) });
+    const quotaSkip = () =>
+      ctx.skip(
+        "MyMemory: cuota gratuita agotada para la IP de este equipo; no se pudo comprobar hoy."
+      );
+
+    if (res.status === 429) return quotaSkip();
+    expect(res.status, `${url} respondió ${res.status}`).toBe(200);
+
+    let translation: string;
+    try {
+      translation = parseMyMemoryTranslation(await res.json());
+    } catch (error) {
+      if (error instanceof ExternalServiceError && error.message === MYMEMORY_QUOTA_MESSAGE) {
+        return quotaSkip();
+      }
+      throw error;
+    }
+    expect(translation.toLowerCase()).toContain("cat");
   });
 
   it("Frankfurter da las cotizaciones del día con base USD", async () => {

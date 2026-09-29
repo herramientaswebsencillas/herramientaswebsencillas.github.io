@@ -72,7 +72,13 @@ describe("calculateLoan", () => {
 });
 
 describe("calculateCompoundInterest", () => {
-  const input = { initialAmount: 10_000, monthlyContribution: 0, months: 12, rate: 12, frequency: 12 };
+  const input = {
+    initialAmount: 10_000,
+    monthlyContribution: 0,
+    months: 12,
+    rate: 12,
+    frequency: 12,
+  };
 
   it("capitalización mensual", () => {
     const { totals } = calculateCompoundInterest(input);

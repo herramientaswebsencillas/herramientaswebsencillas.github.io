@@ -36,7 +36,9 @@ export default function Base64ConverterForm() {
       <div className="max-w-5xl mx-auto">
         <div className="mb-10 text-center">
           <h1 className="text-3xl font-bold text-slate-800 mb-2">Convertidor Base64</h1>
-          <p className="text-slate-500">Codifica y decodifica texto en formato Base64 de forma segura y rápida.</p>
+          <p className="text-slate-500">
+            Codifica y decodifica texto en formato Base64 de forma segura y rápida.
+          </p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -58,7 +60,7 @@ export default function Base64ConverterForm() {
                 onClick={encodeToBase64}
                 className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl transition-colors shadow-lg shadow-indigo-200"
               >
-                Codificar 
+                Codificar
               </button>
               <div className="relative">
                 <textarea
@@ -68,7 +70,7 @@ export default function Base64ConverterForm() {
                   readOnly
                 />
                 {base64Output && !base64Output.includes("Error") && (
-                  <button 
+                  <button
                     onClick={() => copyToClipboard(base64Output)}
                     className="absolute top-2 right-2 p-2 bg-slate-700 hover:bg-slate-600 rounded-lg text-xs text-white transition-colors"
                   >
@@ -107,7 +109,7 @@ export default function Base64ConverterForm() {
                   readOnly
                 />
                 {textOutput && !textOutput.includes("Error") && (
-                  <button 
+                  <button
                     onClick={() => copyToClipboard(textOutput)}
                     className="absolute top-2 right-2 p-2 bg-slate-200 hover:bg-slate-300 rounded-lg text-xs text-slate-600 transition-colors"
                   >
@@ -121,7 +123,10 @@ export default function Base64ConverterForm() {
 
         <div className="mt-12 text-center text-slate-400 text-sm">
           <p>Herramienta procesada localmente en tu navegador para mayor privacidad.</p>
-          <p>Base64 es codificación, no cifrado. No protege datos sensibles como contraseñas o tokens.</p>
+          <p>
+            Base64 es codificación, no cifrado. No protege datos sensibles como contraseñas o
+            tokens.
+          </p>
         </div>
       </div>
     </main>

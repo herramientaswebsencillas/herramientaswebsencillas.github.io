@@ -13,9 +13,10 @@ El sitio se genera como export estático (`output: 'export'`) y se publica en Gi
 
 - **Instalar dependencias**: `pnpm install`
 - **Desarrollo**: `pnpm dev` — arranca el servidor en modo desarrollo (puerto 3000)
-- **Construir**: `pnpm build` — genera el sitio estático en `out/`
+- **Construir**: `pnpm build` — genera el sitio estático en `out/` y le inserta la CSP con los hashes de cada página (`scripts/csp-hashes.mjs`)
 - **Previsualizar el build**: `pnpm start` — sirve `out/` en el puerto 3000 con `scripts/serve-out.mjs` (`next start` no sirve con `output: 'export'`)
 - **Lint**: `pnpm lint`
+- **Formato**: `pnpm format` aplica Prettier; `pnpm format:check` solo comprueba, como hace el CI
 - **Comprobar tipos**: `pnpm exec tsc --noEmit`
 - **Pruebas unitarias**: `pnpm test` — Vitest sobre la lógica de `lib/`
 - **Servicios externos**: `pnpm test:apis` — consulta de verdad LanguageTool, MyMemory y Frankfurter y comprueba el formato de sus respuestas
@@ -26,22 +27,27 @@ El sitio se genera como export estático (`output: 'export'`) y se publica en Gi
 ## Estructura relevante
 
 - `app/` — directorio principal de la aplicación (Next.js app router)
-- `app/layout.tsx` — layout raíz, metadatos y la cabecera CSP
+- `app/layout.tsx` — layout raíz y metadatos
+- `app/opengraph-image.png` — imagen de las vistas previas en redes sociales (con su texto alternativo en `opengraph-image.alt.txt`)
 - `app/privacy/` — qué herramientas envían datos a servicios externos
+- `app/terms/` — términos de uso: servicio sin garantías, resultados orientativos y servicios de terceros
 - `app/tools/` — cada subcarpeta contiene una herramienta con su `page.tsx` y el componente del formulario
 - `components/` — componentes compartidos (por ejemplo, `Navbar.tsx`)
 - `lib/tools.ts` — catálogo de herramientas y categorías que se muestra en la página de inicio
 - `lib/currencies.ts` — nombres de divisas en español, usados por el conversor
+- `lib/csp.mjs` — la Content Security Policy del sitio (ver "Seguridad")
+- `lib/files.ts` — límites de tamaño, decodificación de Base64 y descargas de las herramientas de archivos
 - `lib/*.ts` — lógica pura de las herramientas (fechas, finanzas, romanos, aleatorios, cifrado), separada de los componentes y probada en `lib/*.test.ts`
 - `lib/external.ts` — validación de las respuestas de los servicios externos; `lib/external.live.test.ts` los consulta de verdad para el monitoreo diario
-- `e2e/` — pruebas de humo con Playwright sobre el export estático
+- `e2e/` — pruebas con Playwright sobre el export estático: `smoke.spec.ts` recorre todas las páginas y `tools.spec.ts` prueba los flujos de archivos y de servicios externos con respuestas simuladas
 - `scripts/serve-out.mjs` — servidor estático de `out/` para `pnpm start` y las pruebas de humo
-- `public/` — activos estáticos
+- `scripts/csp-hashes.mjs` — inserta la CSP con hashes en cada HTML de `out/` después de `next build`
 - `next.config.ts`, `package.json`, `tsconfig.json` — configuración del proyecto
 - `pnpm-workspace.yaml` — ajustes de pnpm (overrides de seguridad y scripts de instalación permitidos)
 - `.github/workflows/nextjs.yml` — verificación en cada pull request, y verificación y despliegue a GitHub Pages en cada push a `main`
 - `.github/workflows/codeql.yml`, `.github/dependabot.yml` — análisis de seguridad y actualizaciones automáticas de dependencias
-- `.github/workflows/external-apis.yml` — monitoreo diario de los servicios externos
+- `.github/workflows/external-apis.yml` — monitoreo diario del sitio publicado y de los servicios externos
+- `CHANGELOG.md` — cambios visibles del sitio, con los que rompen compatibilidad marcados
 
 ## Añadir una herramienta
 
@@ -76,13 +82,15 @@ Las peticiones salen del navegador de cada visitante, no de un servidor propio, 
 
 **Si un servicio falla o cambia.** Las respuestas pasan por los validadores de `lib/external.ts` antes de llegar a la interfaz. Como React muestra todo como texto y la CSP solo admite scripts propios, una respuesta maliciosa no puede ejecutar código. Lo peor que puede hacer es traer datos falsos, y los mal formados se descartan: tasas no positivas, correcciones que apuntan fuera del texto o avisos de cuota disfrazados de traducción. Si un servicio cae, solo su herramienta muestra un error; el resto del sitio sigue igual.
 
-El workflow `.github/workflows/external-apis.yml` consulta los tres servicios cada día (`pnpm test:apis` lo hace en local) y avisa por correo si alguno falla. Ante un fallo:
+El workflow `.github/workflows/external-apis.yml` consulta cada día los tres servicios (`pnpm test:apis` lo hace en local) y el sitio publicado, y avisa por correo si algo falla. Ante un fallo:
 
 1. Mira qué prueba falló en el registro del workflow. Si fue algo pasajero, la siguiente ejecución diaria pasará sola.
+
+   La prueba de MyMemory se **omite** (no falla) cuando responde con la cuota agotada. Esa cuota se cuenta por IP, y los runners de GitHub comparten IPs con otros proyectos que pueden haberla gastado antes. No afecta a los visitantes, porque cada uno consulta desde su propia IP. Si se omite varios días seguidos, conviene revisarlo con `pnpm test:apis` en local.
 2. Si el servicio cambió su formato, ajusta el validador de `lib/external.ts` y la herramienta con la respuesta nueva.
 3. Si el servicio desaparece, hay alternativas: Frankfurter se puede alojar por cuenta propia con Docker; LanguageTool también, aunque necesita un servidor y GitHub Pages no lo ofrece; para traducción, LibreTranslate es una alternativa de código abierto.
 
-**Al añadir una herramienta que llame a un servicio externo hay que incluir su dominio en `connect-src`**, dentro de la CSP definida en `app/layout.tsx`, y listarla en la página de Privacidad (`app/privacy/page.tsx`). Sin lo primero el navegador bloquea las peticiones, y las pruebas de humo fallan con la violación de CSP. La CSP va en una etiqueta `<meta>` porque GitHub Pages no permite configurar cabeceras HTTP; es una cobertura parcial, y el propio archivo explica sus límites.
+**Al añadir una herramienta que llame a un servicio externo hay que incluir su dominio en `connect-src`**, dentro de la CSP de `lib/csp.mjs`, y listarla en la página de Privacidad (`app/privacy/page.tsx`) y en "Servicios de terceros" de los Términos de uso (`app/terms/page.tsx`). Sin lo primero el navegador bloquea las peticiones y las pruebas de humo fallan con la violación de CSP.
 
 ## Parámetros de URL
 
@@ -99,7 +107,9 @@ Que el extremo ausente sea hoy es lo que hace útil al enlace corto: `?hasta=25/
 
 ## Despliegue
 
-Cada push a `main` dispara el workflow de GitHub Actions. Instala con `pnpm install --frozen-lockfile`, ejecuta lint, `pnpm audit`, las pruebas unitarias, `pnpm build` y las pruebas de humo, y solo si todo pasa publica `out/` en GitHub Pages. En los pull request se ejecutan las mismas verificaciones sin publicar.
+Cada push a `main` dispara el workflow de GitHub Actions. Instala con `pnpm install --frozen-lockfile`, ejecuta lint, la comprobación de formato, `pnpm audit`, las pruebas unitarias, `pnpm build` y las pruebas E2E, y solo si todo pasa publica `out/` en GitHub Pages. En los pull request se ejecutan las mismas verificaciones sin publicar. Cada publicación deja además un SBOM (inventario de dependencias en formato CycloneDX) como artefacto de la ejecución, en la pestaña **Actions**.
+
+Las acciones de los workflows se fijan por SHA, con la versión en un comentario. Dependabot las actualiza igual que las dependencias.
 
 ### Rollback
 
@@ -114,4 +124,15 @@ Si hace falta volver ya, en la pestaña **Actions** abre la ejecución de un com
 
 ## Seguridad
 
-Para reportar una vulnerabilidad, consulta [SECURITY.md](SECURITY.md).
+Para reportar una vulnerabilidad, o si el sitio se ve comprometido, consulta [SECURITY.md](SECURITY.md).
+
+### Content Security Policy
+
+GitHub Pages no permite configurar cabeceras HTTP, así que la CSP va en una etiqueta `<meta>`. Eso no puede aplicar `frame-ancestors`, `X-Frame-Options` ni reportar violaciones; para eso haría falta un host que sirva cabeceras.
+
+La política se define en `lib/csp.mjs`. Next.js mete el payload de hidratación en `<script>` inline y, sin servidor, no hay nonces. Por eso:
+
+- **En lo publicado**, `scripts/csp-hashes.mjs` inserta la CSP al principio del `<head>` de cada HTML de `out/` y autoriza sus scripts inline por hash. No hay `'unsafe-inline'` en `script-src`, así que un script inyectado o una URL `javascript:` quedan bloqueados. Las pruebas de humo lo comprueban.
+- **En desarrollo** (`pnpm dev`), `app/layout.tsx` renderiza la misma CSP con `'unsafe-inline'`, porque los scripts cambian con cada recarga.
+
+Toda herramienta que reciba texto para convertirlo en un archivo o enlace debe decodificarlo a un `Blob` (ver `lib/files.ts`), nunca asignarlo a un `href`.

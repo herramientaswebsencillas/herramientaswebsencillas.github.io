@@ -59,9 +59,7 @@ export function parseLanguageToolMatches(data: unknown, text: string): LTMatch[]
       offset,
       length,
       replacements: Array.isArray(replacements)
-        ? replacements.filter(
-            (r): r is LTReplacement => isObject(r) && typeof r.value === "string"
-          )
+        ? replacements.filter((r): r is LTReplacement => isObject(r) && typeof r.value === "string")
         : [],
       rule: isObject(rule)
         ? {
@@ -126,7 +124,9 @@ export interface RateEntry {
  */
 export function parseFrankfurterRates(data: unknown): RateEntry[] {
   if (!Array.isArray(data)) {
-    throw new ExternalServiceError("El servicio de tipos de cambio respondió en un formato inesperado.");
+    throw new ExternalServiceError(
+      "El servicio de tipos de cambio respondió en un formato inesperado."
+    );
   }
 
   const entries: RateEntry[] = [];

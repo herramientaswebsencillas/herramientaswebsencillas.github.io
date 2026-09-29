@@ -1,12 +1,6 @@
 "use client";
 
-import {
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-  useSyncExternalStore,
-} from "react";
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 
 import {
   PARAM_END,
@@ -48,7 +42,6 @@ const INPUT_INVALID_CLASSES = "border-rose-400 focus:ring-rose-400";
 
 const NO_DATES: Dates = { start: "", end: "" };
 
-
 /* Un campo de texto en vez de <input type="date">: el nativo muestra la fecha
    en el formato del idioma del navegador, que no se puede forzar desde el
    código, y a un visitante con Chrome en inglés le aparecería mm/dd/aaaa.
@@ -71,10 +64,7 @@ function DateField({
 
   return (
     <div>
-      <label
-        htmlFor={id}
-        className="block text-xs font-bold text-slate-500 uppercase mb-1"
-      >
+      <label htmlFor={id} className="block text-xs font-bold text-slate-500 uppercase mb-1">
         {label}
       </label>
       <input
@@ -201,16 +191,9 @@ function CountdownLinkDialog({ onClose }: { onClose: () => void }) {
           ))}
         </div>
 
-        <p className="mt-3 mb-5 text-xs text-slate-500 leading-relaxed">
-          {mode.hint}
-        </p>
+        <p className="mt-3 mb-5 text-xs text-slate-500 leading-relaxed">{mode.hint}</p>
 
-        <DateField
-          id="countdown-date"
-          label="Fecha"
-          value={date}
-          onChange={setDate}
-        />
+        <DateField id="countdown-date" label="Fecha" value={date} onChange={setDate} />
 
         <div className="mt-5 p-3 bg-slate-50 rounded-xl border border-dashed border-slate-300">
           <span className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">
@@ -253,14 +236,14 @@ export default function DateDifferenceCalculatorForm() {
   const isHydrated = useSyncExternalStore(
     subscribeToNothing,
     () => true,
-    () => false,
+    () => false
   );
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editedDates, setEditedDates] = useState<Dates | null>(null);
   const initialDates = useMemo(
     () => (isHydrated ? datesFromSearch(window.location.search) : NO_DATES),
-    [isHydrated],
+    [isHydrated]
   );
   const { start: startDate, end: endDate } = editedDates ?? initialDates;
 
@@ -303,18 +286,14 @@ export default function DateDifferenceCalculatorForm() {
        y los valores solo llevan dígitos, así que se puede devolver sin riesgo
        de romper la separación entre parámetros. */
     const query = params.toString().replaceAll("%2F", "/");
-    window.history.replaceState(
-      null,
-      "",
-      query ? `?${query}` : window.location.pathname,
-    );
+    window.history.replaceState(null, "", query ? `?${query}` : window.location.pathname);
   }, [isHydrated, startDate, endDate]);
 
   const start = useMemo(() => parseDate(startDate), [startDate]);
   const end = useMemo(() => parseDate(endDate), [endDate]);
   const difference = useMemo(
     () => (start && end ? calculateDifference(start, end) : null),
-    [start, end],
+    [start, end]
   );
 
   const cards = difference
@@ -354,8 +333,8 @@ export default function DateDifferenceCalculatorForm() {
           Calculadora de Tiempo entre Fechas
         </h1>
         <p className="text-slate-500 text-lg max-w-2xl">
-          Calcula cuántos días, semanas, meses y años hay a partir de una fecha.
-          Por defecto cuenta desde el primer día del año en curso hasta hoy.
+          Calcula cuántos días, semanas, meses y años hay a partir de una fecha. Por defecto cuenta
+          desde el primer día del año en curso hasta hoy.
         </p>
       </div>
 
@@ -373,9 +352,7 @@ export default function DateDifferenceCalculatorForm() {
           ) : (
             <div className="bg-surface p-8 rounded-3xl shadow-lg border border-slate-200">
               <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
-                <h2 className="text-xl font-black text-slate-800 uppercase">
-                  Resultado
-                </h2>
+                <h2 className="text-xl font-black text-slate-800 uppercase">Resultado</h2>
                 {/* Único indicador del sentido del cálculo: las tarjetas dan la
                     magnitud, pero no si la fecha ya pasó o está por venir. */}
                 <span className="px-3 py-1 rounded-full bg-indigo-50 border border-indigo-100 text-indigo-700 text-xs font-bold uppercase tracking-widest">
@@ -388,21 +365,14 @@ export default function DateDifferenceCalculatorForm() {
                   const style = CARD_STYLES[index];
 
                   return (
-                    <div
-                      key={card.label}
-                      className={`p-5 rounded-2xl border ${style.box}`}
-                    >
+                    <div key={card.label} className={`p-5 rounded-2xl border ${style.box}`}>
                       <span
                         className={`block text-xs font-bold uppercase tracking-wide ${style.label}`}
                       >
                         {card.label}
                       </span>
-                      <div className={`text-3xl font-black ${style.value}`}>
-                        {card.value}
-                      </div>
-                      <span className="text-xs font-semibold text-slate-500">
-                        {card.detail}
-                      </span>
+                      <div className={`text-3xl font-black ${style.value}`}>{card.value}</div>
+                      <span className="text-xs font-semibold text-slate-500">{card.detail}</span>
                     </div>
                   );
                 })}
@@ -425,18 +395,8 @@ export default function DateDifferenceCalculatorForm() {
           </h2>
 
           <div className="space-y-4">
-            <DateField
-              id="start-date"
-              label="Desde"
-              value={startDate}
-              onChange={setStartDate}
-            />
-            <DateField
-              id="end-date"
-              label="Hasta"
-              value={endDate}
-              onChange={setEndDate}
-            />
+            <DateField id="start-date" label="Desde" value={startDate} onChange={setStartDate} />
+            <DateField id="end-date" label="Hasta" value={endDate} onChange={setEndDate} />
           </div>
 
           <button
@@ -460,9 +420,7 @@ export default function DateDifferenceCalculatorForm() {
       {/* Se monta solo al abrirlo: así el efecto de apertura corre en el montaje
           y el diálogo nunca se renderiza durante el prerenderizado, donde
           window.location no existe. */}
-      {isDialogOpen && (
-        <CountdownLinkDialog onClose={() => setIsDialogOpen(false)} />
-      )}
+      {isDialogOpen && <CountdownLinkDialog onClose={() => setIsDialogOpen(false)} />}
     </main>
   );
 }

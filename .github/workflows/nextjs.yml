@@ -16,6 +16,10 @@ on:
 
 # El build solo necesita leer el repositorio; los permisos de Pages se dan
 # únicamente al job de despliegue.
+#
+# Las acciones se fijan por SHA (con la versión en un comentario) y no por
+# etiqueta: una etiqueta se puede mover, y el job build genera lo que se
+# publica. Dependabot actualiza los SHA junto con el comentario.
 permissions:
   contents: read
 
@@ -24,13 +28,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       # Debe ir antes de setup-node: la caché de pnpm necesita el binario ya
       # disponible. La versión sale del campo "packageManager" de package.json.
       - name: Install pnpm
-        uses: pnpm/action-setup@v6
+        uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
       - name: Setup Node
-        uses: actions/setup-node@v7
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           # La misma versión que en local; pnpm 11 exige Node >= 22.13.
           node-version-file: .nvmrc
@@ -41,9 +45,9 @@ jobs:
       # lo que Pages necesita (output: 'export', basePath, images.unoptimized).
       - name: Setup Pages
         if: github.event_name != 'pull_request'
-        uses: actions/configure-pages@v6
+        uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6.0.0
       - name: Restore cache
-        uses: actions/cache@v6
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: |
             .next/cache
@@ -56,6 +60,8 @@ jobs:
         run: pnpm install --frozen-lockfile
       - name: Lint
         run: pnpm lint --max-warnings=0
+      - name: Check formatting
+        run: pnpm format:check
       - name: Audit dependencies
         run: pnpm audit --audit-level=high
       - name: Unit tests
@@ -69,7 +75,7 @@ jobs:
         run: pnpm test:e2e
       - name: Upload artifact
         if: github.event_name != 'pull_request'
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@56afc609e74202658d3ffba0e8f6dda462b719fa # v3.0.1
         with:
           path: ./out
 
@@ -91,4 +97,21 @@ jobs:
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v5
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1
+
+  # Inventario de dependencias (SBOM) de cada versión publicada, en formato
+  # CycloneDX. Syft lo arma leyendo pnpm-lock.yaml. Va en un job aparte para
+  # que la acción de terceros no corra donde se genera el sitio. El archivo
+  # queda como artefacto de la ejecución (pestaña Actions).
+  sbom:
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Generate SBOM
+        uses: anchore/sbom-action@3ad7283483fc7af8ff2b4ea19663c2d5ca935e26 # v0.24.2
+        with:
+          path: .
+          format: cyclonedx-json
+          artifact-name: sbom-${{ github.sha }}.cdx.json
