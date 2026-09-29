@@ -4,10 +4,12 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "next build && node scripts/csp-hashes.mjs",
     "start": "node scripts/serve-out.mjs",
     "lint": "eslint",
-    "export": "next build",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "export": "pnpm build",
     "test": "vitest run",
     "test:e2e": "playwright test",
     "test:apis": "vitest run --config vitest.apis.config.mts"
@@ -29,6 +31,7 @@
     "@types/react-dom": "^19.3.0",
     "eslint": "^9.39.5",
     "eslint-config-next": "16.3.6",
+    "prettier": "^3.9.9",
     "tailwindcss": "^4.3.3",
     "typescript": "^6.0.3",
     "vitest": "^5.0.2"

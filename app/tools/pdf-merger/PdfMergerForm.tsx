@@ -2,14 +2,21 @@
 
 import React, { useState } from 'react';
 import { PDFDocument } from 'pdf-lib';
+import { FileToolError, MAX_PDF_BYTES, assertMaxSize, downloadBlob, formatBytes } from '@/lib/files';
 
 export default function PdfMergerForm() {
   const [files, setFiles] = useState<File[]>([]);
   const [merging, setMerging] = useState(false);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      setFiles(Array.from(e.target.files));
+    if (!e.target.files) return;
+    const selected = Array.from(e.target.files);
+    try {
+      assertMaxSize(selected, MAX_PDF_BYTES);
+      setFiles(selected);
+    } catch (error) {
+      e.target.value = '';
+      alert(error instanceof FileToolError ? error.message : 'No se pudieron leer los archivos.');
     }
   };
 
@@ -39,14 +46,7 @@ export default function PdfMergerForm() {
       // Creamos un Blob a partir de una copia explícita de los bytes
       const blob = new Blob([new Uint8Array(mergedPdfBytes)], { type: 'application/pdf' });
 
-      const url = URL.createObjectURL(blob);
-      
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = 'archivo_combinado.pdf';
-      link.click();
-      
-      URL.revokeObjectURL(url);
+      downloadBlob(blob, 'archivo_combinado.pdf');
     } catch (error) {
       console.error("Error al fusionar:", error);
       alert("Hubo un error al procesar los archivos.");
@@ -89,13 +89,13 @@ export default function PdfMergerForm() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                   </svg>
                   <p className="mb-2 text-sm text-slate-600"><span className="font-semibold text-blue-600">Haz clic para subir</span> o arrastra tus archivos</p>
-                  <p className="text-xs text-slate-400">PDF (Múltiples permitidos)</p>
+                  <p className="text-xs text-slate-400">PDF (Múltiples permitidos, hasta {formatBytes(MAX_PDF_BYTES)} cada uno)</p>
                 </div>
                 <input 
                   id="pdf-upload"
                   type="file" 
                   multiple 
-                  accept=".pdf" 
+                  accept=".pdf"
                   onChange={handleFileChange}
                   className="hidden" 
                 />

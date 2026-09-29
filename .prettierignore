@@ -1,0 +1,9 @@
+# Generados o ajenos al código fuente.
+pnpm-lock.yaml
+out/
+.next/
+test-results/
+playwright-report/
+next-env.d.ts
+# La prosa se ajusta a mano.
+*.md

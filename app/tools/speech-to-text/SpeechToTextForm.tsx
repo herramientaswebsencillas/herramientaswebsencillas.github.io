@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { downloadBlob } from "@/lib/files";
 
 /* ------------------------- Tipos de reconocimiento -------------------------
    La Web Speech API de reconocimiento no forma parte de lib.dom de TypeScript,
@@ -217,12 +218,7 @@ export default function SpeechToTextForm() {
   const downloadTranscript = () => {
     if (!transcript) return;
     const blob = new Blob([transcript], { type: "text/plain;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = "transcripcion.txt";
-    link.click();
-    URL.revokeObjectURL(url);
+    downloadBlob(blob, "transcripcion.txt");
   };
 
   const clearTranscript = () => {

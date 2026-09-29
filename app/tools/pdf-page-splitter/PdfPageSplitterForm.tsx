@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { PDFDocument } from "pdf-lib";
 import JSZip from "jszip";
+import { FileToolError, MAX_PDF_BYTES, assertMaxSize, downloadBlob, formatBytes } from "@/lib/files";
 
 export default function PdfPageSplitterForm() {
   const [file, setFile] = useState<File | null>(null);
@@ -12,6 +13,13 @@ export default function PdfPageSplitterForm() {
     const selectedFile = e.target.files?.[0];
     if (!selectedFile || selectedFile.type !== "application/pdf") {
       alert("Por favor selecciona un archivo PDF válido.");
+      return;
+    }
+    try {
+      assertMaxSize([selectedFile], MAX_PDF_BYTES);
+    } catch (error) {
+      e.target.value = "";
+      alert(error instanceof FileToolError ? error.message : "No se pudo leer el archivo.");
       return;
     }
 
@@ -49,12 +57,7 @@ export default function PdfPageSplitterForm() {
       }
 
       const zipBlob = await zip.generateAsync({ type: "blob" });
-      const url = URL.createObjectURL(zipBlob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = `${baseName}-individual-pages.zip`;
-      link.click();
-      URL.revokeObjectURL(url);
+      downloadBlob(zipBlob, `${baseName}-individual-pages.zip`);
     } catch (error) {
       console.error(error);
       alert("Error al procesar el PDF.");
@@ -96,7 +99,7 @@ export default function PdfPageSplitterForm() {
                     </svg>
                   </div>
                   <p className="text-slate-600 font-medium">Haz clic o arrastra tu PDF aquí</p>
-                  <p className="text-slate-400 text-sm mt-1">Máximo 50MB recomendado</p>
+                  <p className="text-slate-400 text-sm mt-1">Máximo {formatBytes(MAX_PDF_BYTES)}</p>
                 </>
               ) : (
                 <div className="text-center">

@@ -1,5 +1,6 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 import { CATEGORIES } from "../lib/tools";
+import { watchPage } from "./watch";
 
 const PAGES = [
   "/",
@@ -7,62 +8,6 @@ const PAGES = [
   "/privacy",
   ...CATEGORIES.flatMap((category) => category.tools.map((tool) => `/tools/${tool.slug}`)),
 ];
-
-/* Violaciones conocidas e inofensivas. jszip arrastra is-generator-function,
-   que prueba Function("return function*() {}") dentro de un try/catch para
-   detectar soporte: la CSP lo bloquea, el catch lo absorbe y nada se rompe. */
-const TOLERATED_VIOLATIONS: Record<string, RegExp> = {
-  "/tools/pdf-page-splitter": /^script-src → eval /,
-};
-
-declare global {
-  interface Window {
-    __cspViolations: string[];
-  }
-}
-
-/**
- * Registra violaciones de CSP, excepciones y errores de consola del propio
- * sitio. Las peticiones a otros dominios se cortan: la prueba no debe depender
- * de que LanguageTool, MyMemory o Frankfurter respondan. Si un dominio falta en
- * connect-src, el navegador lo bloquea antes de llegar a la red y la violación
- * queda registrada igual.
- */
-async function watchPage(page: Page, path = "") {
-  const errors: string[] = [];
-
-  await page.addInitScript(() => {
-    window.__cspViolations = [];
-    document.addEventListener("securitypolicyviolation", (event) => {
-      window.__cspViolations.push(
-        `${event.violatedDirective} → ${event.blockedURI} (${event.sourceFile}:${event.lineNumber})`
-      );
-    });
-  });
-
-  await page.route(
-    (url) => url.hostname !== "localhost",
-    (route) => route.abort()
-  );
-
-  page.on("pageerror", (error) => errors.push(`pageerror: ${error.message}`));
-  page.on("console", (message) => {
-    if (message.type() !== "error") return;
-    // Los fallos de las peticiones externas cortadas arriba no cuentan.
-    const source = message.location().url;
-    if (source && !source.startsWith("http://localhost")) return;
-    errors.push(`console: ${message.text()}`);
-  });
-
-  return async () => {
-    const tolerated = TOLERATED_VIOLATIONS[path];
-    const violations = (await page.evaluate(() => window.__cspViolations)).filter(
-      (violation) => !tolerated?.test(violation)
-    );
-    expect(violations, "violaciones de CSP").toEqual([]);
-    expect(errors, "errores en la página").toEqual([]);
-  };
-}
 
 for (const path of PAGES) {
   test(`carga ${path} sin errores`, async ({ page }) => {
@@ -74,6 +19,43 @@ for (const path of PAGES) {
     await check();
   });
 }
+
+test("lo publicado no admite scripts inline sin hash", async ({ page }) => {
+  await page.goto("/");
+  const csp = await page.locator('meta[http-equiv="Content-Security-Policy"]').getAttribute("content");
+  const scriptSrc = csp?.split(";").map((d) => d.trim()).find((d) => d.startsWith("script-src "));
+  expect(scriptSrc).toBeDefined();
+  expect(scriptSrc).not.toContain("'unsafe-inline'");
+  expect(scriptSrc).toMatch(/'sha256-[A-Za-z0-9+/]+=*'/);
+});
+
+test("la CSP bloquea una URL javascript: aunque algún código la use", async ({ page }) => {
+  await watchPage(page);
+  await page.goto("/");
+  await expect(page.getByRole("heading").first()).toBeVisible();
+
+  await page.evaluate(() => {
+    const link = document.createElement("a");
+    link.href = "javascript:window.__pwned=1";
+    document.body.append(link);
+    link.click();
+  });
+
+  await expect
+    .poll(() => page.evaluate(() => window.__cspViolations.join("\n")))
+    .toMatch(/script-src/);
+  expect(await page.evaluate(() => "__pwned" in window)).toBe(false);
+});
+
+test("la navegación interna funciona con la CSP de hashes", async ({ page }) => {
+  const check = await watchPage(page);
+  await page.goto("/");
+  await page.locator('a[href="/tools/roman-converter"]').first().click();
+  await expect(page).toHaveURL(/\/tools\/roman-converter$/);
+  await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+  await page.waitForLoadState("networkidle");
+  await check();
+});
 
 test("el encriptador cifra y descifra en el navegador", async ({ page }) => {
   const check = await watchPage(page);

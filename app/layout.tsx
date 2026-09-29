@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import Navbar from "@/components/Navbar";
+import { contentSecurityPolicy } from "@/lib/csp.mjs";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -31,14 +32,8 @@ export const metadata: Metadata = {
     locale: "es_MX",
     url: "https://herramientaswebsencillas.github.io",
     siteName: "Herramientas Web Sencillas",
-    images: [
-      {
-        url: "/favicon.ico",
-        width: 1200,
-        height: 630,
-        alt: "Herramientas Web Sencillas",
-      },
-    ],
+    // La imagen sale de app/opengraph-image.png (y su .alt.txt), que Next.js
+    // añade sola a todas las páginas.
   },
 };
 
@@ -47,34 +42,18 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  // CSP vía <meta> porque GitHub Pages no permite configurar cabeceras HTTP.
-  // Es un "fix parcial": cubre XSS/inyección de recursos, pero a diferencia
-  // de una cabecera real no puede aplicar frame-ancestors, X-Frame-Options
-  // ni reportar violaciones (report-uri). Si esto es crítico, lo correcto
-  // es migrar a un host que sí sirva headers (Vercel, Cloudflare Pages, Netlify).
-  const csp = [
-    "default-src 'self'",
-    // Next.js inyecta JS inline para hidratación; 'unsafe-inline' es necesario
-    // en un sitio estático sin nonces dinámicos (no hay servidor para generarlos).
-    "script-src 'self' 'unsafe-inline'",
-    "style-src 'self' 'unsafe-inline'",
-    // Fuentes de next/font/google quedan auto-hospedadas en build, no se llaman
-    // a fonts.googleapis.com/fonts.gstatic.com en runtime.
-    "font-src 'self'",
-    "img-src 'self' data:",
-    // Dominios de las APIs públicas usadas por proofreader, translator y
-    // currency-converter.
-    "connect-src 'self' https://api.languagetool.org https://api.mymemory.translated.net https://api.frankfurter.dev",
-    "object-src 'none'",
-    "base-uri 'self'",
-    "form-action 'self'",
-  ].join("; ");
+  // La CSP (lib/csp.mjs) solo se renderiza aquí en desarrollo. En lo
+  // publicado la inserta scripts/csp-hashes.mjs al principio del <head> de
+  // cada página, con los hashes de sus scripts inline en lugar de
+  // 'unsafe-inline'. React no puede renderizar esa versión: el payload de
+  // hidratación incluye el <head>, así que meter los hashes en el <meta>
+  // cambiaría los mismos scripts de los que se calculan.
+  const devCsp =
+    process.env.NODE_ENV === "development" ? contentSecurityPolicy(["'unsafe-inline'"]) : null;
 
   return (
     <html lang="es">
-      <head>
-        <meta httpEquiv="Content-Security-Policy" content={csp} />
-      </head>
+      <head>{devCsp && <meta httpEquiv="Content-Security-Policy" content={devCsp} />}</head>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <Navbar />
         {children}

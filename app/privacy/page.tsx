@@ -7,6 +7,9 @@ export const metadata: Metadata = {
     "Qué datos salen de tu navegador al usar Herramientas Web Sencillas y a qué servicios llegan.",
 };
 
+// Actualizar al cambiar qué datos salen del navegador o hacia dónde.
+const LAST_UPDATED = "28 de septiembre de 2026";
+
 /* Mantener esta lista alineada con los dominios de connect-src en
    app/layout.tsx y con la tabla "Servicios externos" del README. */
 const EXTERNAL_SERVICES = [
@@ -107,6 +110,34 @@ export default function PrivacyPage() {
               declaración de privacidad de GitHub
             </a>
             .
+          </p>
+
+          <p className="text-slate-600 text-base leading-relaxed mt-4">
+            El responsable del sitio es Carlos Alberto. Para cualquier duda
+            sobre esta página, abre un issue en el{" "}
+            <a
+              href="https://github.com/herramientaswebsencillas/herramientaswebsencillas.github.io/issues"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-600 hover:text-blue-700 font-medium underline underline-offset-2"
+            >
+              repositorio del sitio
+            </a>
+            . Los problemas de seguridad se reportan de forma privada, como
+            explica su{" "}
+            <a
+              href="https://github.com/herramientaswebsencillas/herramientaswebsencillas.github.io/security/policy"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-600 hover:text-blue-700 font-medium underline underline-offset-2"
+            >
+              política de seguridad
+            </a>
+            .
+          </p>
+
+          <p className="text-sm text-slate-400 mt-6">
+            Última actualización: {LAST_UPDATED}.
           </p>
         </div>
       </div>
