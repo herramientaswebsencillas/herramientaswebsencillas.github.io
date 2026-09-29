@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 const LAST_UPDATED = "28 de septiembre de 2026";
 
 /* Mantener esta lista alineada con los dominios de connect-src en
-   app/layout.tsx y con la tabla "Servicios externos" del README. */
+   lib/csp.mjs, con los servicios que nombran los Términos de uso y con la tabla "Servicios externos" del README. */
 const EXTERNAL_SERVICES = [
   {
     tool: "Corrector de texto",
@@ -129,6 +129,13 @@ export default function PrivacyPage() {
             >
               política de seguridad
             </a>
+            . Las condiciones de uso del sitio están en{" "}
+            <Link
+              href="/terms"
+              className="text-blue-600 hover:text-blue-700 font-medium underline underline-offset-2"
+            >
+              Términos de uso
+            </Link>
             .
           </p>
 

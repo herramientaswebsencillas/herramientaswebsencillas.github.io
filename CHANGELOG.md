@@ -20,6 +20,7 @@ Los cambios que rompen algo que la gente guarda o comparte se marcan con **⚠ C
 - El monitoreo diario comprueba también que el sitio publicado responda.
 - Cada publicación genera un SBOM (CycloneDX) como artefacto del workflow.
 - Se agrega una imagen para las vistas previas en redes sociales.
+- Nueva página de Términos de uso, enlazada desde Privacidad y Acerca de. La página de Privacidad y la licencia indican a Carlos Alberto como responsable y titular.
 
 ## 2026-09-28
 - Pruebas unitarias (Vitest), pruebas de humo (Playwright), CodeQL, Dependabot y monitoreo diario de los servicios externos. El despliegue solo ocurre si todo pasa.

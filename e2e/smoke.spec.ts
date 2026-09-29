@@ -6,6 +6,7 @@ const PAGES = [
   "/",
   "/about",
   "/privacy",
+  "/terms",
   ...CATEGORIES.flatMap((category) => category.tools.map((tool) => `/tools/${tool.slug}`)),
 ];
 

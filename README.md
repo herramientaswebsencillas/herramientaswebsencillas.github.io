@@ -30,6 +30,7 @@ El sitio se genera como export estático (`output: 'export'`) y se publica en Gi
 - `app/layout.tsx` — layout raíz y metadatos
 - `app/opengraph-image.png` — imagen de las vistas previas en redes sociales (con su texto alternativo en `opengraph-image.alt.txt`)
 - `app/privacy/` — qué herramientas envían datos a servicios externos
+- `app/terms/` — términos de uso: servicio sin garantías, resultados orientativos y servicios de terceros
 - `app/tools/` — cada subcarpeta contiene una herramienta con su `page.tsx` y el componente del formulario
 - `components/` — componentes compartidos (por ejemplo, `Navbar.tsx`)
 - `lib/tools.ts` — catálogo de herramientas y categorías que se muestra en la página de inicio
@@ -87,7 +88,7 @@ El workflow `.github/workflows/external-apis.yml` consulta cada día los tres se
 2. Si el servicio cambió su formato, ajusta el validador de `lib/external.ts` y la herramienta con la respuesta nueva.
 3. Si el servicio desaparece, hay alternativas: Frankfurter se puede alojar por cuenta propia con Docker; LanguageTool también, aunque necesita un servidor y GitHub Pages no lo ofrece; para traducción, LibreTranslate es una alternativa de código abierto.
 
-**Al añadir una herramienta que llame a un servicio externo hay que incluir su dominio en `connect-src`**, dentro de la CSP de `lib/csp.mjs`, y listarla en la página de Privacidad (`app/privacy/page.tsx`). Sin lo primero el navegador bloquea las peticiones y las pruebas de humo fallan con la violación de CSP.
+**Al añadir una herramienta que llame a un servicio externo hay que incluir su dominio en `connect-src`**, dentro de la CSP de `lib/csp.mjs`, y listarla en la página de Privacidad (`app/privacy/page.tsx`) y en "Servicios de terceros" de los Términos de uso (`app/terms/page.tsx`). Sin lo primero el navegador bloquea las peticiones y las pruebas de humo fallan con la violación de CSP.
 
 ## Parámetros de URL
 

@@ -44,7 +44,14 @@ export default function AboutPage() {
             >
               Privacidad
             </Link>{" "}
-            se detalla qué herramientas usan un servicio externo y qué datos le envían.
+            se detalla qué herramientas usan un servicio externo y qué datos le envían, y en{" "}
+            <Link
+              href="/terms"
+              className="text-blue-600 hover:text-blue-700 font-medium underline underline-offset-2"
+            >
+              Términos de uso
+            </Link>
+            , las condiciones para usarlo.
           </p>
         </div>
       </div>
