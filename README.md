@@ -85,6 +85,8 @@ Las peticiones salen del navegador de cada visitante, no de un servidor propio, 
 El workflow `.github/workflows/external-apis.yml` consulta cada día los tres servicios (`pnpm test:apis` lo hace en local) y el sitio publicado, y avisa por correo si algo falla. Ante un fallo:
 
 1. Mira qué prueba falló en el registro del workflow. Si fue algo pasajero, la siguiente ejecución diaria pasará sola.
+
+   La prueba de MyMemory se **omite** (no falla) cuando responde con la cuota agotada. Esa cuota se cuenta por IP, y los runners de GitHub comparten IPs con otros proyectos que pueden haberla gastado antes. No afecta a los visitantes, porque cada uno consulta desde su propia IP. Si se omite varios días seguidos, conviene revisarlo con `pnpm test:apis` en local.
 2. Si el servicio cambió su formato, ajusta el validador de `lib/external.ts` y la herramienta con la respuesta nueva.
 3. Si el servicio desaparece, hay alternativas: Frankfurter se puede alojar por cuenta propia con Docker; LanguageTool también, aunque necesita un servidor y GitHub Pages no lo ofrece; para traducción, LibreTranslate es una alternativa de código abierto.
 
