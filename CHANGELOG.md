@@ -13,6 +13,7 @@ Los cambios que rompen algo que la gente guarda o comparte se marcan con **⚠ C
 - El conversor Base64 de archivos ya no usa el texto pegado como URL del enlace de descarga. Antes, un texto como `javascript:…` ejecutaba código en el sitio. Ahora solo acepta Base64 (solo o con la cabecera `data:…;base64,`) y reconstruye el archivo como Blob. Los HTML, SVG y XML reconstruidos se entregan como binario, para que el navegador nunca los abra en el sitio.
 - La CSP publicada ya no incluye `'unsafe-inline'` en `script-src`: cada página autoriza sus scripts inline por hash (`scripts/csp-hashes.mjs`), y el `<meta>` va antes de cualquier script.
 - Las acciones de GitHub se fijan por SHA.
+- Al descifrar textos del formato anterior (AES o TripleDES), una frase equivocada ya no puede devolver texto basura en lugar de un error. Antes pasaba en ~1 de cada 300 intentos, porque no se validaba el relleno.
 
 ### Cambios
 - Unir PDF, dividir PDF y el conversor Base64 de archivos rechazan los archivos demasiado grandes con un mensaje (50 MB para PDF y 10 MB para Base64), en lugar de congelar la pestaña.

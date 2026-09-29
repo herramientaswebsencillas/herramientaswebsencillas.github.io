@@ -52,9 +52,30 @@ describe("formato heredado (CryptoJS)", () => {
     }
   );
 
-  it("falla con la frase equivocada", async () => {
-    const legacy = CryptoJS.AES.encrypt(MESSAGE, PASS).toString();
-    await expect(decryptText(legacy, "otra frase", "AES")).rejects.toBeInstanceOf(CipherError);
+  // Cada cifrado usa una sal aleatoria, así que una sola prueba no basta: antes
+  // de validar el relleno, ~1 de cada 300 intentos con AES o TripleDES
+  // "descifraba" basura. Con 300 intentos por algoritmo, esa regresión
+  // fallaría casi siempre.
+  it.each(["AES", "TripleDES", "Rabbit", "RC4"] as const)(
+    "falla con la frase equivocada con %s, aunque se repita",
+    async (algorithm) => {
+      for (let i = 0; i < 300; i++) {
+        const legacy = CryptoJS[algorithm].encrypt(MESSAGE, PASS).toString();
+        await expect(decryptText(legacy, "otra frase", algorithm)).rejects.toBeInstanceOf(
+          CipherError
+        );
+      }
+    }
+  );
+
+  it("descifra mensajes cuyo largo coincide con el bloque", async () => {
+    // Con un largo múltiplo del bloque, PKCS#7 añade un bloque entero de relleno.
+    for (const message of ["x", "0123456789abcde", "0123456789abcdef", "01234567"]) {
+      for (const algorithm of ["AES", "TripleDES"] as const) {
+        const legacy = CryptoJS[algorithm].encrypt(message, PASS).toString();
+        await expect(decryptText(legacy, PASS, algorithm)).resolves.toBe(message);
+      }
+    }
   });
 });
 

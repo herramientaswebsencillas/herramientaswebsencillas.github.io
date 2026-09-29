@@ -137,21 +137,59 @@ async function decryptCurrent(encoded: string, passphrase: string): Promise<stri
   }
 }
 
+// Relleno PKCS#7 de los cifrados por bloques, en bytes. Rabbit y RC4 son de
+// flujo y no llevan relleno.
+const LEGACY_BLOCK_BYTES: Partial<Record<LegacyAlgorithm, number>> = { AES: 16, TripleDES: 8 };
+
 async function decryptLegacy(
   cipherText: string,
   passphrase: string,
   algorithm: LegacyAlgorithm
 ): Promise<string> {
   const { default: CryptoJS } = await import("crypto-js");
-  let result: string;
+  const blockBytes = LEGACY_BLOCK_BYTES[algorithm];
+
+  /* El formato heredado no está autenticado, así que la única pista de una
+     frase equivocada es que el resultado no tenga sentido. CryptoJS no revisa
+     el relleno: toma el último byte como su longitud y ya. Con eso, una frase
+     equivocada devolvía texto basura en vez de un error en ~1 de cada 300
+     intentos con AES o TripleDES. Aquí se descifra sin quitar el relleno y se
+     exige un PKCS#7 completo y UTF-8 válido, lo que deja esa probabilidad en
+     menos de una en un millón. */
+  let text: string | null = null;
   try {
-    result = CryptoJS[algorithm].decrypt(cipherText, passphrase).toString(CryptoJS.enc.Utf8);
+    const decrypted = CryptoJS[algorithm].decrypt(
+      cipherText,
+      passphrase,
+      blockBytes ? { padding: CryptoJS.pad.NoPadding } : undefined
+    );
+    let bytes: Uint8Array | null = wordArrayToBytes(decrypted);
+    if (blockBytes) bytes = stripPkcs7(bytes, blockBytes);
+    if (bytes?.length) text = new TextDecoder("utf-8", { fatal: true }).decode(bytes);
   } catch {
-    // UTF-8 inválido: casi siempre frase o algoritmo equivocados.
-    result = "";
+    // Texto dañado o UTF-8 inválido: casi siempre frase o algoritmo equivocados.
   }
-  if (!result) {
+  if (!text) {
     throw new CipherError("No se pudo desencriptar. Verifica la frase secreta y el algoritmo.");
   }
-  return result;
+  return text;
+}
+
+function wordArrayToBytes({ words, sigBytes }: { words: number[]; sigBytes: number }) {
+  const bytes = new Uint8Array(Math.max(0, sigBytes));
+  for (let i = 0; i < bytes.length; i++) {
+    bytes[i] = (words[i >>> 2] >>> (24 - (i % 4) * 8)) & 0xff;
+  }
+  return bytes;
+}
+
+/** Quita el relleno PKCS#7, o devuelve null si no es válido. */
+function stripPkcs7(bytes: Uint8Array, blockBytes: number): Uint8Array | null {
+  if (bytes.length === 0 || bytes.length % blockBytes !== 0) return null;
+  const padding = bytes[bytes.length - 1];
+  if (padding < 1 || padding > blockBytes) return null;
+  for (let i = bytes.length - padding; i < bytes.length; i++) {
+    if (bytes[i] !== padding) return null;
+  }
+  return bytes.subarray(0, bytes.length - padding);
 }
