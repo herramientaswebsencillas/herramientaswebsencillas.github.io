@@ -51,7 +51,7 @@ El sitio se genera como export estático (`output: 'export'`) y se publica en Gi
 - `.github/workflows/codeql.yml`, `.github/dependabot.yml` — análisis de seguridad y actualizaciones automáticas de dependencias
 - `.github/workflows/external-apis.yml` — monitoreo diario del sitio publicado, de los servicios externos y de los avisos de seguridad de las dependencias
 - `.size-limit.mjs` — presupuesto de peso del JavaScript publicado
-- `CHANGELOG.md` — cambios visibles del sitio, con los que rompen compatibilidad marcados
+- `CONTRIBUTING.md` — cómo proponer un cambio
 
 ## Añadir una herramienta
 
@@ -100,6 +100,15 @@ Cada petición a un servicio externo se corta a los 15 segundos (`EXTERNAL_TIMEO
 
 **Al añadir una herramienta que llame a un servicio externo hay que incluir su dominio en `connect-src`**, dentro de la CSP de `lib/csp.mjs`, y listarla en la página de Privacidad (`app/privacy/page.tsx`) y en "Servicios de terceros" de los Términos de uso (`app/terms/page.tsx`). Sin lo primero el navegador bloquea las peticiones y las pruebas de humo fallan con la violación de CSP.
 
+## Compatibilidad
+
+Dos cosas que la gente guarda o comparte no pueden cambiar sin romperse:
+
+- Los parámetros de URL de la calculadora de fechas (ver la sección siguiente).
+- El formato de los textos cifrados del encriptador: `v2:` y el heredado de CryptoJS, definidos en `lib/cipher.ts`. Cambiar el algoritmo o las iteraciones de PBKDF2 exige un prefijo nuevo (`v3:`) y seguir descifrando los anteriores.
+
+Si un pull request cambia alguno, su descripción empieza con **⚠ Compatibilidad** y explica qué enlaces o textos cifrados dejan de funcionar. El historial de esos avisos se consulta en los pull request cerrados.
+
 ## Parámetros de URL
 
 La calculadora de tiempo entre fechas lee su estado de la barra de direcciones, así que un rango se puede consultar con un enlace. Son enlaces que la gente comparte y guarda, de modo que **este contrato no se puede cambiar sin romperlos**:
@@ -147,6 +156,8 @@ Para reportar una vulnerabilidad, o si el sitio se ve comprometido, consulta [SE
 ### Content Security Policy
 
 GitHub Pages no permite configurar cabeceras HTTP, así que la CSP va en una etiqueta `<meta>`. Eso no puede aplicar `frame-ancestors`, `X-Frame-Options` ni reportar violaciones; para eso haría falta un host que sirva cabeceras.
+
+Sin `frame-ancestors`, otro sitio puede mostrar estas páginas dentro de un iframe (clickjacking). Es un riesgo aceptado: el sitio no tiene sesiones ni acciones que cambien algo en un servidor, y la página que lo incrusta no puede leer lo que se escribe en él. Si alguna vez se agrega algo así, hay que migrar a un host con cabeceras (Cloudflare Pages o Netlify, con un archivo `_headers`) y servir `frame-ancestors 'none'`, `X-Content-Type-Options: nosniff` y la CSP como cabecera.
 
 La política se define en `lib/csp.mjs`. Next.js mete el payload de hidratación en `<script>` inline y, sin servidor, no hay nonces. Por eso:
 
