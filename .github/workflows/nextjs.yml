@@ -1,7 +1,8 @@
 # Verifica y despliega el sitio en GitHub Pages.
 #
 # En cada pull request se ejecutan las verificaciones (lint, auditoría de
-# dependencias, pruebas, build y pruebas de humo) sin desplegar. En cada push
+# dependencias, pruebas, build, presupuesto de peso y pruebas de humo) sin
+# desplegar. En cada push
 # a main se ejecuta lo mismo y, si todo pasa, se publica out/ en Pages.
 name: Deploy Next.js site to Pages
 
@@ -69,6 +70,9 @@ jobs:
       # next build también comprueba los tipos de TypeScript.
       - name: Build with Next.js
         run: pnpm build
+      # Presupuesto de peso del JavaScript publicado (.size-limit.mjs).
+      - name: Check bundle size
+        run: pnpm size
       - name: Install Playwright browser
         run: pnpm exec playwright install --with-deps chromium
       - name: Smoke tests

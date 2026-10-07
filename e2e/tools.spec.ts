@@ -1,7 +1,7 @@
 import { readFile } from "node:fs/promises";
 import { expect, test, type Download } from "@playwright/test";
 import JSZip from "jszip";
-import { PDFDocument } from "pdf-lib";
+import { PDFDocument } from "@cantoo/pdf-lib";
 import { watchPage } from "./watch";
 
 /* Flujos de las herramientas que procesan archivos y de las que consultan

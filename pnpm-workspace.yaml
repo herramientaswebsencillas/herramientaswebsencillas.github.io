@@ -17,6 +17,12 @@ overrides:
   # GHSA-c83g-rgw3-j3cx y GHSA-73wf-gq98-2v4g — memoria sin límite y escritura
   # en el prototipo con consultas no confiables. Llega vía @babel/core de next.
   browserslist@<4.28.7: ^4.28.7
+  # GHSA-wq5f-xc86-pv6w. Llega vía next; no se compila (ver allowBuilds) ni se
+  # usa con images.unoptimized, pero el aviso bloquea `pnpm audit`.
+  sharp@<0.35.5: ^0.35.5
+  # GHSA-68fv-2mgg-jv7q — bloqueo del event loop con source maps indexados.
+  # Llega vía postcss (next, @tailwindcss/postcss y vite).
+  source-map-js@<1.2.2: ^1.2.2
 
 # pnpm bloquea por defecto los scripts de instalación y exige decidir uno a uno.
 # unrs-resolver compila el binario que usa el resolver de eslint-config-next.
@@ -25,3 +31,14 @@ overrides:
 allowBuilds:
   sharp: false
   unrs-resolver: true
+
+# Avisos que `pnpm audit` ignora a sabiendas. Cada uno con su motivo y la
+# condición para quitarlo; cualquier otro aviso alto sigue bloqueando el CI.
+auditConfig:
+  ignoreGhsas:
+    # braces: agotamiento de pila con patrones anidados. No hay versión
+    # corregida (la última es 3.0.3) y solo llega por el lint de Next
+    # (eslint-config-next > fast-glob > micromatch), que procesa patrones
+    # del propio repositorio, no del visitante. Quitar cuando salga braces
+    # 3.0.4 o eslint-config-next deje de depender de ella.
+    - GHSA-vfj7-8cjw-p6xm

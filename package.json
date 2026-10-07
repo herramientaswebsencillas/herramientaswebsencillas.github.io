@@ -12,18 +12,20 @@
     "export": "pnpm build",
     "test": "vitest run",
     "test:e2e": "playwright test",
-    "test:apis": "vitest run --config vitest.apis.config.mts"
+    "test:apis": "vitest run --config vitest.apis.config.mts",
+    "size": "size-limit"
   },
   "dependencies": {
-    "crypto-js": "^4.2.0",
+    "@cantoo/pdf-lib": "^2.11.1",
+    "crypto-js": "4.2.0",
     "jszip": "^3.10.2",
     "next": "16.3.6",
-    "pdf-lib": "^1.17.1",
     "react": "19.3.0",
     "react-dom": "19.3.0"
   },
   "devDependencies": {
     "@playwright/test": "^1.63.0",
+    "@size-limit/file": "^14.1.0",
     "@tailwindcss/postcss": "^4.3.3",
     "@types/crypto-js": "^4.2.2",
     "@types/node": "^26.6.3",
@@ -32,6 +34,7 @@
     "eslint": "^9.39.5",
     "eslint-config-next": "16.3.6",
     "prettier": "^3.9.9",
+    "size-limit": "^14.1.0",
     "tailwindcss": "^4.3.3",
     "typescript": "^6.0.3",
     "vitest": "^5.0.2"

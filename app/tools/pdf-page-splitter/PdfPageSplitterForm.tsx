@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { PDFDocument } from "pdf-lib";
+import { PDFDocument } from "@cantoo/pdf-lib";
 import JSZip from "jszip";
 import {
   FileToolError,
