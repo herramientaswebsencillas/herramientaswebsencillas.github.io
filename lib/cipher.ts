@@ -12,6 +12,8 @@
  * abriéndose; crypto-js se carga bajo demanda para no pesar en la página.
  */
 
+import { base64ToBytes, bytesToBase64 } from "./base64";
+
 export const CIPHER_PREFIX = "v2:";
 // Recomendación de OWASP para PBKDF2-HMAC-SHA256. Cambiarla rompe los textos
 // ya cifrados: si hace falta subirla, se crea un prefijo "v3:".
@@ -36,22 +38,6 @@ export function detectFormat(cipherText: string): CipherFormat {
   if (text.startsWith(CIPHER_PREFIX)) return "current";
   if (text.startsWith(LEGACY_MARKER)) return "legacy";
   return "unknown";
-}
-
-function toBase64(bytes: Uint8Array): string {
-  // Por bloques: String.fromCharCode(...bytes) desborda la pila con textos largos.
-  let binary = "";
-  for (let i = 0; i < bytes.length; i += 0x8000) {
-    binary += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
-  }
-  return btoa(binary);
-}
-
-function fromBase64(text: string): Uint8Array<ArrayBuffer> {
-  const binary = atob(text);
-  const bytes = new Uint8Array(binary.length);
-  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
-  return bytes;
 }
 
 async function deriveKey(passphrase: string, salt: Uint8Array<ArrayBuffer>) {
@@ -86,7 +72,7 @@ export async function encryptText(text: string, passphrase: string): Promise<str
   payload.set(salt);
   payload.set(iv, SALT_BYTES);
   payload.set(encrypted, SALT_BYTES + IV_BYTES);
-  return CIPHER_PREFIX + toBase64(payload);
+  return CIPHER_PREFIX + bytesToBase64(payload);
 }
 
 export async function decryptText(
@@ -111,7 +97,7 @@ export async function decryptText(
 async function decryptCurrent(encoded: string, passphrase: string): Promise<string> {
   let payload: Uint8Array<ArrayBuffer>;
   try {
-    payload = fromBase64(encoded);
+    payload = base64ToBytes(encoded);
   } catch {
     throw new CipherError("El texto encriptado está dañado o incompleto.");
   }

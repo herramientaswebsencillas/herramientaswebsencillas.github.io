@@ -1,6 +1,8 @@
 "use client";
 import { useState, ChangeEvent } from "react";
+import { copyLabel, useCopy } from "@/lib/useCopy";
 import {
+  EXTERNAL_TIMEOUT_MS,
   ExternalServiceError,
   MYMEMORY_QUOTA_MESSAGE,
   parseMyMemoryTranslation,
@@ -34,6 +36,7 @@ export default function TranslatorForm() {
   const [targetLang, setTargetLang] = useState("en");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+  const { copy, statusOf } = useCopy();
 
   const charCount = sourceText.length;
   const byteCount = getByteSize(sourceText);
@@ -66,7 +69,8 @@ export default function TranslatorForm() {
       const res = await fetch(
         `https://api.mymemory.translated.net/get?q=${encodeURIComponent(
           sourceText
-        )}&langpair=${sourceLang}|${targetLang}`
+        )}&langpair=${sourceLang}|${targetLang}`,
+        { signal: AbortSignal.timeout(EXTERNAL_TIMEOUT_MS) }
       );
 
       if (res.status === 429) throw new ExternalServiceError(MYMEMORY_QUOTA_MESSAGE);
@@ -82,12 +86,6 @@ export default function TranslatorForm() {
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const copyToClipboard = (text: string) => {
-    if (!text) return;
-    navigator.clipboard.writeText(text);
-    alert("¡Copiado al portapapeles!");
   };
 
   return (
@@ -182,10 +180,10 @@ export default function TranslatorForm() {
                 />
                 {translatedText && (
                   <button
-                    onClick={() => copyToClipboard(translatedText)}
+                    onClick={() => copy(translatedText, "translation")}
                     className="absolute top-2 right-2 p-2 bg-slate-700 hover:bg-slate-600 rounded-lg text-xs text-white transition-colors"
                   >
-                    Copiar
+                    {copyLabel(statusOf("translation"))}
                   </button>
                 )}
               </div>

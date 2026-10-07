@@ -1,16 +1,19 @@
 "use client";
 
 import { useState } from "react";
+import { base64ToText, textToBase64 } from "@/lib/base64";
+import { copyLabel, useCopy } from "@/lib/useCopy";
 
 export default function Base64ConverterForm() {
   const [textInput, setTextInput] = useState("");
   const [base64Output, setBase64Output] = useState("");
   const [base64Input, setBase64Input] = useState("");
   const [textOutput, setTextOutput] = useState("");
+  const { copy, statusOf } = useCopy();
 
   const encodeToBase64 = () => {
     try {
-      const encoded = btoa(unescape(encodeURIComponent(textInput)));
+      const encoded = textToBase64(textInput);
       setBase64Output(encoded);
     } catch {
       setBase64Output("Error: No se pudo codificar el texto.");
@@ -19,16 +22,11 @@ export default function Base64ConverterForm() {
 
   const decodeFromBase64 = () => {
     try {
-      const decoded = decodeURIComponent(escape(atob(base64Input.trim())));
+      const decoded = base64ToText(base64Input.trim());
       setTextOutput(decoded);
     } catch {
       setTextOutput("Error: El código Base64 no es válido.");
     }
-  };
-
-  const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text);
-    alert("¡Copiado al portapapeles!");
   };
 
   return (
@@ -71,10 +69,10 @@ export default function Base64ConverterForm() {
                 />
                 {base64Output && !base64Output.includes("Error") && (
                   <button
-                    onClick={() => copyToClipboard(base64Output)}
+                    onClick={() => copy(base64Output, "base64")}
                     className="absolute top-2 right-2 p-2 bg-slate-700 hover:bg-slate-600 rounded-lg text-xs text-white transition-colors"
                   >
-                    Copiar
+                    {copyLabel(statusOf("base64"))}
                   </button>
                 )}
               </div>
@@ -110,10 +108,10 @@ export default function Base64ConverterForm() {
                 />
                 {textOutput && !textOutput.includes("Error") && (
                   <button
-                    onClick={() => copyToClipboard(textOutput)}
+                    onClick={() => copy(textOutput, "text")}
                     className="absolute top-2 right-2 p-2 bg-slate-200 hover:bg-slate-300 rounded-lg text-xs text-slate-600 transition-colors"
                   >
-                    Copiar
+                    {copyLabel(statusOf("text"))}
                   </button>
                 )}
               </div>

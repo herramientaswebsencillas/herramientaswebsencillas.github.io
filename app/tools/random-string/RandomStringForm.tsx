@@ -1,11 +1,14 @@
 "use client";
 import { useState } from "react";
 import { randomString } from "@/lib/random";
+import { copyLabel, useCopy } from "@/lib/useCopy";
 
 export default function RandomStringForm() {
   const [resultado, setResultado] = useState("");
   const [longitud, setLongitud] = useState(12);
-  const [copiado, setCopiado] = useState(false);
+  const { copy, statusOf, reset: resetCopy } = useCopy();
+  const copyStatus = statusOf();
+  const copiado = copyStatus === "copied";
   const [opciones, setOpciones] = useState({
     mayúsculas: true,
     minúsculas: true,
@@ -27,18 +30,11 @@ export default function RandomStringForm() {
 
     const nuevaCadena = randomString(longitud, caracteres);
     setResultado(nuevaCadena);
-    setCopiado(false);
+    resetCopy();
   };
 
   const copiarAlPortapapeles = () => {
-    if (resultado && !resultado.startsWith("⚠️")) {
-      navigator.clipboard.writeText(resultado);
-      setCopiado(true);
-
-      setTimeout(() => {
-        setCopiado(false);
-      }, 2000);
-    }
+    if (!resultado.startsWith("⚠️")) copy(resultado);
   };
 
   return (
@@ -116,16 +112,22 @@ export default function RandomStringForm() {
                 className={`absolute inset-0 flex items-center justify-center rounded-2xl transition-opacity ${
                   copiado
                     ? "opacity-100 bg-green-600"
-                    : "opacity-0 group-hover:opacity-100 bg-slate-800/90"
+                    : copyStatus === "failed"
+                      ? "opacity-100 bg-red-600"
+                      : "opacity-0 group-hover:opacity-100 bg-slate-800/90"
                 }`}
               >
                 <span className="text-white text-xs font-bold uppercase tracking-widest">
-                  {copiado ? "¡Copiado!" : "Copiar"}
+                  {copyLabel(copyStatus)}
                 </span>
               </div>
             </div>
             <p className="text-center text-[10px] text-slate-400 font-medium">
-              {copiado ? "Texto guardado en el portapapeles" : "Clic sobre el texto para copiar"}
+              {copiado
+                ? "Texto guardado en el portapapeles"
+                : copyStatus === "failed"
+                  ? "El navegador no permitió copiar al portapapeles"
+                  : "Clic sobre el texto para copiar"}
             </p>
           </div>
         )}

@@ -1,5 +1,6 @@
 "use client";
 import { useState, ChangeEvent } from "react";
+import { copyLabel, useCopy } from "@/lib/useCopy";
 import {
   FileToolError,
   MAX_BASE64_FILE_BYTES,
@@ -15,6 +16,7 @@ export default function Base64FileConverterForm() {
   const [fileName, setFileName] = useState("archivo_descargado");
   const [uploadError, setUploadError] = useState("");
   const [decodeError, setDecodeError] = useState("");
+  const { copy, statusOf } = useCopy();
 
   const handleFileUpload = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -61,11 +63,6 @@ export default function Base64FileConverterForm() {
     }
   };
 
-  const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text);
-    alert("¡Copiado al portapapeles!");
-  };
-
   return (
     <main className="min-h-screen bg-slate-50 py-12 px-6">
       <div className="max-w-5xl mx-auto">
@@ -107,10 +104,10 @@ export default function Base64FileConverterForm() {
                 />
                 {base64Output && (
                   <button
-                    onClick={() => copyToClipboard(base64Output)}
+                    onClick={() => copy(base64Output, "base64")}
                     className="absolute top-2 right-2 p-2 bg-slate-700 hover:bg-slate-600 rounded-lg text-xs text-white transition-colors"
                   >
-                    Copiar
+                    {copyLabel(statusOf("base64"))}
                   </button>
                 )}
               </div>

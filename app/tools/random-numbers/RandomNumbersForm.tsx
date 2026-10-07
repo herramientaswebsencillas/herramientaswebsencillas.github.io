@@ -1,10 +1,13 @@
 "use client";
 import { useState } from "react";
 import { randomInt } from "@/lib/random";
+import { copyLabel, useCopy } from "@/lib/useCopy";
 
 export default function RandomNumbersForm() {
   const [resultado, setResultado] = useState<number[]>([]);
-  const [copiado, setCopiado] = useState(false);
+  const { copy, statusOf, reset: resetCopy } = useCopy();
+  const copyStatus = statusOf();
+  const copiado = copyStatus === "copied";
   const [config, setConfig] = useState({
     cantidad: 5,
     min: 1,
@@ -38,16 +41,10 @@ export default function RandomNumbersForm() {
     }
 
     setResultado(nuevosNumeros);
-    setCopiado(false);
+    resetCopy();
   };
 
-  const copiarAlPortapapeles = () => {
-    if (resultado.length > 0) {
-      navigator.clipboard.writeText(resultado.join(", "));
-      setCopiado(true);
-      setTimeout(() => setCopiado(false), 2000);
-    }
-  };
+  const copiarAlPortapapeles = () => copy(resultado.join(", "));
 
   return (
     <div className="min-h-screen bg-slate-50 py-20 px-4">
@@ -142,11 +139,13 @@ export default function RandomNumbersForm() {
                 className={`absolute inset-0 flex items-center justify-center rounded-2xl transition-opacity ${
                   copiado
                     ? "opacity-100 bg-green-600/90"
-                    : "opacity-0 group-hover:opacity-100 bg-slate-800/80"
+                    : copyStatus === "failed"
+                      ? "opacity-100 bg-red-600/90"
+                      : "opacity-0 group-hover:opacity-100 bg-slate-800/80"
                 }`}
               >
                 <span className="text-white text-xs font-bold uppercase tracking-widest">
-                  {copiado ? "¡Copiado!" : "Click para copiar lista"}
+                  {copyLabel(copyStatus, "Click para copiar lista")}
                 </span>
               </div>
             </div>

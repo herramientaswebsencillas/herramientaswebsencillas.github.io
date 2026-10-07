@@ -21,6 +21,7 @@ El sitio se genera como export estático (`output: 'export'`) y se publica en Gi
 - **Pruebas unitarias**: `pnpm test` — Vitest sobre la lógica de `lib/`
 - **Servicios externos**: `pnpm test:apis` — consulta de verdad LanguageTool, MyMemory y Frankfurter y comprueba el formato de sus respuestas
 - **Pruebas de humo**: `pnpm test:e2e` — Playwright abre cada página del build; hace falta `pnpm build` antes y, la primera vez, `pnpm exec playwright install chromium`
+- **Peso del JavaScript**: `pnpm size` — comprueba el presupuesto de `.size-limit.mjs` sobre `out/`; hace falta `pnpm build` antes
 
 > Nota: los scripts están definidos en `package.json`. `pnpm export` es un alias de `pnpm build`, ya que el build estático ya escribe `out/`.
 
@@ -37,17 +38,20 @@ El sitio se genera como export estático (`output: 'export'`) y se publica en Gi
 - `lib/currencies.ts` — nombres de divisas en español, usados por el conversor
 - `lib/csp.mjs` — la Content Security Policy del sitio (ver "Seguridad")
 - `lib/files.ts` — límites de tamaño, decodificación de Base64 y descargas de las herramientas de archivos
+- `lib/base64.ts` — conversión entre Base64, bytes y texto UTF-8, compartida por los conversores y el encriptador
+- `lib/useCopy.ts` — hook para copiar al portapapeles; el botón dice si se copió o si el navegador no lo permitió
 - `lib/*.ts` — lógica pura de las herramientas (fechas, finanzas, romanos, aleatorios, cifrado), separada de los componentes y probada en `lib/*.test.ts`
 - `lib/external.ts` — validación de las respuestas de los servicios externos; `lib/external.live.test.ts` los consulta de verdad para el monitoreo diario
 - `e2e/` — pruebas con Playwright sobre el export estático: `smoke.spec.ts` recorre todas las páginas y `tools.spec.ts` prueba los flujos de archivos y de servicios externos con respuestas simuladas
 - `scripts/serve-out.mjs` — servidor estático de `out/` para `pnpm start` y las pruebas de humo
 - `scripts/csp-hashes.mjs` — inserta la CSP con hashes en cada HTML de `out/` después de `next build`
 - `next.config.ts`, `package.json`, `tsconfig.json` — configuración del proyecto
-- `pnpm-workspace.yaml` — ajustes de pnpm (overrides de seguridad y scripts de instalación permitidos)
+- `pnpm-workspace.yaml` — ajustes de pnpm (overrides de seguridad, avisos de `pnpm audit` ignorados con su motivo y scripts de instalación permitidos)
 - `.github/workflows/nextjs.yml` — verificación en cada pull request, y verificación y despliegue a GitHub Pages en cada push a `main`
 - `.github/workflows/codeql.yml`, `.github/dependabot.yml` — análisis de seguridad y actualizaciones automáticas de dependencias
-- `.github/workflows/external-apis.yml` — monitoreo diario del sitio publicado y de los servicios externos
-- `CHANGELOG.md` — cambios visibles del sitio, con los que rompen compatibilidad marcados
+- `.github/workflows/external-apis.yml` — monitoreo diario del sitio publicado, de los servicios externos y de los avisos de seguridad de las dependencias
+- `.size-limit.mjs` — presupuesto de peso del JavaScript publicado
+- `CONTRIBUTING.md` — cómo proponer un cambio
 
 ## Añadir una herramienta
 
@@ -90,7 +94,20 @@ El workflow `.github/workflows/external-apis.yml` consulta cada día los tres se
 2. Si el servicio cambió su formato, ajusta el validador de `lib/external.ts` y la herramienta con la respuesta nueva.
 3. Si el servicio desaparece, hay alternativas: Frankfurter se puede alojar por cuenta propia con Docker; LanguageTool también, aunque necesita un servidor y GitHub Pages no lo ofrece; para traducción, LibreTranslate es una alternativa de código abierto.
 
+**Si el monitoreo deja de ejecutarse.** GitHub desactiva los workflows programados de un repositorio público (este y el análisis semanal de CodeQL) tras 60 días sin actividad, y avisa antes por correo. Si el sitio pasa una temporada sin cambios, revisa en **Actions** que *External APIs* y *CodeQL* sigan activos y, si no, actívalos con **Enable workflow**. Integrar los PR semanales de Dependabot cuenta como actividad.
+
+Cada petición a un servicio externo se corta a los 15 segundos (`EXTERNAL_TIMEOUT_MS` en `lib/external.ts`) y la herramienta muestra su mensaje de error, en lugar de quedarse cargando.
+
 **Al añadir una herramienta que llame a un servicio externo hay que incluir su dominio en `connect-src`**, dentro de la CSP de `lib/csp.mjs`, y listarla en la página de Privacidad (`app/privacy/page.tsx`) y en "Servicios de terceros" de los Términos de uso (`app/terms/page.tsx`). Sin lo primero el navegador bloquea las peticiones y las pruebas de humo fallan con la violación de CSP.
+
+## Compatibilidad
+
+Dos cosas que la gente guarda o comparte no pueden cambiar sin romperse:
+
+- Los parámetros de URL de la calculadora de fechas (ver la sección siguiente).
+- El formato de los textos cifrados del encriptador: `v2:` y el heredado de CryptoJS, definidos en `lib/cipher.ts`. Cambiar el algoritmo o las iteraciones de PBKDF2 exige un prefijo nuevo (`v3:`) y seguir descifrando los anteriores.
+
+Si un pull request cambia alguno, su descripción empieza con **⚠ Compatibilidad** y explica qué enlaces o textos cifrados dejan de funcionar. El historial de esos avisos se consulta en los pull request cerrados.
 
 ## Parámetros de URL
 
@@ -107,7 +124,7 @@ Que el extremo ausente sea hoy es lo que hace útil al enlace corto: `?hasta=25/
 
 ## Despliegue
 
-Cada push a `main` dispara el workflow de GitHub Actions. Instala con `pnpm install --frozen-lockfile`, ejecuta lint, la comprobación de formato, `pnpm audit`, las pruebas unitarias, `pnpm build` y las pruebas E2E, y solo si todo pasa publica `out/` en GitHub Pages. En los pull request se ejecutan las mismas verificaciones sin publicar. Cada publicación deja además un SBOM (inventario de dependencias en formato CycloneDX) como artefacto de la ejecución, en la pestaña **Actions**.
+Cada push a `main` dispara el workflow de GitHub Actions. Instala con `pnpm install --frozen-lockfile`, ejecuta lint, la comprobación de formato, `pnpm audit`, las pruebas unitarias, `pnpm build`, el presupuesto de peso (`pnpm size`) y las pruebas E2E, y solo si todo pasa publica `out/` en GitHub Pages. En los pull request se ejecutan las mismas verificaciones sin publicar. Cada publicación deja además un SBOM (inventario de dependencias en formato CycloneDX) como artefacto de la ejecución, en la pestaña **Actions**.
 
 Las acciones de los workflows se fijan por SHA, con la versión en un comentario. Dependabot las actualiza igual que las dependencias.
 
@@ -122,6 +139,16 @@ git push
 
 Si hace falta volver ya, en la pestaña **Actions** abre la ejecución de un commit anterior que funcionaba y usa **Re-run all jobs**: vuelve a construir y publicar ese commit.
 
+## Dependencias
+
+`pnpm audit --audit-level=high` corre en cada pull request, antes de cada publicación y cada día en `external-apis.yml`. Un aviso alto bloquea el despliegue. Para resolverlo:
+
+1. Si la dependencia directa ya trae la versión corregida, actualízala (o integra el PR de Dependabot).
+2. Si el aviso está en una dependencia transitiva, fuerza la versión corregida en `overrides` de `pnpm-workspace.yaml`, con el aviso y el camino por el que llega en un comentario. Quita el override cuando la dependencia directa ya la traiga.
+3. Si no existe versión corregida, evalúa si el aviso afecta al sitio publicado. Si no lo afecta (por ejemplo, porque solo llega a herramientas de desarrollo con datos del propio repositorio), añade su GHSA a `auditConfig.ignoreGhsas` con el motivo y la condición para quitarlo.
+
+Dos dependencias se fijan a propósito: `@cantoo/pdf-lib` es el fork mantenido de `pdf-lib`, que dejó de publicar versiones en 2022, y `crypto-js` va en versión exacta porque está deprecada y solo sirve para descifrar el formato heredado del encriptador.
+
 ## Seguridad
 
 Para reportar una vulnerabilidad, o si el sitio se ve comprometido, consulta [SECURITY.md](SECURITY.md).
@@ -129,6 +156,8 @@ Para reportar una vulnerabilidad, o si el sitio se ve comprometido, consulta [SE
 ### Content Security Policy
 
 GitHub Pages no permite configurar cabeceras HTTP, así que la CSP va en una etiqueta `<meta>`. Eso no puede aplicar `frame-ancestors`, `X-Frame-Options` ni reportar violaciones; para eso haría falta un host que sirva cabeceras.
+
+Sin `frame-ancestors`, otro sitio puede mostrar estas páginas dentro de un iframe (clickjacking). Es un riesgo aceptado: el sitio no tiene sesiones ni acciones que cambien algo en un servidor, y la página que lo incrusta no puede leer lo que se escribe en él. Si alguna vez se agrega algo así, hay que migrar a un host con cabeceras (Cloudflare Pages o Netlify, con un archivo `_headers`) y servir `frame-ancestors 'none'`, `X-Content-Type-Options: nosniff` y la CSP como cabecera.
 
 La política se define en `lib/csp.mjs`. Next.js mete el payload de hidratación en `<script>` inline y, sin servidor, no hay nonces. Por eso:
 

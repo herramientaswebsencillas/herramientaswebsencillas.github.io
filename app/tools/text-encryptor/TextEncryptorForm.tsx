@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { copyLabel, useCopy } from "@/lib/useCopy";
 import {
   CipherError,
   LEGACY_ALGORITHMS,
@@ -29,10 +30,6 @@ const LEGACY_LABELS: Record<LegacyAlgorithm, string> = {
 
 type Mode = "encrypt" | "decrypt";
 
-// Qué se copió por última vez, para mostrar el check de confirmación
-// en el botón correcto sin mezclar estados.
-type CopiedTarget = "result" | "passphrase" | null;
-
 export default function TextEncryptorForm() {
   const [mode, setMode] = useState<Mode>("encrypt");
   const [input, setInput] = useState("");
@@ -41,14 +38,14 @@ export default function TextEncryptorForm() {
   const [showPassphrase, setShowPassphrase] = useState(false);
   const [result, setResult] = useState("");
   const [error, setError] = useState("");
-  const [copied, setCopied] = useState<CopiedTarget>(null);
+  const { copy, statusOf, reset: resetCopy } = useCopy(1800);
   const [busy, setBusy] = useState(false);
 
   const isLegacyInput = mode === "decrypt" && detectFormat(input) === "legacy";
 
   async function runCipher() {
     setError("");
-    setCopied(null);
+    resetCopy();
     setBusy(true);
     try {
       const output =
@@ -69,18 +66,7 @@ export default function TextEncryptorForm() {
     setInput(result || input);
     setResult("");
     setError("");
-    setCopied(null);
-  }
-
-  async function copyToClipboard(text: string, target: CopiedTarget) {
-    if (!text) return;
-    try {
-      await navigator.clipboard.writeText(text);
-      setCopied(target);
-      setTimeout(() => setCopied((current) => (current === target ? null : current)), 1800);
-    } catch {
-      // portapapeles no disponible
-    }
+    resetCopy();
   }
 
   return (
@@ -158,11 +144,11 @@ export default function TextEncryptorForm() {
                 <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-2.5">
                   <button
                     type="button"
-                    onClick={() => copyToClipboard(passphrase, "passphrase")}
+                    onClick={() => copy(passphrase, "passphrase")}
                     disabled={!passphrase}
                     className="text-slate-500 hover:text-teal-400 text-xs cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:text-slate-500"
                   >
-                    {copied === "passphrase" ? "copiada ✓" : "copiar"}
+                    {copyLabel(statusOf("passphrase"), "copiar", "copiada ✓")}
                   </button>
                   <button
                     type="button"
@@ -241,10 +227,10 @@ export default function TextEncryptorForm() {
                 </span>
                 <button
                   type="button"
-                  onClick={() => copyToClipboard(result, "result")}
+                  onClick={() => copy(result, "result")}
                   className="text-[11px] text-slate-400 hover:text-teal-400 cursor-pointer"
                 >
-                  {copied === "result" ? "copiado ✓" : "copiar"}
+                  {copyLabel(statusOf("result"), "copiar", "copiado ✓")}
                 </button>
               </div>
               <p className="text-sm text-teal-200 px-3.5 py-3 break-all whitespace-pre-wrap leading-relaxed">

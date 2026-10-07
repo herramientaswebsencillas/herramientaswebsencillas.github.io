@@ -1,13 +1,19 @@
-# Monitoreo diario del sitio publicado y de LanguageTool, MyMemory y
-# Frankfurter.
+# Monitoreo diario del sitio publicado, de LanguageTool, MyMemory y
+# Frankfurter, y de los avisos de seguridad de las dependencias.
 #
 # El job site comprueba que el sitio responda con su contenido y su CSP. El
 # job check hace una consulta real a cada servicio con
-# lib/external.live.test.ts. Si algo deja de responder o cambia de formato, el
-# workflow falla y GitHub envía un correo a quien modificó por última vez este
-# archivo (notificaciones de Actions activas en la cuenta).
+# lib/external.live.test.ts. El job audit ejecuta el mismo `pnpm audit` que el
+# despliegue: un aviso nuevo en una dependencia se conoce el mismo día, y no
+# cuando hace falta publicar algo y el CI lo bloquea. Si algo falla, GitHub
+# envía un correo a quien modificó por última vez este archivo (notificaciones
+# de Actions activas en la cuenta).
 #
-# Qué hacer si falla: ver "Servicios externos" y "Rollback" en el README.
+# GitHub desactiva los workflows programados de un repositorio público tras
+# 60 días sin actividad (ver "Servicios externos" en el README).
+#
+# Qué hacer si falla: ver "Servicios externos", "Dependencias" y "Rollback" en
+# el README.
 name: External APIs
 
 on:
@@ -56,3 +62,19 @@ jobs:
         run: pnpm install --frozen-lockfile
       - name: Check external services
         run: pnpm test:apis
+
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Install pnpm
+        uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
+      - name: Setup Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: .nvmrc
+      # Solo lee pnpm-lock.yaml y la configuración de pnpm-workspace.yaml
+      # (overrides y avisos ignorados); no hace falta instalar.
+      - name: Audit dependencies
+        run: pnpm audit --audit-level=high

@@ -1,7 +1,7 @@
 import { readFile } from "node:fs/promises";
 import { expect, test, type Download } from "@playwright/test";
 import JSZip from "jszip";
-import { PDFDocument } from "pdf-lib";
+import { PDFDocument } from "@cantoo/pdf-lib";
 import { watchPage } from "./watch";
 
 /* Flujos de las herramientas que procesan archivos y de las que consultan
@@ -139,6 +139,48 @@ test("divide un PDF en páginas dentro de un ZIP", async ({ page }) => {
     "informe-page-3.pdf",
   ]);
   await check();
+});
+
+/* -------------------------- Texto y portapapeles -------------------------- */
+
+test.describe("convertidor Base64 de texto", () => {
+  const PATH = "/tools/base64-converter";
+  const TEXT = "Año de la niña 🎉";
+  const ENCODED = Buffer.from(TEXT, "utf8").toString("base64");
+
+  test("codifica y decodifica UTF-8 y copia el resultado", async ({ page, context }) => {
+    await context.grantPermissions(["clipboard-read", "clipboard-write"]);
+    const check = await watchPage(page, PATH);
+    await page.goto(PATH);
+
+    await page.getByPlaceholder("Ingresa el texto normal aquí...").fill(TEXT);
+    await page.getByRole("button", { name: "Codificar", exact: true }).click();
+    await expect(page.getByPlaceholder("Resultado en Base64...")).toHaveValue(ENCODED);
+
+    await page.getByRole("button", { name: "Copiar" }).click();
+    await expect(page.getByRole("button", { name: "¡Copiado!" })).toBeVisible();
+    expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(ENCODED);
+
+    await page.getByPlaceholder("Pega el código Base64 aquí...").fill(ENCODED);
+    await page.getByRole("button", { name: "Decodificar" }).click();
+    await expect(page.getByPlaceholder("Texto original...")).toHaveValue(TEXT);
+    await check();
+  });
+
+  test("avisa si el navegador no permite copiar", async ({ page }) => {
+    const check = await watchPage(page, PATH);
+    await page.addInitScript(() => {
+      navigator.clipboard.writeText = () => Promise.reject(new DOMException("", "NotAllowedError"));
+    });
+    await page.goto(PATH);
+
+    await page.getByPlaceholder("Ingresa el texto normal aquí...").fill(TEXT);
+    await page.getByRole("button", { name: "Codificar", exact: true }).click();
+    await page.getByRole("button", { name: "Copiar" }).click();
+
+    await expect(page.getByRole("button", { name: "No se pudo copiar" })).toBeVisible();
+    await check();
+  });
 });
 
 /* ---------------------------- Servicios externos --------------------------- */
