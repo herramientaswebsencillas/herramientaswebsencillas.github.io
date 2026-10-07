@@ -2,6 +2,8 @@
    navegador (PDF y Base64): límites de tamaño, decodificación de Base64 y
    descarga del resultado. */
 
+import { base64ToBytes } from "./base64";
+
 const MB = 1024 * 1024;
 
 // Todo se procesa en memoria dentro de la pestaña. Por encima de estos
@@ -83,10 +85,7 @@ export function decodeBase64File(input: string): DecodedFile {
     );
   }
 
-  const binary = atob(payload);
-  const bytes = new Uint8Array(binary.length);
-  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
-  return { bytes, mimeType };
+  return { bytes: base64ToBytes(payload), mimeType };
 }
 
 /** Descarga un Blob con el nombre indicado. Solo en el navegador. */

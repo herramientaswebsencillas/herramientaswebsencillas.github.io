@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useCallback, JSX } from "react";
-import { parseLanguageToolMatches, type LTMatch } from "@/lib/external";
+import { EXTERNAL_TIMEOUT_MS, parseLanguageToolMatches, type LTMatch } from "@/lib/external";
 
 // LanguageTool: API pública, sin key, ideal para uso personal/demo.
 // Límite ~20 req/min y ~20,000 caracteres por request en el servidor gratuito.
@@ -77,6 +77,7 @@ export default function ProofreaderForm() {
         method: "POST",
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
         body: params,
+        signal: AbortSignal.timeout(EXTERNAL_TIMEOUT_MS),
       });
 
       if (!res.ok) throw new Error(`HTTP ${res.status}`);

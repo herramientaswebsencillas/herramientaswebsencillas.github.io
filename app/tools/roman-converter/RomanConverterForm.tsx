@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { copyLabel, useCopy } from "@/lib/useCopy";
 import { MAX_VALUE, MIN_VALUE, decimalToRoman, romanToDecimal } from "@/lib/roman";
 
 /* -------------------------------- Página -------------------------------- */
@@ -10,6 +11,7 @@ export default function RomanConverterForm() {
   const [romanOutput, setRomanOutput] = useState("");
   const [romanInput, setRomanInput] = useState("");
   const [decimalOutput, setDecimalOutput] = useState("");
+  const { copy, statusOf } = useCopy();
 
   const convertToRoman = () => {
     try {
@@ -25,11 +27,6 @@ export default function RomanConverterForm() {
     } catch (e) {
       setDecimalOutput(e instanceof Error ? `Error: ${e.message}` : "Error: Entrada inválida.");
     }
-  };
-
-  const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text);
-    alert("¡Copiado al portapapeles!");
   };
 
   return (
@@ -75,10 +72,10 @@ export default function RomanConverterForm() {
                 />
                 {romanOutput && !romanOutput.includes("Error") && (
                   <button
-                    onClick={() => copyToClipboard(romanOutput)}
+                    onClick={() => copy(romanOutput, "roman")}
                     className="absolute top-1/2 -translate-y-1/2 right-2 p-2 bg-slate-700 hover:bg-slate-600 rounded-lg text-xs text-white transition-colors"
                   >
-                    Copiar
+                    {copyLabel(statusOf("roman"))}
                   </button>
                 )}
               </div>
@@ -116,10 +113,10 @@ export default function RomanConverterForm() {
                 />
                 {decimalOutput && !decimalOutput.includes("Error") && (
                   <button
-                    onClick={() => copyToClipboard(decimalOutput)}
+                    onClick={() => copy(decimalOutput, "decimal")}
                     className="absolute top-1/2 -translate-y-1/2 right-2 p-2 bg-slate-200 hover:bg-slate-300 rounded-lg text-xs text-slate-600 transition-colors"
                   >
-                    Copiar
+                    {copyLabel(statusOf("decimal"))}
                   </button>
                 )}
               </div>

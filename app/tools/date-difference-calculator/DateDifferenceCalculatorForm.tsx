@@ -14,6 +14,7 @@ import {
   type Dates,
   type Direction,
 } from "@/lib/dates";
+import { copyLabel, useCopy } from "@/lib/useCopy";
 
 const DIRECTION_LABELS: Record<Direction, string> = {
   past: "Han pasado",
@@ -105,7 +106,7 @@ function CountdownLinkDialog({ onClose }: { onClose: () => void }) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const [param, setParam] = useState<string>(PARAM_END);
   const [date, setDate] = useState("");
-  const [copied, setCopied] = useState(false);
+  const { copy, statusOf } = useCopy();
 
   /* showModal() no se puede llamar durante el render, solo sobre el nodo ya
      montado; es lo que distingue un modal de un <dialog open> normal.
@@ -128,11 +129,7 @@ function CountdownLinkDialog({ onClose }: { onClose: () => void }) {
     : null;
 
   const copyLink = () => {
-    if (!link) return;
-
-    navigator.clipboard.writeText(link);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    if (link) copy(link);
   };
 
   return (
@@ -210,7 +207,7 @@ function CountdownLinkDialog({ onClose }: { onClose: () => void }) {
           disabled={!link}
           className="mt-5 w-full p-3 bg-indigo-600 rounded-xl text-white text-sm font-bold uppercase tracking-wide hover:bg-indigo-700 transition-colors cursor-pointer disabled:bg-slate-300 disabled:cursor-not-allowed"
         >
-          {copied ? "¡Enlace copiado!" : "Copiar enlace"}
+          {copyLabel(statusOf(), "Copiar enlace", "¡Enlace copiado!")}
         </button>
 
         <button

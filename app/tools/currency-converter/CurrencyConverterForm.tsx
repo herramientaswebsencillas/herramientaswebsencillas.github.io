@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { CURRENCIES, CURRENCY_CODES, ECB_CURRENCIES } from "@/lib/currencies";
-import { parseFrankfurterRates } from "@/lib/external";
+import { EXTERNAL_TIMEOUT_MS, parseFrankfurterRates } from "@/lib/external";
 import RateChart, { RatePoint } from "./RateChart";
 
 const API = "https://api.frankfurter.dev";
@@ -40,6 +40,13 @@ interface SeriesResult {
   key: string;
   points: RatePoint[];
   error: string;
+}
+
+/* Se cancela al desmontar (controller) o al agotarse la espera. Solo la
+   cancelación llega como AbortError, que se ignora; el timeout llega como
+   TimeoutError y se muestra como cualquier otro fallo. */
+function withTimeout(signal: AbortSignal) {
+  return AbortSignal.any([signal, AbortSignal.timeout(EXTERNAL_TIMEOUT_MS)]);
 }
 
 function toApiDate(date: Date) {
@@ -87,7 +94,7 @@ export default function CurrencyConverterForm() {
   useEffect(() => {
     const controller = new AbortController();
 
-    fetch(RATES_URL, { signal: controller.signal })
+    fetch(RATES_URL, { signal: withTimeout(controller.signal) })
       .then((res) => {
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         return res.json();
@@ -127,7 +134,7 @@ export default function CurrencyConverterForm() {
 
     fetch(
       `${API}/v2/rates?from=${toApiDate(start)}&to=${toApiDate(end)}&base=${from}&quotes=${to}&providers=ECB`,
-      { signal: controller.signal }
+      { signal: withTimeout(controller.signal) }
     )
       .then((res) => {
         if (!res.ok) throw new Error(`HTTP ${res.status}`);

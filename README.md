@@ -38,6 +38,8 @@ El sitio se genera como export estático (`output: 'export'`) y se publica en Gi
 - `lib/currencies.ts` — nombres de divisas en español, usados por el conversor
 - `lib/csp.mjs` — la Content Security Policy del sitio (ver "Seguridad")
 - `lib/files.ts` — límites de tamaño, decodificación de Base64 y descargas de las herramientas de archivos
+- `lib/base64.ts` — conversión entre Base64, bytes y texto UTF-8, compartida por los conversores y el encriptador
+- `lib/useCopy.ts` — hook para copiar al portapapeles; el botón dice si se copió o si el navegador no lo permitió
 - `lib/*.ts` — lógica pura de las herramientas (fechas, finanzas, romanos, aleatorios, cifrado), separada de los componentes y probada en `lib/*.test.ts`
 - `lib/external.ts` — validación de las respuestas de los servicios externos; `lib/external.live.test.ts` los consulta de verdad para el monitoreo diario
 - `e2e/` — pruebas con Playwright sobre el export estático: `smoke.spec.ts` recorre todas las páginas y `tools.spec.ts` prueba los flujos de archivos y de servicios externos con respuestas simuladas
@@ -93,6 +95,8 @@ El workflow `.github/workflows/external-apis.yml` consulta cada día los tres se
 3. Si el servicio desaparece, hay alternativas: Frankfurter se puede alojar por cuenta propia con Docker; LanguageTool también, aunque necesita un servidor y GitHub Pages no lo ofrece; para traducción, LibreTranslate es una alternativa de código abierto.
 
 **Si el monitoreo deja de ejecutarse.** GitHub desactiva los workflows programados de un repositorio público (este y el análisis semanal de CodeQL) tras 60 días sin actividad, y avisa antes por correo. Si el sitio pasa una temporada sin cambios, revisa en **Actions** que *External APIs* y *CodeQL* sigan activos y, si no, actívalos con **Enable workflow**. Integrar los PR semanales de Dependabot cuenta como actividad.
+
+Cada petición a un servicio externo se corta a los 15 segundos (`EXTERNAL_TIMEOUT_MS` en `lib/external.ts`) y la herramienta muestra su mensaje de error, en lugar de quedarse cargando.
 
 **Al añadir una herramienta que llame a un servicio externo hay que incluir su dominio en `connect-src`**, dentro de la CSP de `lib/csp.mjs`, y listarla en la página de Privacidad (`app/privacy/page.tsx`) y en "Servicios de terceros" de los Términos de uso (`app/terms/page.tsx`). Sin lo primero el navegador bloquea las peticiones y las pruebas de humo fallan con la violación de CSP.
 

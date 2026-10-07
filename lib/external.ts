@@ -9,6 +9,11 @@
    (lib/external.live.test.ts), de modo que un cambio de formato en un servicio
    se detecta ahí antes de que lo note alguien en el sitio. */
 
+/** Espera máxima de cada petición a un servicio externo. Sin ella, un servicio
+    que acepta la conexión y no responde deja la herramienta cargando, con el
+    botón deshabilitado, hasta que el navegador corta la conexión (minutos). */
+export const EXTERNAL_TIMEOUT_MS = 15_000;
+
 /** Error con un mensaje que se puede mostrar tal cual al usuario. */
 export class ExternalServiceError extends Error {}
 

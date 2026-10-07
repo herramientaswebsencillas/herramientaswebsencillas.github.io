@@ -8,6 +8,7 @@
 
 import { describe, expect, it } from "vitest";
 import {
+  EXTERNAL_TIMEOUT_MS,
   ExternalServiceError,
   MYMEMORY_QUOTA_MESSAGE,
   parseFrankfurterRates,
@@ -16,7 +17,7 @@ import {
 } from "./external";
 
 async function fetchJson(url: string, init?: RequestInit) {
-  const res = await fetch(url, { ...init, signal: AbortSignal.timeout(15_000) });
+  const res = await fetch(url, { ...init, signal: AbortSignal.timeout(EXTERNAL_TIMEOUT_MS) });
   expect(res.status, `${url} respondió ${res.status}`).toBe(200);
   return res.json();
 }
@@ -42,7 +43,7 @@ describe("servicios externos", () => {
      otra respuesta inesperada sigue haciéndola fallar. */
   it("MyMemory traduce una palabra sencilla", async (ctx) => {
     const url = "https://api.mymemory.translated.net/get?q=gato&langpair=es|en";
-    const res = await fetch(url, { signal: AbortSignal.timeout(15_000) });
+    const res = await fetch(url, { signal: AbortSignal.timeout(EXTERNAL_TIMEOUT_MS) });
     const quotaSkip = () =>
       ctx.skip(
         "MyMemory: cuota gratuita agotada para la IP de este equipo; no se pudo comprobar hoy."

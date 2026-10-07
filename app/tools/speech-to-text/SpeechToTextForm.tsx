@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { downloadBlob } from "@/lib/files";
+import { copyLabel, useCopy } from "@/lib/useCopy";
 
 /* ------------------------- Tipos de reconocimiento -------------------------
    La Web Speech API de reconocimiento no forma parte de lib.dom de TypeScript,
@@ -116,7 +117,7 @@ export default function SpeechToTextForm() {
   const [lang, setLang] = useState("es-MX");
   const [isListening, setIsListening] = useState(false);
   const [error, setError] = useState("");
-  const [copied, setCopied] = useState(false);
+  const { copy, statusOf } = useCopy();
   const recognitionRef = useRef<RecognitionInstance | null>(null);
   const keepListeningRef = useRef(false);
 
@@ -202,16 +203,7 @@ export default function SpeechToTextForm() {
     setInterim("");
   };
 
-  const copyTranscript = async () => {
-    if (!transcript) return;
-    try {
-      await navigator.clipboard.writeText(transcript);
-      setCopied(true);
-      window.setTimeout(() => setCopied(false), 2000);
-    } catch {
-      setError("El navegador no permitió copiar al portapapeles.");
-    }
-  };
+  const copyTranscript = () => copy(transcript);
 
   const downloadTranscript = () => {
     if (!transcript) return;
@@ -303,7 +295,7 @@ export default function SpeechToTextForm() {
                 disabled={!transcript}
                 className="py-2.5 bg-slate-700 hover:bg-slate-600 disabled:bg-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed text-white text-sm font-semibold rounded-xl transition-colors"
               >
-                {copied ? "¡Copiado!" : "Copiar"}
+                {copyLabel(statusOf())}
               </button>
               <button
                 onClick={downloadTranscript}
