@@ -1,6 +1,6 @@
 import { readFile } from "node:fs/promises";
 import { expect, test, type Download } from "@playwright/test";
-import JSZip from "jszip";
+import { unzipSync } from "fflate";
 import { PDFDocument } from "@cantoo/pdf-lib";
 import { watchPage } from "./watch";
 
@@ -132,13 +132,55 @@ test("divide un PDF en páginas dentro de un ZIP", async ({ page }) => {
     page.getByRole("button", { name: /Descargar Páginas Individuales/ }).click(),
   ]);
   expect(download.suggestedFilename()).toBe("informe-individual-pages.zip");
-  const zip = await JSZip.loadAsync(await downloaded(download));
-  expect(Object.keys(zip.files).sort()).toEqual([
+  const zip = unzipSync(await downloaded(download));
+  expect(Object.keys(zip).sort()).toEqual([
     "informe-page-1.pdf",
     "informe-page-2.pdf",
     "informe-page-3.pdf",
   ]);
   await check();
+});
+
+test("dividir PDF rechaza un archivo que no es PDF sin quedarse con el anterior", async ({
+  page,
+}) => {
+  const check = await watchPage(page, "/tools/pdf-page-splitter");
+  await page.goto("/tools/pdf-page-splitter");
+  const input = page.locator('input[type="file"]');
+
+  await input.setInputFiles({
+    name: "informe.pdf",
+    mimeType: "application/pdf",
+    buffer: await pdfWithPages(2),
+  });
+  await expect(page.getByText("2 páginas detectadas")).toBeVisible();
+
+  await input.setInputFiles({
+    name: "notas.txt",
+    mimeType: "text/plain",
+    buffer: Buffer.from("x"),
+  });
+  await expect(
+    page.getByRole("alert").filter({ hasText: "Por favor selecciona un archivo PDF válido." })
+  ).toBeVisible();
+  await expect(page.getByText("2 páginas detectadas")).toBeHidden();
+  await expect(page.getByRole("button", { name: /Descargar Páginas Individuales/ })).toBeDisabled();
+  await check();
+});
+
+test("unir PDF muestra el error en la página si un archivo está dañado", async ({ page }) => {
+  // Sin watchPage: la herramienta registra el error de pdf-lib en la consola
+  // a propósito, y watchPage cuenta cualquier error de consola como fallo.
+  await page.goto("/tools/pdf-merger");
+
+  await page.locator("#pdf-upload").setInputFiles([
+    { name: "uno.pdf", mimeType: "application/pdf", buffer: await pdfWithPages(1) },
+    { name: "roto.pdf", mimeType: "application/pdf", buffer: Buffer.from("no es un pdf") },
+  ]);
+  await page.getByRole("button", { name: "Combinar y Descargar" }).click();
+  await expect(
+    page.getByRole("alert").filter({ hasText: "No se pudieron combinar los archivos" })
+  ).toBeVisible();
 });
 
 /* -------------------------- Texto y portapapeles -------------------------- */

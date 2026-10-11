@@ -10,6 +10,9 @@ const MB = 1024 * 1024;
 // tamaños el navegador puede congelarse o cerrar la pestaña, así que se
 // rechaza el archivo con un mensaje en lugar de intentarlo.
 export const MAX_PDF_BYTES = 50 * MB;
+// Unir PDF carga a la vez todos los archivos y el documento resultante, así
+// que el límite por archivo no basta: veinte de 45 MB cerraban la pestaña.
+export const MAX_PDF_TOTAL_BYTES = 150 * MB;
 // El resultado en Base64 ocupa 4/3 del archivo y se muestra en un <textarea>,
 // que se vuelve inmanejable mucho antes que un PDF del mismo tamaño.
 export const MAX_BASE64_FILE_BYTES = 10 * MB;
@@ -33,6 +36,17 @@ export function assertMaxSize(files: Iterable<{ name: string; size: number }>, m
       const detail = size === limit ? "" : ` (pesa ${size})`;
       throw new FileToolError(`"${file.name}" supera el máximo de ${limit}${detail}.`);
     }
+  }
+}
+
+/** Lanza FileToolError si los archivos, juntos, superan el límite. */
+export function assertMaxTotal(files: Iterable<{ size: number }>, max: number) {
+  let total = 0;
+  for (const file of files) total += file.size;
+  if (total > max) {
+    throw new FileToolError(
+      `Los archivos suman ${formatBytes(total)}; el máximo en conjunto es ${formatBytes(max)}.`
+    );
   }
 }
 

@@ -44,6 +44,9 @@ Si cambiaste `lib/external.ts` o algo que dependa de LanguageTool, MyMemory o Fr
 - La lógica no trivial va en `lib/` con sus pruebas (`lib/*.test.ts`), separada del componente.
 - Los flujos con archivos o servicios externos tienen su caso en `e2e/tools.spec.ts`, con las respuestas simuladas.
 - Nada de lo que escribe el usuario se asigna a un `href`, `src` o `innerHTML`.
+- Las entradas numéricas tienen mínimo, máximo y paso, y la función de `lib/` que las recibe valida sus límites y lanza un error con un mensaje que se puede mostrar (como `lib/roman.ts` o `lib/random.ts`).
+- Los errores se muestran en la página con `components/ErrorMessage.tsx`, no con `alert()`.
+- Los identificadores del código van en inglés; los textos de la interfaz, en español.
 - Las dependencias nuevas se justifican en el pull request: para qué hacen falta, si tienen mantenimiento activo y cuánto pesan (`pnpm size`).
 
 ## Licencia

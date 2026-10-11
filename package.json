@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build && node scripts/csp-hashes.mjs",
+    "build": "next build && node scripts/csp-hashes.mjs && node scripts/third-party-licenses.mjs",
     "start": "node scripts/serve-out.mjs",
     "lint": "eslint",
     "format": "prettier --write .",
@@ -18,7 +18,7 @@
   "dependencies": {
     "@cantoo/pdf-lib": "^2.11.1",
     "crypto-js": "4.2.0",
-    "jszip": "^3.10.2",
+    "fflate": "^0.8.3",
     "next": "16.3.8",
     "react": "19.3.0",
     "react-dom": "19.3.0"

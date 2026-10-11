@@ -5,10 +5,12 @@ import { copyLabel, useCopy } from "@/lib/useCopy";
 import {
   CipherError,
   LEGACY_ALGORITHMS,
+  MIN_PASSPHRASE_LENGTH,
   PBKDF2_ITERATIONS,
   decryptText,
   detectFormat,
   encryptText,
+  isWeakPassphrase,
   type LegacyAlgorithm,
 } from "@/lib/cipher";
 
@@ -42,6 +44,8 @@ export default function TextEncryptorForm() {
   const [busy, setBusy] = useState(false);
 
   const isLegacyInput = mode === "decrypt" && detectFormat(input) === "legacy";
+  // Solo al cifrar: al descifrar la frase ya está elegida y no se puede cambiar.
+  const showWeakWarning = mode === "encrypt" && !!passphrase && isWeakPassphrase(passphrase);
 
   async function runCipher() {
     setError("");
@@ -159,6 +163,12 @@ export default function TextEncryptorForm() {
                   </button>
                 </div>
               </div>
+              {showWeakWarning && (
+                <p aria-live="polite" className="mt-1.5 text-xs text-amber-300">
+                  Esta frase es fácil de adivinar. Usa al menos {MIN_PASSPHRASE_LENGTH} caracteres,
+                  por ejemplo varias palabras que no formen una frase conocida.
+                </p>
+              )}
             </label>
 
             {isLegacyInput && (

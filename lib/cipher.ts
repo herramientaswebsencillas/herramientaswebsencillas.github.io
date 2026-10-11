@@ -33,6 +33,24 @@ export type CipherFormat = "current" | "legacy" | "unknown";
 
 export class CipherError extends Error {}
 
+export const MIN_PASSPHRASE_LENGTH = 12;
+
+/**
+ * Si la frase es fácil de adivinar por fuerza bruta: corta, solo dígitos o
+ * con muy pocos caracteres distintos ("aaaaaaaaaaaa", "121212121212").
+ * PBKDF2 encarece cada intento, pero un texto cifrado interceptado se puede
+ * atacar sin límite de tiempo, así que una frase como "1234" cae en segundos.
+ *
+ * Solo sirve para avisar: no se impide cifrar, y varias palabras en minúsculas
+ * cuentan como frase fuerte, que es justo lo que conviene recomendar.
+ */
+export function isWeakPassphrase(passphrase: string): boolean {
+  const chars = [...passphrase];
+  return (
+    chars.length < MIN_PASSPHRASE_LENGTH || /^\d+$/.test(passphrase) || new Set(chars).size < 5
+  );
+}
+
 export function detectFormat(cipherText: string): CipherFormat {
   const text = cipherText.trim();
   if (text.startsWith(CIPHER_PREFIX)) return "current";

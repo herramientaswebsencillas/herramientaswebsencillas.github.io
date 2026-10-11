@@ -2,7 +2,9 @@ import { describe, expect, it } from "vitest";
 import {
   FileToolError,
   MAX_PDF_BYTES,
+  MAX_PDF_TOTAL_BYTES,
   assertMaxSize,
+  assertMaxTotal,
   decodeBase64File,
   formatBytes,
 } from "./files";
@@ -94,6 +96,21 @@ describe("assertMaxSize", () => {
     expect(() =>
       assertMaxSize([{ name: "b.bin", size: 12 * 1024 * 1024 }], 10 * 1024 * 1024)
     ).toThrow('"b.bin" supera el máximo de 10 MB (pesa 12 MB).');
+  });
+});
+
+describe("assertMaxTotal", () => {
+  it("deja pasar archivos que juntos no superan el límite", () => {
+    expect(() =>
+      assertMaxTotal([{ size: MAX_PDF_BYTES }, { size: MAX_PDF_BYTES }], MAX_PDF_TOTAL_BYTES)
+    ).not.toThrow();
+  });
+
+  it("rechaza archivos válidos uno a uno que juntos se pasan", () => {
+    const files = Array.from({ length: 4 }, () => ({ size: 45 * 1024 * 1024 }));
+    expect(() => assertMaxTotal(files, MAX_PDF_TOTAL_BYTES)).toThrow(
+      "Los archivos suman 180 MB; el máximo en conjunto es 150 MB."
+    );
   });
 });
 

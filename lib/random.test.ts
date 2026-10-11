@@ -1,5 +1,11 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { randomInt, randomString } from "./random";
+import {
+  RANDOM_LIMIT,
+  RandomRangeError,
+  randomInt,
+  randomString,
+  randomUniqueInts,
+} from "./random";
 
 /** Hace que getRandomValues devuelva, en orden, los bytes indicados. */
 function feedBytes(...sequence: number[][]) {
@@ -48,6 +54,50 @@ describe("randomInt", () => {
   it("combina varios bytes para rangos mayores a 256", () => {
     feedBytes([0x01, 0x02]); // 0x0201 = 513
     expect(randomInt(0, 999)).toBe(513);
+  });
+
+  it.each([
+    [1.5, 3],
+    [0, 2.5],
+    [0, RANDOM_LIMIT + 1],
+    [-RANDOM_LIMIT - 1, 0],
+    [1e16, 1e16 + 10],
+    [0, Number.POSITIVE_INFINITY],
+    [Number.NaN, 5],
+  ])("rechaza extremos no enteros o fuera del límite: [%d, %d]", (min, max) => {
+    expect(() => randomInt(min, max)).toThrow(RandomRangeError);
+  });
+
+  it("se mantiene dentro del rango en los límites admitidos", () => {
+    for (let i = 0; i < 200; i++) {
+      const n = randomInt(-RANDOM_LIMIT, RANDOM_LIMIT);
+      expect(Number.isInteger(n)).toBe(true);
+      expect(Math.abs(n)).toBeLessThanOrEqual(RANDOM_LIMIT);
+    }
+  });
+});
+
+describe("randomUniqueInts", () => {
+  it("devuelve valores distintos, en orden y dentro del rango", () => {
+    const values = randomUniqueInts(20, 1, 30);
+    expect(values).toHaveLength(20);
+    expect(new Set(values).size).toBe(20);
+    expect(values).toEqual([...values].sort((a, b) => a - b));
+    expect(values.every((n) => n >= 1 && n <= 30)).toBe(true);
+  });
+
+  it("devuelve todo el rango si se piden más valores de los que hay", () => {
+    expect(randomUniqueInts(5, 1, 3)).toEqual([1, 2, 3]);
+  });
+
+  it("rechaza extremos por encima de 2^53, donde no todos los enteros existen", () => {
+    // Antes este caso dejaba el bucle de selección girando para siempre.
+    expect(() => randomUniqueInts(7, 1e16, 1e16 + 10)).toThrow(RandomRangeError);
+  });
+
+  it("rechaza cantidades no válidas", () => {
+    expect(() => randomUniqueInts(-1, 1, 10)).toThrow(RandomRangeError);
+    expect(() => randomUniqueInts(2.5, 1, 10)).toThrow(RandomRangeError);
   });
 });
 

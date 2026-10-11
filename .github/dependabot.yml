@@ -1,11 +1,19 @@
 # Propone actualizaciones de dependencias y de acciones de GitHub cada semana.
 # Cada PR pasa por el workflow de verificación antes de poder integrarse.
+#
+# cooldown: solo propone versiones con al menos 7 días publicadas (14 si son
+# mayores), para no adoptar un paquete comprometido antes de que se detecte y
+# se retire. No retrasa las actualizaciones de seguridad de Dependabot. Va en
+# línea con minimumReleaseAge de pnpm-workspace.yaml.
 version: 2
 updates:
   - package-ecosystem: npm # Dependabot detecta pnpm por pnpm-lock.yaml.
     directory: /
     schedule:
       interval: weekly
+    cooldown:
+      default-days: 7
+      semver-major-days: 14
     groups:
       # Parches y menores en un solo PR para no saturar la bandeja.
       minor-and-patch:
@@ -15,3 +23,6 @@ updates:
     directory: /
     schedule:
       interval: weekly
+    cooldown:
+      default-days: 7
+      semver-major-days: 14

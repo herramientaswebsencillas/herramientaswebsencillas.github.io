@@ -21,6 +21,11 @@ on:
 # Las acciones se fijan por SHA (con la versión en un comentario) y no por
 # etiqueta: una etiqueta se puede mover, y el job build genera lo que se
 # publica. Dependabot actualiza los SHA junto con el comentario.
+#
+# Todos los checkout (también en codeql.yml y external-apis.yml) llevan
+# persist-credentials: false. Sin él, el GITHUB_TOKEN queda en .git/config
+# mientras corren `pnpm install`, los scripts de las dependencias y el build,
+# y ningún paso posterior lo necesita.
 permissions:
   contents: read
 
@@ -30,6 +35,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
       # Debe ir antes de setup-node: la caché de pnpm necesita el binario ya
       # disponible. La versión sale del campo "packageManager" de package.json.
       - name: Install pnpm
@@ -113,6 +120,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
       - name: Generate SBOM
         uses: anchore/sbom-action@66cbf4bc1f1c0d2edc94016e65bc221b6bb0ad6c # v0.24.3
         with:
