@@ -2,9 +2,13 @@
 # Cada PR pasa por el workflow de verificación antes de poder integrarse.
 #
 # cooldown: solo propone versiones con al menos 7 días publicadas (14 si son
-# mayores), para no adoptar un paquete comprometido antes de que se detecte y
-# se retire. No retrasa las actualizaciones de seguridad de Dependabot. Va en
-# línea con minimumReleaseAge de pnpm-workspace.yaml.
+# versiones mayores de npm), para no adoptar un paquete comprometido antes de
+# que se detecte y se retire. No retrasa las actualizaciones de seguridad de
+# Dependabot. Va en línea con minimumReleaseAge de pnpm-workspace.yaml.
+#
+# Los ajustes semver-*-days no existen para github-actions: si se ponen, el
+# archivo entero se rechaza y Dependabot deja de abrir PRs. GitHub lo avisa
+# con el check ".github/dependabot.yml" en el commit.
 version: 2
 updates:
   - package-ecosystem: npm # Dependabot detecta pnpm por pnpm-lock.yaml.
@@ -18,6 +22,17 @@ updates:
       # Parches y menores en un solo PR para no saturar la bandeja.
       minor-and-patch:
         update-types: [minor, patch]
+    ignore:
+      # TypeScript 7 publica el compilador nativo sin la API de JavaScript que
+      # usan typescript-eslint (exige typescript < 6.1) y el chequeo de tipos
+      # de next build. Quitar cuando typescript-eslint admita la 7.
+      - dependency-name: typescript
+        update-types: ["version-update:semver-major"]
+      # Con ESLint 10, eslint-plugin-react 7.37 (llega por eslint-config-next
+      # 16.3) falla al cargar sus reglas: "getFilename is not a function".
+      # Quitar cuando eslint-config-next traiga una versión que lo soporte.
+      - dependency-name: eslint
+        update-types: ["version-update:semver-major"]
 
   - package-ecosystem: github-actions
     directory: /
@@ -25,4 +40,3 @@ updates:
       interval: weekly
     cooldown:
       default-days: 7
-      semver-major-days: 14
