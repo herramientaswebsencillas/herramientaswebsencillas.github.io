@@ -1,11 +1,9 @@
 import { expect, type Page } from "@playwright/test";
 
-/* Violaciones conocidas e inofensivas. jszip arrastra is-generator-function,
-   que prueba Function("return function*() {}") dentro de un try/catch para
-   detectar soporte: la CSP lo bloquea, el catch lo absorbe y nada se rompe. */
-const TOLERATED_VIOLATIONS: Record<string, RegExp> = {
-  "/tools/pdf-page-splitter": /^script-src → eval /,
-};
+/* Violaciones de CSP toleradas por página, con su motivo. Hoy no hay
+   ninguna: Dividir PDF usaba jszip, que probaba Function(...) y la CSP lo
+   bloqueaba; fflate no recurre a eval. */
+const TOLERATED_VIOLATIONS: Record<string, RegExp> = {};
 
 declare global {
   interface Window {

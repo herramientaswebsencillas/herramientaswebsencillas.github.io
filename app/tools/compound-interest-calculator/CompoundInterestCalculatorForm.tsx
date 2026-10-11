@@ -1,7 +1,8 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { calculateCompoundInterest } from "@/lib/finance";
+import ErrorMessage from "@/components/ErrorMessage";
+import { MAX_MONTHS, calculateCompoundInterest, monthsError } from "@/lib/finance";
 
 export default function CompoundInterestCalculatorForm() {
   const [initialAmount, setInitialAmount] = useState<number>(10000);
@@ -15,6 +16,8 @@ export default function CompoundInterestCalculatorForm() {
       calculateCompoundInterest({ initialAmount, monthlyContribution, months, rate, frequency }),
     [initialAmount, monthlyContribution, months, rate, frequency]
   );
+  // Con un plazo no válido calculateCompoundInterest devuelve una tabla vacía.
+  const termError = monthsError(months);
 
   return (
     <main className="min-h-screen bg-slate-100 py-10 px-4 md:px-10 font-sans">
@@ -77,12 +80,17 @@ export default function CompoundInterestCalculatorForm() {
                 </label>
                 <input
                   type="number"
+                  min={1}
+                  max={MAX_MONTHS}
+                  step={1}
                   value={months}
                   onChange={(e) => setMonths(Number(e.target.value))}
+                  aria-invalid={!!termError}
                   className="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 font-bold outline-none focus:ring-2 focus:ring-indigo-500"
                 />
               </div>
             </div>
+            {termError && <ErrorMessage>{termError}</ErrorMessage>}
 
             <div>
               <label className="block text-xs font-bold text-slate-500 uppercase mb-1">

@@ -21,6 +21,24 @@ for (const path of PAGES) {
   });
 }
 
+test("publica los avisos de licencia de terceros y los enlaza", async ({ page, request }) => {
+  const response = await request.get("/third-party-licenses.txt");
+  expect(response.status()).toBe(200);
+  const text = await response.text();
+  for (const name of ["react", "@cantoo/pdf-lib", "fflate", "crypto-js"]) {
+    expect(text).toMatch(new RegExp(`^${name} \\d`, "m"));
+  }
+  expect(text).toContain("Permission is hereby granted");
+
+  for (const path of ["/about", "/terms"]) {
+    await page.goto(path);
+    await expect(page.getByRole("link", { name: /licencias de terceros/i })).toHaveAttribute(
+      "href",
+      "/third-party-licenses.txt"
+    );
+  }
+});
+
 test("lo publicado no admite scripts inline sin hash", async ({ page }) => {
   await page.goto("/");
   const csp = await page

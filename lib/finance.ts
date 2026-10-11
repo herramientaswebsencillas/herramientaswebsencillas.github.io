@@ -1,6 +1,25 @@
 /* Cálculos de la calculadora de préstamos y de la de interés compuesto.
    Viven aparte de los componentes para poder probarlos sin montar React. */
 
+/* --------------------------------- Plazo --------------------------------- */
+
+/** Plazo máximo de ambas calculadoras: 50 años. Las dos recalculan en cada
+    pulsación y pintan una fila por mes, así que un cero de más al teclear
+    (o un número pegado por error) congelaba la pestaña. */
+export const MAX_MONTHS = 600;
+
+/**
+ * Mensaje para mostrar si el plazo no es un entero entre 1 y MAX_MONTHS, o
+ * null si es válido. Un plazo fraccionario no se redondea: con 12.5 meses la
+ * tabla tenía 12 filas calculadas para 12.5 periodos, el capital no quedaba
+ * liquidado y el total pagado no cuadraba con ella.
+ */
+export function monthsError(months: number): string | null {
+  return Number.isInteger(months) && months >= 1 && months <= MAX_MONTHS
+    ? null
+    : `El plazo debe ser un número entero entre 1 y ${MAX_MONTHS} meses.`;
+}
+
 /* ------------------------------- Préstamos ------------------------------- */
 
 export type AmortizationSystem = "frances" | "aleman" | "americano";
@@ -51,7 +70,7 @@ export function calculateLoan({
   taxRate,
   system,
 }: LoanInput): LoanResult {
-  if (!(loanAmount > 0) || !(n > 0)) return EMPTY_LOAN;
+  if (!(loanAmount > 0) || monthsError(n)) return EMPTY_LOAN;
 
   const r = annualRate > 0 ? annualRate / 100 / 12 : 0;
 
@@ -138,6 +157,11 @@ export interface CompoundResult {
   totals: { final: number; invested: number; interest: number };
 }
 
+const EMPTY_COMPOUND: CompoundResult = {
+  table: [],
+  totals: { final: 0, invested: 0, interest: 0 },
+};
+
 export function calculateCompoundInterest({
   initialAmount,
   monthlyContribution,
@@ -145,6 +169,8 @@ export function calculateCompoundInterest({
   rate,
   frequency,
 }: CompoundInput): CompoundResult {
+  if (monthsError(months)) return EMPTY_COMPOUND;
+
   let currentBalance = initialAmount;
   let totalInvested = initialAmount;
 

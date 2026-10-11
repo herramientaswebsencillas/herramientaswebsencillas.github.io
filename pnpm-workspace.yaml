@@ -1,6 +1,14 @@
 # Configuración de pnpm. Desde pnpm 11 estos ajustes ya no se leen del campo
 # "pnpm" de package.json, aunque el proyecto no sea un monorepo.
 
+# No se instalan versiones publicadas hace menos de 3 días (en minutos). La
+# mayoría de los paquetes comprometidos en npm se detectan y retiran en ese
+# plazo, y cada push a main se publica solo. Complementa el cooldown de
+# .github/dependabot.yml y cubre también los `pnpm add` y `pnpm update` hechos a
+# mano. Si un aviso de seguridad obliga a adoptar una versión más nueva, se
+# añade a minimumReleaseAgeExclude con el aviso en un comentario.
+minimumReleaseAge: 4320
+
 # Versiones forzadas de dependencias transitivas con avisos de seguridad.
 # next fija postcss 8.4.31 de forma exacta, de ahí que haga falta el override.
 overrides:

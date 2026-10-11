@@ -23,6 +23,29 @@ El sitio es estático: no tiene servidor propio, cuentas ni base de datos, y cas
 
 Quedan fuera los problemas de los servicios externos (LanguageTool, MyMemory, Frankfurter) y de GitHub Pages, que deben reportarse a sus responsables.
 
+## Modelo de amenazas
+
+Qué se protege, de quién y cómo. Revísalo al agregar una herramienta, un servicio externo o una dependencia, o al cambiar de host.
+
+**Qué se protege**
+
+- Lo que el visitante escribe o sube a las herramientas (textos, frases secretas, PDF, archivos en Base64): no debe salir del navegador salvo hacia el servicio que la herramienta indica.
+- La integridad del sitio publicado: que sirva exactamente lo que está en `main`.
+- Los textos cifrados que la gente ya compartió y los enlaces de la calculadora de fechas, que deben seguir abriéndose (ver "Compatibilidad" en el README).
+
+**Amenazas y mitigaciones**
+
+| Amenaza | Mitigación |
+|---|---|
+| Código inyectado por un parámetro de URL o un texto pegado (XSS) | React muestra todo como texto; ninguna entrada se asigna a `href`, `src` ni `innerHTML`; CSP con hashes y sin `'unsafe-inline'` en `script-src` (`lib/csp.mjs`, `scripts/csp-hashes.mjs`). |
+| Una URL `javascript:` o un HTML pegado en el conversor Base64 | Solo se acepta Base64, el archivo se reconstruye como `Blob` y los tipos activos se descargan como binario (`lib/files.ts`). |
+| Una respuesta maliciosa o mal formada de LanguageTool, MyMemory o Frankfurter | Validadores de `lib/external.ts`, espera máxima de 15 s y `connect-src` limitado a esos tres dominios. |
+| Una dependencia o acción de GitHub comprometida | Lockfile con `--frozen-lockfile`, versiones con al menos 3 días publicadas (`minimumReleaseAge`) y 7 en Dependabot (`cooldown`), acciones fijadas por SHA, `persist-credentials: false`, `pnpm audit` y CodeQL en CI, y SRI en los scripts del build. |
+| Un commit malicioso o accidental en `main`, que se publica solo | Ruleset de `main` (PR obligatorio con el check `build` en verde y sin force-push) y entorno `github-pages` restringido a `main`. |
+| Fuerza bruta sobre un texto cifrado interceptado | AES-256-GCM con PBKDF2-SHA256 de 600 000 iteraciones (`lib/cipher.ts`) y aviso cuando la frase secreta es débil. |
+| Clickjacking: otro sitio incrusta una herramienta en un iframe | Riesgo aceptado: GitHub Pages no permite `frame-ancestors` y el sitio no tiene sesiones ni acciones con estado (ver "Content Security Policy" en el README). |
+| Entradas que congelan la pestaña (archivos o cifras enormes) | Límites de tamaño por archivo y en total (`lib/files.ts`) y rangos validados en las calculadoras y generadores (`lib/finance.ts`, `lib/random.ts`). |
+
 ## Si el sitio se ve comprometido
 
 Por ejemplo, si el sitio publicado sirve código que no está en `main`, aparece un commit o un workflow que nadie hizo, o una dependencia o acción de GitHub resulta maliciosa. En ese orden:

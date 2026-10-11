@@ -1,7 +1,8 @@
 "use client";
 import { useState } from "react";
 import { PDFDocument } from "@cantoo/pdf-lib";
-import JSZip from "jszip";
+import { zipSync, type Zippable } from "fflate";
+import ErrorMessage from "@/components/ErrorMessage";
 import {
   FileToolError,
   MAX_PDF_BYTES,
@@ -14,18 +15,32 @@ export default function PdfPageSplitterForm() {
   const [file, setFile] = useState<File | null>(null);
   const [pageCount, setPageCount] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  /* Descarta el archivo elegido y deja el input listo para volver a elegir
+     el mismo: sin vaciarlo, el navegador no dispara onChange otra vez. */
+  const reject = (input: HTMLInputElement, message: string) => {
+    input.value = "";
+    setFile(null);
+    setPageCount(null);
+    setError(message);
+  };
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
-    if (!selectedFile || selectedFile.type !== "application/pdf") {
-      alert("Por favor selecciona un archivo PDF válido.");
+    if (!selectedFile) return;
+    setError("");
+    if (selectedFile.type !== "application/pdf") {
+      reject(e.target, "Por favor selecciona un archivo PDF válido.");
       return;
     }
     try {
       assertMaxSize([selectedFile], MAX_PDF_BYTES);
     } catch (error) {
-      e.target.value = "";
-      alert(error instanceof FileToolError ? error.message : "No se pudo leer el archivo.");
+      reject(
+        e.target,
+        error instanceof FileToolError ? error.message : "No se pudo leer el archivo."
+      );
       return;
     }
 
@@ -36,37 +51,41 @@ export default function PdfPageSplitterForm() {
       setFile(selectedFile);
       setPageCount(pdfDoc.getPageCount());
     } catch {
-      setFile(null);
-      setPageCount(null);
-      e.target.value = "";
-      alert("No se pudo leer el PDF. Puede estar dañado o protegido con contraseña.");
+      reject(e.target, "No se pudo leer el PDF. Puede estar dañado o protegido con contraseña.");
     }
   };
 
   const splitPDFToZip = async () => {
     if (!file) return;
     setLoading(true);
+    setError("");
 
     try {
-      const zip = new JSZip();
       const arrayBuffer = await file.arrayBuffer();
       const pdfDoc = await PDFDocument.load(arrayBuffer);
       const totalPages = pdfDoc.getPageCount();
       const baseName = file.name.replace(/\.pdf$/i, "");
+      const pages: Zippable = {};
 
       for (let i = 0; i < totalPages; i++) {
         const newPdf = await PDFDocument.create();
         const [page] = await newPdf.copyPages(pdfDoc, [i]);
         newPdf.addPage(page);
-        const pdfBytes = await newPdf.save();
-        zip.file(`${baseName}-page-${i + 1}.pdf`, pdfBytes);
+        pages[`${baseName}-page-${i + 1}.pdf`] = await newPdf.save();
       }
 
-      const zipBlob = await zip.generateAsync({ type: "blob" });
-      downloadBlob(zipBlob, `${baseName}-individual-pages.zip`);
+      /* Sin compresión (level 0): el contenido de los PDF ya va comprimido, y
+         comprimir de nuevo solo alargaría el bloqueo del hilo principal. Se
+         usa la versión síncrona porque la asíncrona de fflate crea Workers
+         desde blob:, que la CSP no permite. */
+      const zip = zipSync(pages, { level: 0 });
+      downloadBlob(
+        new Blob([new Uint8Array(zip)], { type: "application/zip" }),
+        `${baseName}-individual-pages.zip`
+      );
     } catch (error) {
       console.error(error);
-      alert("Error al procesar el PDF.");
+      setError("No se pudo dividir el PDF.");
     } finally {
       setLoading(false);
     }
@@ -147,6 +166,8 @@ export default function PdfPageSplitterForm() {
                 </div>
               )}
             </div>
+
+            {error && <ErrorMessage className="mt-6 text-center">{error}</ErrorMessage>}
 
             <button
               onClick={splitPDFToZip}

@@ -33,6 +33,14 @@ export default function AboutPage() {
             >
               repositorio en GitHub
             </a>
+            . El sitio usa además código de otros proyectos libres, cuyos avisos se reúnen en{" "}
+            {/* <a> y no <Link>: es un archivo de texto, no una página del sitio. */}
+            <a
+              href="/third-party-licenses.txt"
+              className="text-blue-600 hover:text-blue-700 font-medium underline underline-offset-2"
+            >
+              licencias de terceros
+            </a>
             .
           </p>
 

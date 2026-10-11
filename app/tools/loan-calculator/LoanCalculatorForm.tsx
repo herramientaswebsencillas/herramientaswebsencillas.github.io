@@ -1,7 +1,8 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { calculateLoan, type AmortizationSystem } from "@/lib/finance";
+import ErrorMessage from "@/components/ErrorMessage";
+import { MAX_MONTHS, calculateLoan, monthsError, type AmortizationSystem } from "@/lib/finance";
 
 export default function LoanCalculatorForm() {
   const [loanAmount, setLoanAmount] = useState<number>(100000);
@@ -23,6 +24,8 @@ export default function LoanCalculatorForm() {
       }),
     [loanAmount, annualRate, months, monthlyInsurance, taxRate, amortizationSystem]
   );
+  // Con un plazo no válido calculateLoan devuelve una tabla vacía.
+  const termError = monthsError(months);
 
   return (
     <main className="min-h-screen bg-slate-100 py-10 px-4 md:px-10 font-sans">
@@ -88,12 +91,17 @@ export default function LoanCalculatorForm() {
                 </label>
                 <input
                   type="number"
+                  min={1}
+                  max={MAX_MONTHS}
+                  step={1}
                   value={months}
                   onChange={(e) => setMonths(Number(e.target.value))}
+                  aria-invalid={!!termError}
                   className="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 font-bold outline-none focus:ring-2 focus:ring-indigo-500 transition-shadow"
                 />
               </div>
             </div>
+            {termError && <ErrorMessage>{termError}</ErrorMessage>}
 
             <div className="space-y-4">
               <div>

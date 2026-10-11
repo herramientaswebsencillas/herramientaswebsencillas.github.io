@@ -1,50 +1,45 @@
 "use client";
 import { useState } from "react";
-import { randomInt } from "@/lib/random";
+import ErrorMessage from "@/components/ErrorMessage";
+import { RandomRangeError, randomInt, randomUniqueInts } from "@/lib/random";
 import { copyLabel, useCopy } from "@/lib/useCopy";
 
 export default function RandomNumbersForm() {
-  const [resultado, setResultado] = useState<number[]>([]);
+  const [result, setResult] = useState<number[]>([]);
+  const [error, setError] = useState("");
   const { copy, statusOf, reset: resetCopy } = useCopy();
   const copyStatus = statusOf();
-  const copiado = copyStatus === "copied";
+  const copied = copyStatus === "copied";
   const [config, setConfig] = useState({
-    cantidad: 5,
+    count: 5,
     min: 1,
     max: 100,
-    permitirRepetidos: false,
+    allowRepeats: false,
   });
 
-  const generarNumeros = () => {
-    const { cantidad, min, max, permitirRepetidos } = config;
+  const generateNumbers = () => {
+    const { count, min, max, allowRepeats } = config;
 
     if (min >= max) {
-      alert("El valor mínimo debe ser menor que el máximo");
+      setError("El valor mínimo debe ser menor que el máximo.");
       return;
     }
 
-    const nuevosNumeros: number[] = [];
-
-    if (permitirRepetidos) {
-      for (let i = 0; i < cantidad; i++) {
-        nuevosNumeros.push(randomInt(min, max));
-      }
-    } else {
-      const seleccionados = new Set<number>();
-      const rangoDisponible = max - min + 1;
-      const limiteEfectivo = Math.min(cantidad, rangoDisponible);
-
-      while (seleccionados.size < limiteEfectivo) {
-        seleccionados.add(randomInt(min, max));
-      }
-      nuevosNumeros.push(...Array.from(seleccionados).sort((a, b) => a - b));
+    try {
+      setResult(
+        allowRepeats
+          ? Array.from({ length: count }, () => randomInt(min, max))
+          : randomUniqueInts(count, min, max)
+      );
+      setError("");
+    } catch (e) {
+      setResult([]);
+      setError(e instanceof RandomRangeError ? e.message : "No se pudieron generar los números.");
     }
-
-    setResultado(nuevosNumeros);
     resetCopy();
   };
 
-  const copiarAlPortapapeles = () => copy(resultado.join(", "));
+  const copyToClipboard = () => copy(result.join(", "));
 
   return (
     <div className="min-h-screen bg-slate-50 py-20 px-4">
@@ -61,6 +56,7 @@ export default function RandomNumbersForm() {
               </label>
               <input
                 type="number"
+                step={1}
                 value={config.min}
                 onChange={(e) => setConfig({ ...config, min: Number(e.target.value) })}
                 className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-700 font-bold focus:ring-2 focus:ring-blue-500 outline-none text-center"
@@ -72,6 +68,7 @@ export default function RandomNumbersForm() {
               </label>
               <input
                 type="number"
+                step={1}
                 value={config.max}
                 onChange={(e) => setConfig({ ...config, max: Number(e.target.value) })}
                 className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-700 font-bold focus:ring-2 focus:ring-blue-500 outline-none text-center"
@@ -82,14 +79,14 @@ export default function RandomNumbersForm() {
           <div>
             <label className="flex justify-between text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">
               <span>Cantidad de números</span>
-              <span className="text-blue-600 font-black">{config.cantidad}</span>
+              <span className="text-blue-600 font-black">{config.count}</span>
             </label>
             <input
               type="range"
               min="1"
               max="50"
-              value={config.cantidad}
-              onChange={(e) => setConfig({ ...config, cantidad: Number(e.target.value) })}
+              value={config.count}
+              onChange={(e) => setConfig({ ...config, count: Number(e.target.value) })}
               className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
             />
           </div>
@@ -97,10 +94,8 @@ export default function RandomNumbersForm() {
           <label className="flex items-center space-x-3 cursor-pointer p-3 rounded-xl border border-slate-100 bg-slate-50">
             <input
               type="checkbox"
-              checked={config.permitirRepetidos}
-              onChange={() =>
-                setConfig({ ...config, permitirRepetidos: !config.permitirRepetidos })
-              }
+              checked={config.allowRepeats}
+              onChange={() => setConfig({ ...config, allowRepeats: !config.allowRepeats })}
               className="w-5 h-5 text-blue-600 border-slate-300 rounded focus:ring-blue-500"
             />
             <span className="text-sm font-semibold text-slate-600">Permitir números repetidos</span>
@@ -108,36 +103,38 @@ export default function RandomNumbersForm() {
         </div>
 
         <button
-          onClick={generarNumeros}
+          onClick={generateNumbers}
           className="w-full bg-blue-600 text-white font-bold py-4 rounded-2xl hover:bg-blue-700 shadow-lg shadow-blue-100 transition-all active:scale-[0.97] mb-6"
         >
           Generar Números
         </button>
 
-        {resultado.length > 0 && (
-          <div className="relative group cursor-pointer" onClick={copiarAlPortapapeles}>
+        {error && <ErrorMessage className="mb-6 text-center">{error}</ErrorMessage>}
+
+        {result.length > 0 && (
+          <div className="relative group cursor-pointer" onClick={copyToClipboard}>
             <div
               className={`p-6 rounded-2xl text-center transition-all border-2 ${
-                copiado
+                copied
                   ? "bg-green-50 border-green-200"
                   : "bg-slate-50 border-slate-200 group-hover:border-blue-300"
               }`}
             >
               <div className="flex flex-wrap justify-center gap-2">
-                {resultado.map((n, i) => (
+                {result.map((n, i) => (
                   <span
                     key={i}
-                    className={`text-xl font-mono font-bold ${copiado ? "text-green-600" : "text-slate-800"}`}
+                    className={`text-xl font-mono font-bold ${copied ? "text-green-600" : "text-slate-800"}`}
                   >
                     {n}
-                    {i < resultado.length - 1 ? "," : ""}
+                    {i < result.length - 1 ? "," : ""}
                   </span>
                 ))}
               </div>
 
               <div
                 className={`absolute inset-0 flex items-center justify-center rounded-2xl transition-opacity ${
-                  copiado
+                  copied
                     ? "opacity-100 bg-green-600/90"
                     : copyStatus === "failed"
                       ? "opacity-100 bg-red-600/90"

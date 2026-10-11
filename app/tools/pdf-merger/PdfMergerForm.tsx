@@ -2,10 +2,13 @@
 
 import React, { useState } from "react";
 import { PDFDocument } from "@cantoo/pdf-lib";
+import ErrorMessage from "@/components/ErrorMessage";
 import {
   FileToolError,
   MAX_PDF_BYTES,
+  MAX_PDF_TOTAL_BYTES,
   assertMaxSize,
+  assertMaxTotal,
   downloadBlob,
   formatBytes,
 } from "@/lib/files";
@@ -13,23 +16,33 @@ import {
 export default function PdfMergerForm() {
   const [files, setFiles] = useState<File[]>([]);
   const [merging, setMerging] = useState(false);
+  const [error, setError] = useState("");
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files) return;
     const selected = Array.from(e.target.files);
+    setError("");
     try {
       assertMaxSize(selected, MAX_PDF_BYTES);
+      assertMaxTotal(selected, MAX_PDF_TOTAL_BYTES);
       setFiles(selected);
     } catch (error) {
       e.target.value = "";
-      alert(error instanceof FileToolError ? error.message : "No se pudieron leer los archivos.");
+      setFiles([]);
+      setError(
+        error instanceof FileToolError ? error.message : "No se pudieron leer los archivos."
+      );
     }
   };
 
   const mergePDFs = async () => {
-    if (files.length < 2) return alert("Selecciona al menos 2 archivos");
+    if (files.length < 2) {
+      setError("Selecciona al menos 2 archivos.");
+      return;
+    }
 
     setMerging(true);
+    setError("");
     try {
       // 1. Crear un nuevo documento PDF
       const mergedPdf = await PDFDocument.create();
@@ -55,7 +68,9 @@ export default function PdfMergerForm() {
       downloadBlob(blob, "archivo_combinado.pdf");
     } catch (error) {
       console.error("Error al fusionar:", error);
-      alert("Hubo un error al procesar los archivos.");
+      setError(
+        "No se pudieron combinar los archivos. Alguno puede estar dañado o protegido con contraseña."
+      );
     } finally {
       setMerging(false);
     }
@@ -116,7 +131,8 @@ export default function PdfMergerForm() {
                     arrastra tus archivos
                   </p>
                   <p className="text-xs text-slate-400">
-                    PDF (Múltiples permitidos, hasta {formatBytes(MAX_PDF_BYTES)} cada uno)
+                    PDF (Múltiples permitidos, hasta {formatBytes(MAX_PDF_BYTES)} cada uno y{" "}
+                    {formatBytes(MAX_PDF_TOTAL_BYTES)} en total)
                   </p>
                 </div>
                 <input
@@ -138,7 +154,10 @@ export default function PdfMergerForm() {
                     Archivos seleccionados ({files.length})
                   </h3>
                   <button
-                    onClick={() => setFiles([])}
+                    onClick={() => {
+                      setFiles([]);
+                      setError("");
+                    }}
                     className="text-xs font-semibold text-red-500 hover:text-red-700 transition-colors"
                   >
                     Limpiar todo
@@ -175,6 +194,8 @@ export default function PdfMergerForm() {
                 </ul>
               </div>
             )}
+
+            {error && <ErrorMessage>{error}</ErrorMessage>}
 
             {/* Botón Principal */}
             <button

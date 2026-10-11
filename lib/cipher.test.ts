@@ -1,6 +1,13 @@
 import CryptoJS from "crypto-js";
 import { describe, expect, it } from "vitest";
-import { CIPHER_PREFIX, CipherError, decryptText, detectFormat, encryptText } from "./cipher";
+import {
+  CIPHER_PREFIX,
+  CipherError,
+  decryptText,
+  detectFormat,
+  encryptText,
+  isWeakPassphrase,
+} from "./cipher";
 
 const MESSAGE = "¡Hola, ñandú! Texto con acentos y emoji 🔐\nen dos líneas.";
 const PASS = "una frase secreta larga";
@@ -90,5 +97,18 @@ describe("validación de entradas", () => {
   it("rechaza textos sin formato reconocible", async () => {
     expect(detectFormat("hola mundo")).toBe("unknown");
     await expect(decryptText("hola mundo", PASS)).rejects.toBeInstanceOf(CipherError);
+  });
+});
+
+describe("isWeakPassphrase", () => {
+  it.each(["1234", "secreto", "contraseña1", "123456789012345", "aaaaaaaaaaaaaa", "121212121212"])(
+    "marca como débil %s",
+    (passphrase) => {
+      expect(isWeakPassphrase(passphrase)).toBe(true);
+    }
+  );
+
+  it.each([PASS, "caballo batería grapa", "Tr0mb0n-azul-17"])("acepta %s", (passphrase) => {
+    expect(isWeakPassphrase(passphrase)).toBe(false);
   });
 });

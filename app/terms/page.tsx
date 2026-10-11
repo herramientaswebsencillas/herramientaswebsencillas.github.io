@@ -122,7 +122,12 @@ export default function TermsPage() {
                 licencia MIT
               </a>
               , que permite usarlo, modificarlo y distribuirlo conservando el aviso de copyright y
-              la licencia.
+              la licencia. El código de terceros que incluye conserva su propia licencia; los avisos
+              están en {/* <a> y no <Link>: es un archivo de texto, no una página del sitio. */}
+              <a href="/third-party-licenses.txt" className={linkClass}>
+                licencias de terceros
+              </a>
+              .
             </p>
           </Section>
 

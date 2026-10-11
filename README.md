@@ -13,7 +13,7 @@ El sitio se genera como export estático (`output: 'export'`) y se publica en Gi
 
 - **Instalar dependencias**: `pnpm install`
 - **Desarrollo**: `pnpm dev` — arranca el servidor en modo desarrollo (puerto 3000)
-- **Construir**: `pnpm build` — genera el sitio estático en `out/` y le inserta la CSP con los hashes de cada página (`scripts/csp-hashes.mjs`)
+- **Construir**: `pnpm build` — genera el sitio estático en `out/`, le inserta la CSP con los hashes de cada página (`scripts/csp-hashes.mjs`) y escribe `out/third-party-licenses.txt` (`scripts/third-party-licenses.mjs`)
 - **Previsualizar el build**: `pnpm start` — sirve `out/` en el puerto 3000 con `scripts/serve-out.mjs` (`next start` no sirve con `output: 'export'`)
 - **Lint**: `pnpm lint`
 - **Formato**: `pnpm format` aplica Prettier; `pnpm format:check` solo comprueba, como hace el CI
@@ -33,11 +33,11 @@ El sitio se genera como export estático (`output: 'export'`) y se publica en Gi
 - `app/privacy/` — qué herramientas envían datos a servicios externos
 - `app/terms/` — términos de uso: servicio sin garantías, resultados orientativos y servicios de terceros
 - `app/tools/` — cada subcarpeta contiene una herramienta con su `page.tsx` y el componente del formulario
-- `components/` — componentes compartidos (por ejemplo, `Navbar.tsx`)
+- `components/` — componentes compartidos: `Navbar.tsx` y `ErrorMessage.tsx`, el mensaje de error en línea que usan las herramientas en lugar de `alert()`
 - `lib/tools.ts` — catálogo de herramientas y categorías que se muestra en la página de inicio
 - `lib/currencies.ts` — nombres de divisas en español, usados por el conversor
 - `lib/csp.mjs` — la Content Security Policy del sitio (ver "Seguridad")
-- `lib/files.ts` — límites de tamaño, decodificación de Base64 y descargas de las herramientas de archivos
+- `lib/files.ts` — límites de tamaño (por archivo y en total), decodificación de Base64 y descargas de las herramientas de archivos
 - `lib/base64.ts` — conversión entre Base64, bytes y texto UTF-8, compartida por los conversores y el encriptador
 - `lib/useCopy.ts` — hook para copiar al portapapeles; el botón dice si se copió o si el navegador no lo permitió
 - `lib/*.ts` — lógica pura de las herramientas (fechas, finanzas, romanos, aleatorios, cifrado), separada de los componentes y probada en `lib/*.test.ts`
@@ -45,8 +45,9 @@ El sitio se genera como export estático (`output: 'export'`) y se publica en Gi
 - `e2e/` — pruebas con Playwright sobre el export estático: `smoke.spec.ts` recorre todas las páginas y `tools.spec.ts` prueba los flujos de archivos y de servicios externos con respuestas simuladas
 - `scripts/serve-out.mjs` — servidor estático de `out/` para `pnpm start` y las pruebas de humo
 - `scripts/csp-hashes.mjs` — inserta la CSP con hashes en cada HTML de `out/` después de `next build`
+- `scripts/third-party-licenses.mjs` — reúne en `out/third-party-licenses.txt` las licencias de las dependencias de producción, que el minificador quita del JavaScript; lo enlazan "Acerca de" y los Términos de uso
 - `next.config.ts`, `package.json`, `tsconfig.json` — configuración del proyecto
-- `pnpm-workspace.yaml` — ajustes de pnpm (overrides de seguridad, avisos de `pnpm audit` ignorados con su motivo y scripts de instalación permitidos)
+- `pnpm-workspace.yaml` — ajustes de pnpm (antigüedad mínima de las versiones, overrides de seguridad, avisos de `pnpm audit` ignorados con su motivo y scripts de instalación permitidos)
 - `.github/workflows/nextjs.yml` — verificación en cada pull request, y verificación y despliegue a GitHub Pages en cada push a `main`
 - `.github/workflows/codeql.yml`, `.github/dependabot.yml` — análisis de seguridad y actualizaciones automáticas de dependencias
 - `.github/workflows/external-apis.yml` — monitoreo diario del sitio publicado, de los servicios externos y de los avisos de seguridad de las dependencias
@@ -146,6 +147,8 @@ Si hace falta volver ya, en la pestaña **Actions** abre la ejecución de un com
 1. Si la dependencia directa ya trae la versión corregida, actualízala (o integra el PR de Dependabot).
 2. Si el aviso está en una dependencia transitiva, fuerza la versión corregida en `overrides` de `pnpm-workspace.yaml`, con el aviso y el camino por el que llega en un comentario. Quita el override cuando la dependencia directa ya la traiga.
 3. Si no existe versión corregida, evalúa si el aviso afecta al sitio publicado. Si no lo afecta (por ejemplo, porque solo llega a herramientas de desarrollo con datos del propio repositorio), añade su GHSA a `auditConfig.ignoreGhsas` con el motivo y la condición para quitarlo.
+
+Las versiones nuevas no se adoptan en cuanto salen: pnpm no instala nada publicado hace menos de 3 días (`minimumReleaseAge` en `pnpm-workspace.yaml`) y Dependabot espera 7 días, o 14 en las versiones mayores (`cooldown` en `.github/dependabot.yml`). Así un paquete comprometido tiene tiempo de detectarse y retirarse antes de llegar al sitio. Si un aviso de seguridad obliga a adoptar antes una versión, se añade a `minimumReleaseAgeExclude` con el aviso en un comentario.
 
 Dos dependencias se fijan a propósito: `@cantoo/pdf-lib` es el fork mantenido de `pdf-lib`, que dejó de publicar versiones en 2022, y `crypto-js` va en versión exacta porque está deprecada y solo sirve para descifrar el formato heredado del encriptador.
 

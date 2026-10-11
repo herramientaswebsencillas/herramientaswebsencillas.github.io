@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { calculateCompoundInterest, calculateLoan, type LoanInput } from "./finance";
+import {
+  MAX_MONTHS,
+  calculateCompoundInterest,
+  calculateLoan,
+  monthsError,
+  type LoanInput,
+} from "./finance";
 
 const base: LoanInput = {
   loanAmount: 100_000,
@@ -62,6 +68,10 @@ describe("calculateLoan", () => {
     for (const input of [
       { ...base, loanAmount: 0 },
       { ...base, months: 0 },
+      { ...base, months: 12.5 },
+      { ...base, months: MAX_MONTHS + 1 },
+      { ...base, months: 1e9 },
+      { ...base, months: -12 },
       { ...base, loanAmount: Number.NaN },
     ]) {
       const { table, totals } = calculateLoan(input);
@@ -69,6 +79,31 @@ describe("calculateLoan", () => {
       expect(totals.totalPaid).toBe(0);
     }
   });
+
+  it.each(["frances", "aleman", "americano"] as const)(
+    "sistema %s: liquida el capital con el plazo máximo",
+    (system) => {
+      const { table } = calculateLoan({ ...base, months: MAX_MONTHS, system });
+      expect(table).toHaveLength(MAX_MONTHS);
+      expect(sum(table.map((r) => r.principal))).toBeCloseTo(100_000, 4);
+      expect(table.at(-1)!.balance).toBe(0);
+    }
+  );
+});
+
+describe("monthsError", () => {
+  it.each([1, 12, MAX_MONTHS])("acepta %d meses", (months) => {
+    expect(monthsError(months)).toBeNull();
+  });
+
+  it.each([0, -1, 12.5, MAX_MONTHS + 1, Number.NaN, Number.POSITIVE_INFINITY])(
+    "rechaza %d meses",
+    (months) => {
+      expect(monthsError(months)).toBe(
+        `El plazo debe ser un número entero entre 1 y ${MAX_MONTHS} meses.`
+      );
+    }
+  );
 });
 
 describe("calculateCompoundInterest", () => {
@@ -99,5 +134,14 @@ describe("calculateCompoundInterest", () => {
     });
     expect(table).toHaveLength(12);
     expect(totals).toEqual({ final: 22_000, invested: 22_000, interest: 0 });
+  });
+
+  it("devuelve un resultado vacío con un plazo no válido", () => {
+    for (const months of [0, 12.5, MAX_MONTHS + 1, 1e9]) {
+      expect(calculateCompoundInterest({ ...input, months })).toEqual({
+        table: [],
+        totals: { final: 0, invested: 0, interest: 0 },
+      });
+    }
   });
 });

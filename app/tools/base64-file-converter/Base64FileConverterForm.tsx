@@ -1,5 +1,6 @@
 "use client";
 import { useState, ChangeEvent } from "react";
+import ErrorMessage from "@/components/ErrorMessage";
 import { copyLabel, useCopy } from "@/lib/useCopy";
 import {
   FileToolError,
@@ -90,11 +91,7 @@ export default function Base64FileConverterForm() {
               <p className="text-xs text-slate-400">
                 Máximo {formatBytes(MAX_BASE64_FILE_BYTES)} por archivo.
               </p>
-              {uploadError && (
-                <p role="alert" className="text-sm text-red-600">
-                  {uploadError}
-                </p>
-              )}
+              {uploadError && <ErrorMessage>{uploadError}</ErrorMessage>}
               <div className="relative">
                 <textarea
                   className="w-full h-48 p-4 bg-slate-100 border border-dashed border-slate-300 text-slate-700 rounded-xl font-mono text-xs resize-none"
@@ -130,11 +127,7 @@ export default function Base64FileConverterForm() {
                   setDecodeError("");
                 }}
               />
-              {decodeError && (
-                <p role="alert" className="text-sm text-red-600">
-                  {decodeError}
-                </p>
-              )}
+              {decodeError && <ErrorMessage>{decodeError}</ErrorMessage>}
               <button
                 onClick={downloadFileFromBase64}
                 className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-colors shadow-lg shadow-blue-200"
