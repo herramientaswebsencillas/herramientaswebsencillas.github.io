@@ -1,11 +1,13 @@
 import { readFile } from "node:fs/promises";
-import { expect, test, type Download } from "@playwright/test";
+import { expect, test, type Download, type Page } from "@playwright/test";
 import { unzipSync } from "fflate";
 import { PDFDocument } from "@cantoo/pdf-lib";
+import { FIXED_MESSAGE, FIXED_PASSPHRASE, FIXED_V2, LEGACY_CRYPTOJS } from "../lib/cipher.fixtures";
 import { watchPage } from "./watch";
 
-/* Flujos de las herramientas que procesan archivos y de las que consultan
-   servicios externos. Las respuestas de LanguageTool, MyMemory y Frankfurter
+/* Flujos de las herramientas que procesan archivos, de las que consultan
+   servicios externos y de las que tienen un contrato de compatibilidad
+   (encriptador y calculadora de fechas). Las respuestas de LanguageTool, MyMemory y Frankfurter
    se simulan con el mismo formato que validan lib/external.test.ts y el
    monitoreo diario, así que estas pruebas no dependen de la red. */
 
@@ -13,6 +15,12 @@ async function pdfWithPages(count: number): Promise<Buffer> {
   const pdf = await PDFDocument.create();
   for (let i = 0; i < count; i++) pdf.addPage([200, 200]);
   return Buffer.from(await pdf.save());
+}
+
+/* Mensajes de error de las herramientas (components/ErrorMessage.tsx). Next
+   añade su propio role="alert" vacío para anunciar los cambios de ruta. */
+function alerts(page: Page) {
+  return page.locator('[role="alert"]:not(#__next-route-announcer__)');
 }
 
 async function downloaded(download: Download): Promise<Buffer> {
@@ -55,9 +63,7 @@ test.describe("conversor Base64 de archivos", () => {
     await page.getByPlaceholder(/Pega el código Base64/).fill("javascript:window.__pwned=1");
     await page.getByRole("button", { name: "Descargar Archivo Reconstruido" }).click();
 
-    await expect(
-      page.getByRole("alert").filter({ hasText: "Solo se aceptan datos Base64" })
-    ).toBeVisible();
+    await expect(alerts(page).filter({ hasText: "Solo se aceptan datos Base64" })).toBeVisible();
     expect(await page.evaluate(() => "__pwned" in window)).toBe(false);
     expect(downloads).toBe(0);
     await check();
@@ -91,7 +97,7 @@ test.describe("conversor Base64 de archivos", () => {
       mimeType: "application/octet-stream",
       buffer: Buffer.alloc(11 * 1024 * 1024),
     });
-    await expect(page.getByRole("alert").filter({ hasText: "grande.bin" })).toBeVisible();
+    await expect(alerts(page).filter({ hasText: "grande.bin" })).toBeVisible();
     await expect(page.getByPlaceholder("El resultado Base64 aparecerá aquí...")).toHaveValue("");
     await check();
   });
@@ -161,7 +167,7 @@ test("dividir PDF rechaza un archivo que no es PDF sin quedarse con el anterior"
     buffer: Buffer.from("x"),
   });
   await expect(
-    page.getByRole("alert").filter({ hasText: "Por favor selecciona un archivo PDF válido." })
+    alerts(page).filter({ hasText: "Por favor selecciona un archivo PDF válido." })
   ).toBeVisible();
   await expect(page.getByText("2 páginas detectadas")).toBeHidden();
   await expect(page.getByRole("button", { name: /Descargar Páginas Individuales/ })).toBeDisabled();
@@ -179,7 +185,7 @@ test("unir PDF muestra el error en la página si un archivo está dañado", asyn
   ]);
   await page.getByRole("button", { name: "Combinar y Descargar" }).click();
   await expect(
-    page.getByRole("alert").filter({ hasText: "No se pudieron combinar los archivos" })
+    alerts(page).filter({ hasText: "No se pudieron combinar los archivos" })
   ).toBeVisible();
 });
 
@@ -223,6 +229,147 @@ test.describe("convertidor Base64 de texto", () => {
     await expect(page.getByRole("button", { name: "No se pudo copiar" })).toBeVisible();
     await check();
   });
+
+  test("permite copiar un texto decodificado que contiene la palabra Error", async ({ page }) => {
+    const check = await watchPage(page, PATH);
+    await page.goto(PATH);
+
+    await page.getByPlaceholder("Pega el código Base64 aquí...").fill("RXJyb3IgNDA0");
+    await page.getByRole("button", { name: "Decodificar" }).click();
+    await expect(page.getByPlaceholder("Texto original...")).toHaveValue("Error 404");
+    await expect(page.getByRole("button", { name: "Copiar" })).toBeVisible();
+    await expect(alerts(page)).toHaveCount(0);
+    await check();
+  });
+
+  test("muestra el error aparte del resultado", async ({ page }) => {
+    const check = await watchPage(page, PATH);
+    await page.goto(PATH);
+
+    await page.getByPlaceholder("Pega el código Base64 aquí...").fill("no es base64!");
+    await page.getByRole("button", { name: "Decodificar" }).click();
+    await expect(alerts(page)).toContainText("no es válido");
+    await expect(page.getByPlaceholder("Texto original...")).toHaveValue("");
+    await expect(page.getByRole("button", { name: "Copiar" })).toHaveCount(0);
+    await check();
+  });
+});
+
+test("el convertidor de romanos muestra el error aparte del resultado", async ({ page }) => {
+  const check = await watchPage(page);
+  await page.goto("/tools/roman-converter");
+
+  await page.getByPlaceholder("Ej. 1994").fill("4000");
+  await page.getByRole("button", { name: "Convertir" }).first().click();
+  await expect(alerts(page)).toContainText("entre 1 y 3999");
+  await expect(page.getByPlaceholder("Resultado en números romanos...")).toHaveValue("");
+
+  await page.getByPlaceholder("Ej. 1994").fill("1994");
+  await page.getByRole("button", { name: "Convertir" }).first().click();
+  await expect(page.getByPlaceholder("Resultado en números romanos...")).toHaveValue("MCMXCIV");
+  await expect(alerts(page)).toHaveCount(0);
+  await check();
+});
+
+test.describe("texto a binario", () => {
+  const PATH = "/tools/text-to-binary";
+
+  test("codifica en UTF-8 y decodifica de vuelta", async ({ page }) => {
+    const check = await watchPage(page, PATH);
+    await page.goto(PATH);
+
+    await page.getByPlaceholder("Escribe algo aquí...").fill("ñ");
+    const binary = page.getByPlaceholder(/^01001000/);
+    await expect(binary).toHaveValue("11000011 10110001");
+
+    await binary.fill("01001000 01101001");
+    await expect(page.getByPlaceholder("Escribe algo aquí...")).toHaveValue("Hi");
+    await check();
+  });
+
+  test("conserva el texto y avisa si el binario no es válido", async ({ page }) => {
+    const check = await watchPage(page, PATH);
+    await page.goto(PATH);
+
+    await page.getByPlaceholder("Escribe algo aquí...").fill("Hola");
+    await page.getByPlaceholder(/^01001000/).fill("0100100");
+    await expect(alerts(page)).toContainText("8 ceros y unos");
+    await expect(page.getByPlaceholder("Escribe algo aquí...")).toHaveValue("Hola");
+    await check();
+  });
+});
+
+/* ----------------------- Contratos de compatibilidad ----------------------- */
+
+test.describe("encriptador", () => {
+  const PATH = "/tools/text-encryptor";
+
+  test("encripta y desencripta con el formato actual", async ({ page }) => {
+    const check = await watchPage(page, PATH);
+    await page.goto(PATH);
+
+    await page.getByPlaceholder("Escribe el mensaje que quieres proteger…").fill("Mensaje secreto");
+    await page.getByPlaceholder("Tu clave compartida").fill(FIXED_PASSPHRASE);
+    await page.getByRole("button", { name: "Encriptar texto" }).click();
+    await expect(page.getByText(/^v2:/)).toBeVisible();
+
+    // Al cambiar de modo, el resultado pasa a ser la entrada.
+    await page.getByRole("button", { name: "Desencriptar", exact: true }).click();
+    await page.getByRole("button", { name: "Desencriptar texto" }).click();
+    await expect(page.getByText("Mensaje secreto", { exact: true })).toBeVisible();
+    await check();
+  });
+
+  test("desencripta un texto v2 ya compartido", async ({ page }) => {
+    const check = await watchPage(page, PATH);
+    await page.goto(PATH);
+
+    await page.getByRole("button", { name: "Desencriptar", exact: true }).click();
+    await page.getByPlaceholder("Pega aquí el texto encriptado…").fill(FIXED_V2);
+    await page.getByPlaceholder("Tu clave compartida").fill(FIXED_PASSPHRASE);
+    await page.getByRole("button", { name: "Desencriptar texto" }).click();
+    await expect(page.getByText(FIXED_MESSAGE.split("\n")[0])).toBeVisible();
+    await expect(alerts(page)).toHaveCount(0);
+    await check();
+  });
+
+  test("explica que el formato anterior ya no se admite", async ({ page }) => {
+    const check = await watchPage(page, PATH);
+    await page.goto(PATH);
+
+    await page.getByRole("button", { name: "Desencriptar", exact: true }).click();
+    await page.getByPlaceholder("Pega aquí el texto encriptado…").fill(LEGACY_CRYPTOJS);
+    await page.getByPlaceholder("Tu clave compartida").fill(FIXED_PASSPHRASE);
+    await page.getByRole("button", { name: "Desencriptar texto" }).click();
+    await expect(alerts(page)).toContainText("versión anterior");
+    await check();
+  });
+});
+
+test.describe("calculadora de fechas", () => {
+  const PATH = "/tools/date-difference-calculator";
+
+  test("lee el rango de los parámetros desde y hasta", async ({ page }) => {
+    const check = await watchPage(page, PATH);
+    await page.goto(`${PATH}?desde=01/02/2020&hasta=03/04/2021`);
+
+    await expect(page.getByLabel("Desde", { exact: true })).toHaveValue("01/02/2020");
+    await expect(page.getByLabel("Hasta", { exact: true })).toHaveValue("03/04/2021");
+    // 366 días del año bisiesto más 61 hasta el 3 de abril.
+    await expect(page.getByText("427", { exact: true })).toBeVisible();
+    await expect(page).toHaveURL(/\?desde=01\/02\/2020&hasta=03\/04\/2021$/);
+    await check();
+  });
+
+  test("escribe en la URL la fecha que se edita", async ({ page }) => {
+    const check = await watchPage(page, PATH);
+    await page.goto(`${PATH}?hasta=25/12/2030`);
+
+    await page.getByLabel("Desde", { exact: true }).fill("15/03/2024");
+    await expect(page).toHaveURL(/desde=15\/03\/2024/);
+    await expect(page).toHaveURL(/hasta=25\/12\/2030/);
+    await check();
+  });
 });
 
 /* ---------------------------- Servicios externos --------------------------- */
@@ -259,6 +406,18 @@ test("el corrector muestra y aplica las sugerencias de LanguageTool", async ({ p
   await page.getByText("Avia", { exact: true }).click();
   await page.getByRole("button", { name: "Había" }).click();
   await expect(page.getByText("Había una vez.")).toBeVisible();
+  await check();
+});
+
+test("el corrector distingue el límite de peticiones de un fallo de conexión", async ({ page }) => {
+  const check = await watchPage(page);
+  await page.route("https://api.languagetool.org/v2/check", (route) =>
+    route.fulfill({ status: 429, body: "Too Many Requests" })
+  );
+  await page.goto("/tools/proofreader");
+
+  await page.getByRole("button", { name: "Revisar texto" }).click();
+  await expect(alerts(page)).toContainText("límite de revisiones por minuto");
   await check();
 });
 
@@ -302,6 +461,27 @@ test.describe("traductor", () => {
     await page.getByRole("button", { name: "Traducir", exact: true }).click();
     await expect(page.getByText(/Se agotó por hoy la cuota gratuita/)).toBeVisible();
     await expect(page.getByPlaceholder("La traducción aparecerá aquí...")).toHaveValue("");
+    await check();
+  });
+
+  test("intercambiar idiomas sin traducción conserva el texto", async ({ page }) => {
+    const check = await watchPage(page);
+    await page.goto("/tools/translator");
+
+    await page.getByPlaceholder(/Escribe o pega el texto/).fill("hola mundo");
+    await page.getByRole("button", { name: "⇄" }).click();
+    await expect(page.getByPlaceholder(/Escribe o pega el texto/)).toHaveValue("hola mundo");
+    await expect(page.getByRole("combobox").first()).toHaveValue("en");
+    await check();
+  });
+
+  test("pide traducir un párrafo a la vez", async ({ page }) => {
+    const check = await watchPage(page);
+    await page.goto("/tools/translator");
+
+    await page.getByPlaceholder(/Escribe o pega el texto/).fill("Primer párrafo.\n\nSegundo.");
+    await expect(alerts(page)).toContainText("un párrafo a la vez");
+    await expect(page.getByRole("button", { name: "Traducir", exact: true })).toBeDisabled();
     await check();
   });
 });

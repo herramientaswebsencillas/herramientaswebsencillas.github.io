@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import ErrorMessage from "@/components/ErrorMessage";
 import { base64ToText, textToBase64 } from "@/lib/base64";
 import { copyLabel, useCopy } from "@/lib/useCopy";
 
@@ -9,23 +10,29 @@ export default function Base64ConverterForm() {
   const [base64Output, setBase64Output] = useState("");
   const [base64Input, setBase64Input] = useState("");
   const [textOutput, setTextOutput] = useState("");
+  // Los errores van aparte del resultado: un texto decodificado que contenga
+  // "Error" es un resultado válido y debe poder copiarse.
+  const [encodeError, setEncodeError] = useState("");
+  const [decodeError, setDecodeError] = useState("");
   const { copy, statusOf } = useCopy();
 
   const encodeToBase64 = () => {
     try {
-      const encoded = textToBase64(textInput);
-      setBase64Output(encoded);
+      setBase64Output(textToBase64(textInput));
+      setEncodeError("");
     } catch {
-      setBase64Output("Error: No se pudo codificar el texto.");
+      setBase64Output("");
+      setEncodeError("No se pudo codificar el texto.");
     }
   };
 
   const decodeFromBase64 = () => {
     try {
-      const decoded = base64ToText(base64Input.trim());
-      setTextOutput(decoded);
+      setTextOutput(base64ToText(base64Input.trim()));
+      setDecodeError("");
     } catch {
-      setTextOutput("Error: El código Base64 no es válido.");
+      setTextOutput("");
+      setDecodeError("El código Base64 no es válido o no corresponde a un texto UTF-8.");
     }
   };
 
@@ -67,7 +74,7 @@ export default function Base64ConverterForm() {
                   value={base64Output}
                   readOnly
                 />
-                {base64Output && !base64Output.includes("Error") && (
+                {base64Output && (
                   <button
                     onClick={() => copy(base64Output, "base64")}
                     className="absolute top-2 right-2 p-2 bg-slate-700 hover:bg-slate-600 rounded-lg text-xs text-white transition-colors"
@@ -76,6 +83,7 @@ export default function Base64ConverterForm() {
                   </button>
                 )}
               </div>
+              {encodeError && <ErrorMessage>{encodeError}</ErrorMessage>}
             </div>
           </div>
 
@@ -106,7 +114,7 @@ export default function Base64ConverterForm() {
                   value={textOutput}
                   readOnly
                 />
-                {textOutput && !textOutput.includes("Error") && (
+                {textOutput && (
                   <button
                     onClick={() => copy(textOutput, "text")}
                     className="absolute top-2 right-2 p-2 bg-slate-200 hover:bg-slate-300 rounded-lg text-xs text-slate-600 transition-colors"
@@ -115,6 +123,7 @@ export default function Base64ConverterForm() {
                   </button>
                 )}
               </div>
+              {decodeError && <ErrorMessage>{decodeError}</ErrorMessage>}
             </div>
           </div>
         </div>

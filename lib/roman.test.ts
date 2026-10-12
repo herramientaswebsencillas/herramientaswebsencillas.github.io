@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { MAX_VALUE, MIN_VALUE, decimalToRoman, romanToDecimal } from "./roman";
+import { MAX_VALUE, MIN_VALUE, RomanError, decimalToRoman, romanToDecimal } from "./roman";
 
 describe("decimalToRoman", () => {
   it.each([
@@ -18,11 +18,11 @@ describe("decimalToRoman", () => {
   });
 
   it("rechaza valores fuera de rango o no enteros", () => {
-    expect(() => decimalToRoman(0)).toThrow();
-    expect(() => decimalToRoman(4000)).toThrow();
-    expect(() => decimalToRoman(-5)).toThrow();
-    expect(() => decimalToRoman(1.5)).toThrow();
-    expect(() => decimalToRoman(Number.NaN)).toThrow();
+    expect(() => decimalToRoman(0)).toThrow(RomanError);
+    expect(() => decimalToRoman(4000)).toThrow(RomanError);
+    expect(() => decimalToRoman(-5)).toThrow(RomanError);
+    expect(() => decimalToRoman(1.5)).toThrow(RomanError);
+    expect(() => decimalToRoman(Number.NaN)).toThrow(RomanError);
   });
 });
 
@@ -33,13 +33,13 @@ describe("romanToDecimal", () => {
 
   it("rechaza formas no canónicas", () => {
     for (const invalid of ["IIII", "VX", "IC", "MMMM", "VV", "IIX"]) {
-      expect(() => romanToDecimal(invalid), invalid).toThrow();
+      expect(() => romanToDecimal(invalid), invalid).toThrow(RomanError);
     }
   });
 
   it("rechaza símbolos ajenos y cadenas vacías", () => {
-    expect(() => romanToDecimal("ABC")).toThrow();
-    expect(() => romanToDecimal("   ")).toThrow();
+    expect(() => romanToDecimal("ABC")).toThrow(RomanError);
+    expect(() => romanToDecimal("   ")).toThrow(RomanError);
   });
 
   it("es la inversa exacta de decimalToRoman en todo el rango", () => {

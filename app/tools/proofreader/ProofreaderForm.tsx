@@ -1,17 +1,29 @@
 "use client";
 
 import { useState, useRef, useCallback, JSX } from "react";
-import { EXTERNAL_TIMEOUT_MS, parseLanguageToolMatches, type LTMatch } from "@/lib/external";
+import ErrorMessage from "@/components/ErrorMessage";
+import {
+  EXTERNAL_TIMEOUT_MS,
+  ExternalServiceError,
+  parseLanguageToolMatches,
+  type LTMatch,
+} from "@/lib/external";
 
 // LanguageTool: API pública, sin key, ideal para uso personal/demo.
 // Límite ~20 req/min y ~20,000 caracteres por request en el servidor gratuito.
 const LANGUAGETOOL_ENDPOINT = "https://api.languagetool.org/v2/check";
 
 // Límite real de la API: 20,000 caracteres. Usamos el 10% como margen de seguridad.
+// El plan gratuito admite además 20 peticiones por minuto y por IP.
 const API_CHAR_LIMIT = 20000;
 const MAX_CHARS = Math.floor(API_CHAR_LIMIT * 0.1);
 
 type Status = "idle" | "checking" | "done" | "error";
+
+const CONNECTION_ERROR =
+  "No se pudo conectar con el servicio de corrección. Intenta de nuevo en un momento.";
+const RATE_LIMIT_ERROR =
+  "Se alcanzó el límite de revisiones por minuto del servicio de corrección. Espera un minuto e intenta de nuevo.";
 
 interface LanguageOption {
   code: string;
@@ -62,6 +74,7 @@ export default function ProofreaderForm() {
   const [status, setStatus] = useState<Status>("idle");
   const [activeId, setActiveId] = useState<string | null>(null);
   const [language, setLanguage] = useState<string>("es");
+  const [error, setError] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const checkText = useCallback(async () => {
@@ -80,12 +93,13 @@ export default function ProofreaderForm() {
         signal: AbortSignal.timeout(EXTERNAL_TIMEOUT_MS),
       });
 
+      if (res.status === 429) throw new ExternalServiceError(RATE_LIMIT_ERROR);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
       setMatches(parseLanguageToolMatches(await res.json(), text));
       setStatus("done");
     } catch (err) {
-      console.error(err);
+      setError(err instanceof ExternalServiceError ? err.message : CONNECTION_ERROR);
       setStatus("error");
     }
   }, [text, language]);
@@ -270,9 +284,7 @@ export default function ProofreaderForm() {
         )}
 
         {status === "error" && (
-          <p className="mt-3 text-center text-sm font-medium text-red-600">
-            ⚠️ No se pudo conectar con el servicio de corrección. Intenta de nuevo en un momento.
-          </p>
+          <ErrorMessage className="mt-3 text-center font-medium">⚠️ {error}</ErrorMessage>
         )}
 
         <div className="mt-6 flex items-center justify-between gap-3">

@@ -1,4 +1,5 @@
 import { expect, type Page } from "@playwright/test";
+import { SITE_ORIGIN } from "./site";
 
 /* Violaciones de CSP toleradas por página, con su motivo. Hoy no hay
    ninguna: Dividir PDF usaba jszip, que probaba Function(...) y la CSP lo
@@ -33,7 +34,7 @@ export async function watchPage(page: Page, path = "") {
   });
 
   await page.route(
-    (url) => url.hostname !== "localhost",
+    (url) => url.origin !== SITE_ORIGIN,
     (route) => route.abort()
   );
 
@@ -42,7 +43,7 @@ export async function watchPage(page: Page, path = "") {
     if (message.type() !== "error") return;
     // Los fallos de las peticiones externas cortadas arriba no cuentan.
     const source = message.location().url;
-    if (source && !source.startsWith("http://localhost")) return;
+    if (source && !source.startsWith(SITE_ORIGIN)) return;
     errors.push(`console: ${message.text()}`);
   });
 

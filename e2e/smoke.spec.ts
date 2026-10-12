@@ -25,7 +25,7 @@ test("publica los avisos de licencia de terceros y los enlaza", async ({ page, r
   const response = await request.get("/third-party-licenses.txt");
   expect(response.status()).toBe(200);
   const text = await response.text();
-  for (const name of ["react", "@cantoo/pdf-lib", "fflate", "crypto-js"]) {
+  for (const name of ["react", "@cantoo/pdf-lib", "fflate"]) {
     expect(text).toMatch(new RegExp(`^${name} \\d`, "m"));
   }
   expect(text).toContain("Permission is hereby granted");

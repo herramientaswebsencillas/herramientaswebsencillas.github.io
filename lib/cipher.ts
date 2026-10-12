@@ -1,37 +1,36 @@
 /**
  * Cifrado de texto con frase secreta para el encriptador.
  *
- * Formato actual ("v2:"): AES-256-GCM con la Web Crypto API. La clave se
- * deriva de la frase con PBKDF2-SHA256 y una sal aleatoria; GCM autentica el
- * resultado, así que un texto alterado o una frase incorrecta fallan en vez de
- * devolver basura. El texto cifrado es "v2:" + base64(sal ‖ IV ‖ cifrado+tag).
+ * Formato ("v2:"): AES-256-GCM con la Web Crypto API. La clave se deriva de la
+ * frase con PBKDF2-SHA256 y una sal aleatoria; GCM autentica el resultado, así
+ * que un texto alterado o una frase incorrecta fallan en vez de devolver
+ * basura. El texto cifrado es "v2:" + base64(sal ‖ IV ‖ cifrado+tag).
  *
- * Formato heredado: lo que producía la versión anterior con CryptoJS
- * (EVP_BytesToKey con MD5 de una sola iteración, sin autenticación). Solo se
- * admite para descifrar, de modo que los textos ya compartidos sigan
- * abriéndose; crypto-js se carga bajo demanda para no pesar en la página.
+ * El formato anterior, de CryptoJS (EVP_BytesToKey con MD5 de una sola
+ * iteración, sin autenticación), ya no se descifra. Solo se reconoce para
+ * explicar por qué no se puede abrir.
  */
 
 import { base64ToBytes, bytesToBase64 } from "./base64";
 
 export const CIPHER_PREFIX = "v2:";
 // Recomendación de OWASP para PBKDF2-HMAC-SHA256. Cambiarla rompe los textos
-// ya cifrados: si hace falta subirla, se crea un prefijo "v3:".
+// ya cifrados: si hace falta subirla, se crea un prefijo "v3:". La prueba con
+// un texto cifrado fijo de lib/cipher.test.ts lo detecta.
 export const PBKDF2_ITERATIONS = 600_000;
 const SALT_BYTES = 16;
 const IV_BYTES = 12;
 const TAG_BYTES = 16;
 
-// Los cuatro algoritmos de CryptoJS emiten el mismo sobre ("Salted__" en
-// base64), así que el algoritmo no se puede deducir del texto: lo elige quien
-// descifra.
-export const LEGACY_ALGORITHMS = ["AES", "TripleDES", "Rabbit", "RC4"] as const;
-export type LegacyAlgorithm = (typeof LEGACY_ALGORITHMS)[number];
+// Así empiezan los textos de CryptoJS: "Salted__" en base64.
 const LEGACY_MARKER = "U2FsdGVkX1";
 
 export type CipherFormat = "current" | "legacy" | "unknown";
 
 export class CipherError extends Error {}
+
+export const LEGACY_FORMAT_MESSAGE =
+  "Este texto se encriptó con una versión anterior de la herramienta, que ya no se admite.";
 
 export const MIN_PASSPHRASE_LENGTH = 12;
 
@@ -93,11 +92,7 @@ export async function encryptText(text: string, passphrase: string): Promise<str
   return CIPHER_PREFIX + bytesToBase64(payload);
 }
 
-export async function decryptText(
-  cipherText: string,
-  passphrase: string,
-  legacyAlgorithm: LegacyAlgorithm = "AES"
-): Promise<string> {
+export async function decryptText(cipherText: string, passphrase: string): Promise<string> {
   const text = cipherText.trim();
   if (!text) throw new CipherError("Ingresa un texto para desencriptar.");
   if (!passphrase) throw new CipherError("Ingresa una frase secreta.");
@@ -106,7 +101,7 @@ export async function decryptText(
     case "current":
       return decryptCurrent(text.slice(CIPHER_PREFIX.length), passphrase);
     case "legacy":
-      return decryptLegacy(text, passphrase, legacyAlgorithm);
+      throw new CipherError(LEGACY_FORMAT_MESSAGE);
     default:
       throw new CipherError("El texto no tiene un formato encriptado reconocible.");
   }
@@ -139,61 +134,4 @@ async function decryptCurrent(encoded: string, passphrase: string): Promise<stri
       "No se pudo desencriptar. Verifica la frase secreta y que el texto esté completo."
     );
   }
-}
-
-// Relleno PKCS#7 de los cifrados por bloques, en bytes. Rabbit y RC4 son de
-// flujo y no llevan relleno.
-const LEGACY_BLOCK_BYTES: Partial<Record<LegacyAlgorithm, number>> = { AES: 16, TripleDES: 8 };
-
-async function decryptLegacy(
-  cipherText: string,
-  passphrase: string,
-  algorithm: LegacyAlgorithm
-): Promise<string> {
-  const { default: CryptoJS } = await import("crypto-js");
-  const blockBytes = LEGACY_BLOCK_BYTES[algorithm];
-
-  /* El formato heredado no está autenticado, así que la única pista de una
-     frase equivocada es que el resultado no tenga sentido. CryptoJS no revisa
-     el relleno: toma el último byte como su longitud y ya. Con eso, una frase
-     equivocada devolvía texto basura en vez de un error en ~1 de cada 300
-     intentos con AES o TripleDES. Aquí se descifra sin quitar el relleno y se
-     exige un PKCS#7 completo y UTF-8 válido, lo que deja esa probabilidad en
-     menos de una en un millón. */
-  let text: string | null = null;
-  try {
-    const decrypted = CryptoJS[algorithm].decrypt(
-      cipherText,
-      passphrase,
-      blockBytes ? { padding: CryptoJS.pad.NoPadding } : undefined
-    );
-    let bytes: Uint8Array | null = wordArrayToBytes(decrypted);
-    if (blockBytes) bytes = stripPkcs7(bytes, blockBytes);
-    if (bytes?.length) text = new TextDecoder("utf-8", { fatal: true }).decode(bytes);
-  } catch {
-    // Texto dañado o UTF-8 inválido: casi siempre frase o algoritmo equivocados.
-  }
-  if (!text) {
-    throw new CipherError("No se pudo desencriptar. Verifica la frase secreta y el algoritmo.");
-  }
-  return text;
-}
-
-function wordArrayToBytes({ words, sigBytes }: { words: number[]; sigBytes: number }) {
-  const bytes = new Uint8Array(Math.max(0, sigBytes));
-  for (let i = 0; i < bytes.length; i++) {
-    bytes[i] = (words[i >>> 2] >>> (24 - (i % 4) * 8)) & 0xff;
-  }
-  return bytes;
-}
-
-/** Quita el relleno PKCS#7, o devuelve null si no es válido. */
-function stripPkcs7(bytes: Uint8Array, blockBytes: number): Uint8Array | null {
-  if (bytes.length === 0 || bytes.length % blockBytes !== 0) return null;
-  const padding = bytes[bytes.length - 1];
-  if (padding < 1 || padding > blockBytes) return null;
-  for (let i = bytes.length - padding; i < bytes.length; i++) {
-    if (bytes[i] !== padding) return null;
-  }
-  return bytes.subarray(0, bytes.length - padding);
 }

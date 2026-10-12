@@ -1,11 +1,13 @@
 # Monitoreo diario del sitio publicado, de LanguageTool, MyMemory y
 # Frankfurter, y de los avisos de seguridad de las dependencias.
 #
-# El job site comprueba que el sitio responda con su contenido y su CSP. El
-# job check hace una consulta real a cada servicio con
-# lib/external.live.test.ts. El job audit ejecuta el mismo `pnpm audit` que el
-# despliegue: un aviso nuevo en una dependencia se conoce el mismo día, y no
-# cuando hace falta publicar algo y el CI lo bloquea. Si algo falla, GitHub
+# El job published pasa las pruebas de humo (e2e/smoke.spec.ts) sobre el
+# sitio publicado: abre cada página del catálogo en Chromium, ejecuta su
+# JavaScript y falla con cualquier error, violación de CSP o fallo de SRI, que
+# un vistazo al HTML no detectaría. El job check hace una consulta real a cada
+# servicio con lib/external.live.test.ts. El job audit ejecuta el mismo
+# `pnpm audit` que el despliegue: un aviso nuevo en una dependencia se conoce
+# el mismo día, y no cuando hace falta publicar algo y el CI lo bloquea. Si algo falla, GitHub
 # envía un correo a quien modificó por última vez este archivo (notificaciones
 # de Actions activas en la cuenta).
 #
@@ -30,21 +32,30 @@ permissions:
   contents: read
 
 jobs:
-  site:
+  published:
     runs-on: ubuntu-latest
     steps:
-      - name: Check published site
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Install pnpm
+        uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+      - name: Setup Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Install Playwright browser
+        run: pnpm exec playwright install --with-deps chromium
+      # Con E2E_BASE_URL, playwright.config.ts no levanta el servidor local y
+      # las pruebas abren el sitio publicado.
+      - name: Smoke tests on the published site
         env:
-          SITE: https://herramientaswebsencillas.github.io
-        run: |
-          for path in / /tools/currency-converter /tools/date-difference-calculator; do
-            html=$(curl --fail --silent --show-error --location --retry 2 --max-time 30 "$SITE$path")
-            grep -q "Herramientas Web Sencillas" <<<"$html" \
-              || { echo "::error::$path respondió sin el contenido esperado"; exit 1; }
-            grep -q 'http-equiv="Content-Security-Policy"' <<<"$html" \
-              || { echo "::error::$path se publicó sin CSP"; exit 1; }
-            echo "$path OK"
-          done
+          E2E_BASE_URL: https://herramientaswebsencillas.github.io
+        run: pnpm test:e2e e2e/smoke.spec.ts
 
   check:
     runs-on: ubuntu-latest

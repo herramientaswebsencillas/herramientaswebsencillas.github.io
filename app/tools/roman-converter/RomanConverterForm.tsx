@@ -1,8 +1,11 @@
 "use client";
 
 import { useState } from "react";
+import ErrorMessage from "@/components/ErrorMessage";
 import { copyLabel, useCopy } from "@/lib/useCopy";
-import { MAX_VALUE, MIN_VALUE, decimalToRoman, romanToDecimal } from "@/lib/roman";
+import { MAX_VALUE, MIN_VALUE, RomanError, decimalToRoman, romanToDecimal } from "@/lib/roman";
+
+const errorMessage = (e: unknown) => (e instanceof RomanError ? e.message : "Entrada inválida.");
 
 /* -------------------------------- Página -------------------------------- */
 
@@ -11,21 +14,27 @@ export default function RomanConverterForm() {
   const [romanOutput, setRomanOutput] = useState("");
   const [romanInput, setRomanInput] = useState("");
   const [decimalOutput, setDecimalOutput] = useState("");
+  const [romanError, setRomanError] = useState("");
+  const [decimalError, setDecimalError] = useState("");
   const { copy, statusOf } = useCopy();
 
   const convertToRoman = () => {
     try {
       setRomanOutput(decimalToRoman(Number(decimalInput)));
+      setRomanError("");
     } catch (e) {
-      setRomanOutput(e instanceof Error ? `Error: ${e.message}` : "Error: Entrada inválida.");
+      setRomanOutput("");
+      setRomanError(errorMessage(e));
     }
   };
 
   const convertToDecimal = () => {
     try {
       setDecimalOutput(romanToDecimal(romanInput).toString());
+      setDecimalError("");
     } catch (e) {
-      setDecimalOutput(e instanceof Error ? `Error: ${e.message}` : "Error: Entrada inválida.");
+      setDecimalOutput("");
+      setDecimalError(errorMessage(e));
     }
   };
 
@@ -70,7 +79,7 @@ export default function RomanConverterForm() {
                   value={romanOutput}
                   readOnly
                 />
-                {romanOutput && !romanOutput.includes("Error") && (
+                {romanOutput && (
                   <button
                     onClick={() => copy(romanOutput, "roman")}
                     className="absolute top-1/2 -translate-y-1/2 right-2 p-2 bg-slate-700 hover:bg-slate-600 rounded-lg text-xs text-white transition-colors"
@@ -79,6 +88,7 @@ export default function RomanConverterForm() {
                   </button>
                 )}
               </div>
+              {romanError && <ErrorMessage>{romanError}</ErrorMessage>}
             </div>
           </div>
 
@@ -111,7 +121,7 @@ export default function RomanConverterForm() {
                   value={decimalOutput}
                   readOnly
                 />
-                {decimalOutput && !decimalOutput.includes("Error") && (
+                {decimalOutput && (
                   <button
                     onClick={() => copy(decimalOutput, "decimal")}
                     className="absolute top-1/2 -translate-y-1/2 right-2 p-2 bg-slate-200 hover:bg-slate-300 rounded-lg text-xs text-slate-600 transition-colors"
@@ -120,6 +130,7 @@ export default function RomanConverterForm() {
                   </button>
                 )}
               </div>
+              {decimalError && <ErrorMessage>{decimalError}</ErrorMessage>}
             </div>
           </div>
         </div>

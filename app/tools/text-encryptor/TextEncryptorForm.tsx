@@ -1,17 +1,15 @@
 "use client";
 
 import { useState } from "react";
+import ErrorMessage from "@/components/ErrorMessage";
 import { copyLabel, useCopy } from "@/lib/useCopy";
 import {
   CipherError,
-  LEGACY_ALGORITHMS,
   MIN_PASSPHRASE_LENGTH,
   PBKDF2_ITERATIONS,
   decryptText,
-  detectFormat,
   encryptText,
   isWeakPassphrase,
-  type LegacyAlgorithm,
 } from "@/lib/cipher";
 
 /* ----------------------------- Algoritmos ----------------------------- */
@@ -21,13 +19,6 @@ const CURRENT_NOTE = `Clave derivada con PBKDF2-SHA256 (${PBKDF2_ITERATIONS.toLo
   "es-MX"
 )} iteraciones). Detecta si el texto fue alterado.`;
 
-const LEGACY_LABELS: Record<LegacyAlgorithm, string> = {
-  AES: "AES",
-  TripleDES: "Triple DES",
-  Rabbit: "Rabbit",
-  RC4: "RC4",
-};
-
 /* -------------------------------- Página -------------------------------- */
 
 type Mode = "encrypt" | "decrypt";
@@ -36,14 +27,12 @@ export default function TextEncryptorForm() {
   const [mode, setMode] = useState<Mode>("encrypt");
   const [input, setInput] = useState("");
   const [passphrase, setPassphrase] = useState("");
-  const [legacyAlgorithm, setLegacyAlgorithm] = useState<LegacyAlgorithm>("AES");
   const [showPassphrase, setShowPassphrase] = useState(false);
   const [result, setResult] = useState("");
   const [error, setError] = useState("");
   const { copy, statusOf, reset: resetCopy } = useCopy(1800);
   const [busy, setBusy] = useState(false);
 
-  const isLegacyInput = mode === "decrypt" && detectFormat(input) === "legacy";
   // Solo al cifrar: al descifrar la frase ya está elegida y no se puede cambiar.
   const showWeakWarning = mode === "encrypt" && !!passphrase && isWeakPassphrase(passphrase);
 
@@ -55,7 +44,7 @@ export default function TextEncryptorForm() {
       const output =
         mode === "encrypt"
           ? await encryptText(input, passphrase)
-          : await decryptText(input, passphrase, legacyAlgorithm);
+          : await decryptText(input, passphrase);
       setResult(output);
     } catch (err) {
       setResult("");
@@ -131,84 +120,51 @@ export default function TextEncryptorForm() {
             />
           </label>
 
-          {/* Frase secreta + algoritmo heredado */}
-          <div className={`grid gap-4 ${isLegacyInput ? "sm:grid-cols-[1fr_auto]" : ""}`}>
-            <label className="block">
-              <span className="block text-xs text-slate-400 mb-1.5 uppercase tracking-wide">
-                Frase secreta
-              </span>
-              <div className="relative">
-                <input
-                  type={showPassphrase ? "text" : "password"}
-                  value={passphrase}
-                  onChange={(e) => setPassphrase(e.target.value)}
-                  placeholder="Tu clave compartida"
-                  className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3.5 py-2.5 pr-20 text-slate-100 outline-none focus:border-teal-400"
-                />
-                <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-2.5">
-                  <button
-                    type="button"
-                    onClick={() => copy(passphrase, "passphrase")}
-                    disabled={!passphrase}
-                    className="text-slate-500 hover:text-teal-400 text-xs cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:text-slate-500"
-                  >
-                    {copyLabel(statusOf("passphrase"), "copiar", "copiada ✓")}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setShowPassphrase((v) => !v)}
-                    className="text-slate-500 hover:text-teal-400 text-xs cursor-pointer"
-                  >
-                    {showPassphrase ? "ocultar" : "ver"}
-                  </button>
-                </div>
-              </div>
-              {showWeakWarning && (
-                <p aria-live="polite" className="mt-1.5 text-xs text-amber-300">
-                  Esta frase es fácil de adivinar. Usa al menos {MIN_PASSPHRASE_LENGTH} caracteres,
-                  por ejemplo varias palabras que no formen una frase conocida.
-                </p>
-              )}
-            </label>
-
-            {isLegacyInput && (
-              <label className="block">
-                <span className="block text-xs text-slate-400 mb-1.5 uppercase tracking-wide">
-                  Algoritmo
-                </span>
-                <select
-                  value={legacyAlgorithm}
-                  onChange={(e) => setLegacyAlgorithm(e.target.value as LegacyAlgorithm)}
-                  className="rounded-lg border border-slate-700 bg-slate-950 px-3.5 py-2.5 text-slate-100 outline-none focus:border-teal-400 cursor-pointer w-full sm:w-36"
+          {/* Frase secreta */}
+          <label className="block">
+            <span className="block text-xs text-slate-400 mb-1.5 uppercase tracking-wide">
+              Frase secreta
+            </span>
+            <div className="relative">
+              <input
+                type={showPassphrase ? "text" : "password"}
+                value={passphrase}
+                onChange={(e) => setPassphrase(e.target.value)}
+                placeholder="Tu clave compartida"
+                className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3.5 py-2.5 pr-20 text-slate-100 outline-none focus:border-teal-400"
+              />
+              <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-2.5">
+                <button
+                  type="button"
+                  onClick={() => copy(passphrase, "passphrase")}
+                  disabled={!passphrase}
+                  className="text-slate-500 hover:text-teal-400 text-xs cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:text-slate-500"
                 >
-                  {LEGACY_ALGORITHMS.map((id) => (
-                    <option key={id} value={id}>
-                      {LEGACY_LABELS[id]}
-                    </option>
-                  ))}
-                </select>
-              </label>
+                  {copyLabel(statusOf("passphrase"), "copiar", "copiada ✓")}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowPassphrase((v) => !v)}
+                  className="text-slate-500 hover:text-teal-400 text-xs cursor-pointer"
+                >
+                  {showPassphrase ? "ocultar" : "ver"}
+                </button>
+              </div>
+            </div>
+            {showWeakWarning && (
+              <p aria-live="polite" className="mt-1.5 text-xs text-amber-300">
+                Esta frase es fácil de adivinar. Usa al menos {MIN_PASSPHRASE_LENGTH} caracteres,
+                por ejemplo varias palabras que no formen una frase conocida.
+              </p>
             )}
-          </div>
+          </label>
 
           {/* Indicador del formato */}
           <div className="flex items-center justify-between gap-4 rounded-lg border border-slate-800 bg-slate-950 px-3.5 py-2.5">
-            {isLegacyInput ? (
-              <>
-                <p className="text-xs text-amber-300">Formato anterior</p>
-                <p className="text-[11px] text-slate-500 max-w-[20rem] text-right">
-                  Texto cifrado con la versión previa de esta herramienta. Elige el algoritmo con el
-                  que se encriptó; si vuelves a encriptarlo, se usará el formato actual, más seguro.
-                </p>
-              </>
-            ) : (
-              <>
-                <p className="text-xs text-slate-200 whitespace-nowrap">{CURRENT_LABEL}</p>
-                <p className="text-[11px] text-slate-500 hidden sm:block max-w-[20rem] text-right">
-                  {CURRENT_NOTE}
-                </p>
-              </>
-            )}
+            <p className="text-xs text-slate-200 whitespace-nowrap">{CURRENT_LABEL}</p>
+            <p className="text-[11px] text-slate-500 hidden sm:block max-w-[20rem] text-right">
+              {CURRENT_NOTE}
+            </p>
           </div>
 
           <button
@@ -221,12 +177,12 @@ export default function TextEncryptorForm() {
           </button>
 
           {error && (
-            <p
-              role="alert"
-              className="text-sm text-red-400 border border-red-900 bg-red-950/40 rounded-lg px-3.5 py-2.5"
+            <ErrorMessage
+              tone="dark"
+              className="border border-red-900 bg-red-950/40 rounded-lg px-3.5 py-2.5"
             >
               {error}
-            </p>
+            </ErrorMessage>
           )}
 
           {result && (

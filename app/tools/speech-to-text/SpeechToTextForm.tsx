@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import ErrorMessage from "@/components/ErrorMessage";
 import { downloadBlob } from "@/lib/files";
 import { copyLabel, useCopy } from "@/lib/useCopy";
 
@@ -313,7 +314,7 @@ export default function SpeechToTextForm() {
               </button>
             </div>
 
-            {error && <p className="text-xs text-red-500 text-center">{error}</p>}
+            {error && <ErrorMessage className="text-center">{error}</ErrorMessage>}
 
             <p className="text-xs text-slate-400 text-center">
               El dictado necesita permiso del micrófono. En Chrome y Edge el audio se procesa en los
