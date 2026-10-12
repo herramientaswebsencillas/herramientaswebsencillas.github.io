@@ -3,7 +3,7 @@
 // y lo enlazan "Acerca de" y los Términos de uso.
 //
 // Por qué: el JavaScript publicado incluye, minificado, código de React,
-// pdf-lib, fflate, crypto-js y otros paquetes MIT o similares. Esas licencias
+// pdf-lib, fflate y otros paquetes MIT o similares. Esas licencias
 // piden conservar su aviso de copyright en las copias, y el minificador lo
 // quita del bundle.
 //

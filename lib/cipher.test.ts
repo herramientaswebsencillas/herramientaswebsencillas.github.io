@@ -1,18 +1,24 @@
-import CryptoJS from "crypto-js";
 import { describe, expect, it } from "vitest";
 import {
   CIPHER_PREFIX,
   CipherError,
+  LEGACY_FORMAT_MESSAGE,
   decryptText,
   detectFormat,
   encryptText,
   isWeakPassphrase,
 } from "./cipher";
+import { FIXED_MESSAGE, FIXED_PASSPHRASE, FIXED_V2, LEGACY_CRYPTOJS } from "./cipher.fixtures";
 
-const MESSAGE = "¡Hola, ñandú! Texto con acentos y emoji 🔐\nen dos líneas.";
-const PASS = "una frase secreta larga";
+const MESSAGE = FIXED_MESSAGE;
+const PASS = FIXED_PASSPHRASE;
 
-describe("formato actual (AES-256-GCM)", () => {
+describe("formato v2 (AES-256-GCM)", () => {
+  it("descifra un texto cifrado fijo", async () => {
+    expect(detectFormat(FIXED_V2)).toBe("current");
+    await expect(decryptText(FIXED_V2, PASS)).resolves.toBe(MESSAGE);
+  });
+
   it("cifra y descifra de ida y vuelta", async () => {
     const cipher = await encryptText(MESSAGE, PASS);
     expect(cipher.startsWith(CIPHER_PREFIX)).toBe(true);
@@ -26,20 +32,18 @@ describe("formato actual (AES-256-GCM)", () => {
   });
 
   it("tolera espacios alrededor al pegar el texto cifrado", async () => {
-    const cipher = await encryptText("hola", PASS);
-    await expect(decryptText(`  ${cipher}\n`, PASS)).resolves.toBe("hola");
+    await expect(decryptText(`  ${FIXED_V2}\n`, PASS)).resolves.toBe(MESSAGE);
   });
 
   it("falla con una frase incorrecta", async () => {
-    const cipher = await encryptText(MESSAGE, PASS);
-    await expect(decryptText(cipher, "otra frase")).rejects.toBeInstanceOf(CipherError);
+    await expect(decryptText(FIXED_V2, "otra frase")).rejects.toBeInstanceOf(CipherError);
   });
 
   it("detecta un texto cifrado alterado", async () => {
-    const cipher = await encryptText(MESSAGE, PASS);
     // Cambia un carácter del final (dentro del cifrado + tag, no del relleno).
-    const i = cipher.length - 6;
-    const tampered = cipher.slice(0, i) + (cipher[i] === "A" ? "B" : "A") + cipher.slice(i + 1);
+    const i = FIXED_V2.length - 6;
+    const tampered =
+      FIXED_V2.slice(0, i) + (FIXED_V2[i] === "A" ? "B" : "A") + FIXED_V2.slice(i + 1);
     await expect(decryptText(tampered, PASS)).rejects.toBeInstanceOf(CipherError);
   });
 
@@ -49,40 +53,10 @@ describe("formato actual (AES-256-GCM)", () => {
   });
 });
 
-describe("formato heredado (CryptoJS)", () => {
-  it.each(["AES", "TripleDES", "Rabbit", "RC4"] as const)(
-    "descifra textos de la versión anterior con %s",
-    async (algorithm) => {
-      const legacy = CryptoJS[algorithm].encrypt(MESSAGE, PASS).toString();
-      expect(detectFormat(legacy)).toBe("legacy");
-      await expect(decryptText(legacy, PASS, algorithm)).resolves.toBe(MESSAGE);
-    }
-  );
-
-  // Cada cifrado usa una sal aleatoria, así que una sola prueba no basta: antes
-  // de validar el relleno, ~1 de cada 300 intentos con AES o TripleDES
-  // "descifraba" basura. Con 300 intentos por algoritmo, esa regresión
-  // fallaría casi siempre.
-  it.each(["AES", "TripleDES", "Rabbit", "RC4"] as const)(
-    "falla con la frase equivocada con %s, aunque se repita",
-    async (algorithm) => {
-      for (let i = 0; i < 300; i++) {
-        const legacy = CryptoJS[algorithm].encrypt(MESSAGE, PASS).toString();
-        await expect(decryptText(legacy, "otra frase", algorithm)).rejects.toBeInstanceOf(
-          CipherError
-        );
-      }
-    }
-  );
-
-  it("descifra mensajes cuyo largo coincide con el bloque", async () => {
-    // Con un largo múltiplo del bloque, PKCS#7 añade un bloque entero de relleno.
-    for (const message of ["x", "0123456789abcde", "0123456789abcdef", "01234567"]) {
-      for (const algorithm of ["AES", "TripleDES"] as const) {
-        const legacy = CryptoJS[algorithm].encrypt(message, PASS).toString();
-        await expect(decryptText(legacy, PASS, algorithm)).resolves.toBe(message);
-      }
-    }
+describe("formato anterior (CryptoJS)", () => {
+  it("lo reconoce y explica que ya no se admite", async () => {
+    expect(detectFormat(LEGACY_CRYPTOJS)).toBe("legacy");
+    await expect(decryptText(LEGACY_CRYPTOJS, PASS)).rejects.toThrow(LEGACY_FORMAT_MESSAGE);
   });
 });
 

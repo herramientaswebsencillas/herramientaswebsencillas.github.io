@@ -1,49 +1,37 @@
 "use client";
 import React, { useState } from "react";
-
-const textToBin = (str: string): string => {
-  return str
-    .split("")
-    .map((char) => char.charCodeAt(0).toString(2).padStart(8, "0"))
-    .join(" ");
-};
-
-const binToText = (bin: string): string => {
-  try {
-    const cleanBin = bin.trim();
-    if (!cleanBin) return "";
-
-    return cleanBin
-      .split(/\s+/)
-      .map((b) => {
-        if (!/^[01]+$/.test(b)) throw new Error("No es binario");
-        return String.fromCharCode(parseInt(b, 2));
-      })
-      .join("");
-  } catch {
-    return "Entrada binaria no válida...";
-  }
-};
+import ErrorMessage from "@/components/ErrorMessage";
+import { BinaryError, binaryToText, textToBinary } from "@/lib/binary";
 
 export default function TextToBinaryForm() {
   const [text, setText] = useState("");
   const [binary, setBinary] = useState("");
+  const [error, setError] = useState("");
 
   const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const value = e.target.value;
     setText(value);
-    setBinary(textToBin(value));
+    setBinary(textToBinary(value));
+    setError("");
   };
 
+  // Mientras el binario no sea válido, el texto se queda como estaba en lugar
+  // de sustituirse por el mensaje de error.
   const handleBinaryChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const value = e.target.value;
     setBinary(value);
-    setText(binToText(value));
+    try {
+      setText(binaryToText(value));
+      setError("");
+    } catch (err) {
+      setError(err instanceof BinaryError ? err.message : "El código binario no es válido.");
+    }
   };
 
   const handleClear = () => {
     setText("");
     setBinary("");
+    setError("");
   };
 
   return (
@@ -81,6 +69,11 @@ export default function TextToBinaryForm() {
               placeholder="01001000 01101111 01101100 01100001..."
               className="w-full h-64 p-4 bg-slate-900 border border-slate-800 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all resize-none shadow-inner font-mono text-sm leading-relaxed"
             />
+            {error && (
+              <ErrorMessage tone="dark" className="mt-2 ml-1">
+                {error}
+              </ErrorMessage>
+            )}
           </div>
         </div>
 
@@ -94,7 +87,7 @@ export default function TextToBinaryForm() {
         </div>
 
         <footer className="mt-20 pt-8 border-t border-slate-900 text-center text-slate-500 text-sm">
-          <p>Utiliza el estándar UTF-16 / ASCII para la conversión de caracteres.</p>
+          <p>Codifica el texto en UTF-8: cada byte es un grupo de 8 bits.</p>
         </footer>
       </div>
     </div>

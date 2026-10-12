@@ -1,6 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
+import ErrorMessage from "@/components/ErrorMessage";
+import { splitIntoChunks } from "@/lib/speech";
 import VoiceInstallGuide from "./VoiceInstallGuide";
 
 /* ---------------------------- Soporte del navegador -----------------------
@@ -14,49 +16,6 @@ function getSupportSnapshot() {
 // El soporte no cambia durante la vida de la página: no hay nada a lo que suscribirse.
 const subscribeToSupport = () => () => {};
 const getServerSupport = () => null;
-
-// Chrome corta las locuciones largas a los ~15 segundos. Trocear el texto en
-// fragmentos cortos y encolarlos evita ese corte sin hacks de pause/resume.
-const MAX_CHUNK_LENGTH = 180;
-
-function splitIntoChunks(text: string, max = MAX_CHUNK_LENGTH): string[] {
-  const clean = text.trim();
-  if (!clean) return [];
-
-  const sentences = clean.match(/[^.!?…]+[.!?…]*/g) ?? [clean];
-  const chunks: string[] = [];
-  let current = "";
-
-  const push = () => {
-    if (current) chunks.push(current);
-    current = "";
-  };
-
-  const append = (piece: string) => {
-    const next = current ? `${current} ${piece}` : piece;
-    if (next.length > max) {
-      push();
-      current = piece;
-    } else {
-      current = next;
-    }
-  };
-
-  for (const sentence of sentences) {
-    const piece = sentence.trim();
-    if (!piece) continue;
-
-    if (piece.length > max) {
-      // Frase demasiado larga: se reparte palabra por palabra.
-      for (const word of piece.split(/\s+/)) append(word);
-      continue;
-    }
-    append(piece);
-  }
-
-  push();
-  return chunks;
-}
 
 /* -------------------------------- Componente ------------------------------ */
 
@@ -333,7 +292,7 @@ export default function TextToSpeechForm() {
               </button>
             </div>
 
-            {error && <p className="text-xs text-red-500 text-center">{error}</p>}
+            {error && <ErrorMessage className="text-center">{error}</ErrorMessage>}
 
             <p className="text-xs text-slate-400 text-center">
               Las voces disponibles las aporta tu sistema operativo y navegador, por lo que cambian

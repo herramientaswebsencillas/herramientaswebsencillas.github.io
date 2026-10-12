@@ -20,7 +20,7 @@ El sitio se genera como export estático (`output: 'export'`) y se publica en Gi
 - **Comprobar tipos**: `pnpm exec tsc --noEmit`
 - **Pruebas unitarias**: `pnpm test` — Vitest sobre la lógica de `lib/`
 - **Servicios externos**: `pnpm test:apis` — consulta de verdad LanguageTool, MyMemory y Frankfurter y comprueba el formato de sus respuestas
-- **Pruebas de humo**: `pnpm test:e2e` — Playwright abre cada página del build; hace falta `pnpm build` antes y, la primera vez, `pnpm exec playwright install chromium`
+- **Pruebas de humo**: `pnpm test:e2e` — Playwright abre cada página del build; hace falta `pnpm build` antes y, la primera vez, `pnpm exec playwright install chromium`. Con `E2E_BASE_URL=https://herramientaswebsencillas.github.io pnpm test:e2e e2e/smoke.spec.ts` se prueban sobre el sitio publicado, como hace el monitoreo diario
 - **Peso del JavaScript**: `pnpm size` — comprueba el presupuesto de `.size-limit.mjs` sobre `out/`; hace falta `pnpm build` antes
 
 > Nota: los scripts están definidos en `package.json`. `pnpm export` es un alias de `pnpm build`, ya que el build estático ya escribe `out/`.
@@ -40,9 +40,10 @@ El sitio se genera como export estático (`output: 'export'`) y se publica en Gi
 - `lib/files.ts` — límites de tamaño (por archivo y en total), decodificación de Base64 y descargas de las herramientas de archivos
 - `lib/base64.ts` — conversión entre Base64, bytes y texto UTF-8, compartida por los conversores y el encriptador
 - `lib/useCopy.ts` — hook para copiar al portapapeles; el botón dice si se copió o si el navegador no lo permitió
-- `lib/*.ts` — lógica pura de las herramientas (fechas, finanzas, romanos, aleatorios, cifrado), separada de los componentes y probada en `lib/*.test.ts`
+- `lib/*.ts` — lógica pura de las herramientas (fechas, finanzas, romanos, aleatorios, cifrado, binario, traducción, texto a voz), separada de los componentes y probada en `lib/*.test.ts`
+- `lib/cipher.fixtures.ts` — textos cifrados fijos del formato `v2:`, compartidos por las pruebas unitarias y las E2E (ver "Compatibilidad")
 - `lib/external.ts` — validación de las respuestas de los servicios externos; `lib/external.live.test.ts` los consulta de verdad para el monitoreo diario
-- `e2e/` — pruebas con Playwright sobre el export estático: `smoke.spec.ts` recorre todas las páginas y `tools.spec.ts` prueba los flujos de archivos y de servicios externos con respuestas simuladas
+- `e2e/` — pruebas con Playwright sobre el export estático: `smoke.spec.ts` recorre todas las páginas y `tools.spec.ts` prueba los flujos de archivos, de servicios externos (con respuestas simuladas), del encriptador y de la calculadora de fechas. `site.ts` define contra qué sitio corren
 - `scripts/serve-out.mjs` — servidor estático de `out/` para `pnpm start` y las pruebas de humo
 - `scripts/csp-hashes.mjs` — inserta la CSP con hashes en cada HTML de `out/` después de `next build`
 - `scripts/third-party-licenses.mjs` — reúne en `out/third-party-licenses.txt` las licencias de las dependencias de producción, que el minificador quita del JavaScript; lo enlazan "Acerca de" y los Términos de uso
@@ -87,7 +88,7 @@ Las peticiones salen del navegador de cada visitante, no de un servidor propio, 
 
 **Si un servicio falla o cambia.** Las respuestas pasan por los validadores de `lib/external.ts` antes de llegar a la interfaz. Como React muestra todo como texto y la CSP solo admite scripts propios, una respuesta maliciosa no puede ejecutar código. Lo peor que puede hacer es traer datos falsos, y los mal formados se descartan: tasas no positivas, correcciones que apuntan fuera del texto o avisos de cuota disfrazados de traducción. Si un servicio cae, solo su herramienta muestra un error; el resto del sitio sigue igual.
 
-El workflow `.github/workflows/external-apis.yml` consulta cada día los tres servicios (`pnpm test:apis` lo hace en local) y el sitio publicado, y avisa por correo si algo falla. Ante un fallo:
+El workflow `.github/workflows/external-apis.yml` consulta cada día los tres servicios (`pnpm test:apis` lo hace en local) y pasa las pruebas de humo sobre el sitio publicado, que abren cada página con su JavaScript y fallan ante cualquier error, violación de CSP o fallo de SRI. Si algo falla, avisa por correo. Ante un fallo:
 
 1. Mira qué prueba falló en el registro del workflow. Si fue algo pasajero, la siguiente ejecución diaria pasará sola.
 
@@ -106,9 +107,11 @@ Cada petición a un servicio externo se corta a los 15 segundos (`EXTERNAL_TIMEO
 Dos cosas que la gente guarda o comparte no pueden cambiar sin romperse:
 
 - Los parámetros de URL de la calculadora de fechas (ver la sección siguiente).
-- El formato de los textos cifrados del encriptador: `v2:` y el heredado de CryptoJS, definidos en `lib/cipher.ts`. Cambiar el algoritmo o las iteraciones de PBKDF2 exige un prefijo nuevo (`v3:`) y seguir descifrando los anteriores.
+- El formato de los textos cifrados del encriptador, `v2:`, definido en `lib/cipher.ts`. Cambiar el algoritmo, las iteraciones de PBKDF2 o el orden de los bytes exige un prefijo nuevo (`v3:`) y seguir descifrando `v2:`. Una prueba de `lib/cipher.test.ts` descifra un texto `v2:` fijo para detectarlo; no se regenera para que pase.
 
 Si un pull request cambia alguno, su descripción empieza con **⚠ Compatibilidad** y explica qué enlaces o textos cifrados dejan de funcionar. El historial de esos avisos se consulta en los pull request cerrados.
+
+El formato anterior del encriptador, de CryptoJS (empieza por `U2FsdGVkX1`), dejó de admitirse: la herramienta lo reconoce y explica que ya no se puede abrir.
 
 ## Parámetros de URL
 
@@ -131,14 +134,20 @@ Las acciones de los workflows se fijan por SHA, con la versión en un comentario
 
 ### Rollback
 
-Si una publicación rompe algo, lo más rápido es revertir el commit y dejar que el workflow publique de nuevo:
+Si una publicación rompe algo, lo más rápido es revertir el commit en una rama y abrir un pull request, porque `main` no admite pushes directos. Al integrarlo, el workflow publica de nuevo:
 
 ```bash
+git switch -c correccion/revertir-<tema> main
 git revert <commit>
-git push
+git push -u origin correccion/revertir-<tema>
 ```
 
 Si hace falta volver ya, en la pestaña **Actions** abre la ejecución de un commit anterior que funcionaba y usa **Re-run all jobs**: vuelve a construir y publicar ese commit.
+
+**Si la auditoría de dependencias bloquea la vuelta atrás.** Los dos caminos pasan por `pnpm audit --audit-level=high`. Si el motivo del rollback es justo una dependencia con un aviso nuevo, el aviso hará fallar el build:
+
+- **En el pull request del revert**, añade el GHSA a `auditConfig.ignoreGhsas` de `pnpm-workspace.yaml` en el mismo PR, con la fecha, el motivo ("rollback de emergencia") y la condición para quitarlo. Es el camino preferido: el check `build` es obligatorio para integrar en `main`, y la excepción queda en el historial.
+- **Para volver a publicar `main` sin la auditoría**, en **Actions → Deploy Next.js site to Pages → Run workflow** marca *Omitir la auditoría de dependencias*. Construye y publica la punta de `main` con el resto de verificaciones. Sirve cuando `main` ya tiene el código correcto pero el aviso apareció después de integrarlo. La ejecución queda registrada con la casilla marcada. No sirve para el **Re-run** de una ejecución anterior, que usa el workflow de su propio commit.
 
 ## Dependencias
 
@@ -150,7 +159,7 @@ Si hace falta volver ya, en la pestaña **Actions** abre la ejecución de un com
 
 Las versiones nuevas no se adoptan en cuanto salen: pnpm no instala nada publicado hace menos de 3 días (`minimumReleaseAge` en `pnpm-workspace.yaml`) y Dependabot espera 7 días, o 14 en las versiones mayores de npm (`cooldown` en `.github/dependabot.yml`). Así un paquete comprometido tiene tiempo de detectarse y retirarse antes de llegar al sitio. Si un aviso de seguridad obliga a adoptar antes una versión, se añade a `minimumReleaseAgeExclude` con el aviso en un comentario.
 
-Dos dependencias se fijan a propósito: `@cantoo/pdf-lib` es el fork mantenido de `pdf-lib`, que dejó de publicar versiones en 2022, y `crypto-js` va en versión exacta porque está deprecada y solo sirve para descifrar el formato heredado del encriptador.
+`@cantoo/pdf-lib` es a propósito el fork mantenido de `pdf-lib`, que dejó de publicar versiones en 2022.
 
 ## Seguridad
 

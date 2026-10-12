@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import ErrorMessage from "@/components/ErrorMessage";
 import { CURRENCIES, CURRENCY_CODES, ECB_CURRENCIES } from "@/lib/currencies";
 import { EXTERNAL_TIMEOUT_MS, parseFrankfurterRates } from "@/lib/external";
 import RateChart, { RatePoint } from "./RateChart";
@@ -302,7 +303,7 @@ export default function CurrencyConverterForm() {
             <div className="bg-slate-50 border border-slate-200 rounded-xl p-5 text-center">
               {busy && <p className="text-slate-400 text-sm">Consultando tasas...</p>}
 
-              {!busy && failed && <p className="text-red-500 text-sm">{failed}</p>}
+              {!busy && failed && <ErrorMessage>{failed}</ErrorMessage>}
 
               {missingQuote && (
                 <p className="text-amber-700 text-sm">
@@ -390,7 +391,7 @@ export default function CurrencyConverterForm() {
                 )}
 
                 {!loadingSeries && seriesError && (
-                  <p className="text-red-500 text-sm text-center py-12">{seriesError}</p>
+                  <ErrorMessage className="text-center py-12">{seriesError}</ErrorMessage>
                 )}
 
                 {!loadingSeries && !seriesError && (

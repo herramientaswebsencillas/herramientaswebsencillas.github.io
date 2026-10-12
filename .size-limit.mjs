@@ -4,9 +4,10 @@
 // decisión y no un accidente: si está justificado, se sube el límite en el
 // mismo PR y se explica allí.
 //
-// Referencia del 2026-10-11: 431 kB en total (478 kB antes de cambiar jszip
-// por fflate). El chunk de @cantoo/pdf-lib (~209 kB) solo lo cargan Unir PDF
-// y Dividir PDF; el resto de las páginas descarga ~155 kB.
+// Referencia del 2026-10-11: 413 kB en total (431 kB antes de quitar
+// crypto-js con el formato heredado del encriptador, y 478 kB antes de
+// cambiar jszip por fflate). El chunk de @cantoo/pdf-lib (~209 kB) solo lo
+// cargan Unir PDF y Dividir PDF; el resto de las páginas descarga ~155 kB.
 const budgets = [
   {
     name: "JavaScript del sitio (todas las páginas)",

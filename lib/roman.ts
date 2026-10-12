@@ -16,6 +16,9 @@ const ROMAN_MAP: [number, string][] = [
   [1, "I"],
 ];
 
+/** Error con un mensaje que se puede mostrar tal cual al usuario. */
+export class RomanError extends Error {}
+
 export const MIN_VALUE = 1;
 export const MAX_VALUE = 3999;
 
@@ -31,7 +34,7 @@ const ROMAN_TO_DECIMAL: Record<string, number> = {
 
 export function decimalToRoman(value: number): string {
   if (!Number.isInteger(value) || value < MIN_VALUE || value > MAX_VALUE) {
-    throw new Error(`Ingresa un número entero entre ${MIN_VALUE} y ${MAX_VALUE}.`);
+    throw new RomanError(`Ingresa un número entero entre ${MIN_VALUE} y ${MAX_VALUE}.`);
   }
   let remaining = value;
   let result = "";
@@ -46,9 +49,9 @@ export function decimalToRoman(value: number): string {
 
 export function romanToDecimal(roman: string): number {
   const clean = roman.trim().toUpperCase();
-  if (!clean) throw new Error("Ingresa un número romano.");
+  if (!clean) throw new RomanError("Ingresa un número romano.");
   if (!/^[MDCLXVI]+$/.test(clean)) {
-    throw new Error("Solo se permiten los símbolos M, D, C, L, X, V, I.");
+    throw new RomanError("Solo se permiten los símbolos M, D, C, L, X, V, I.");
   }
 
   let total = 0;
@@ -63,7 +66,7 @@ export function romanToDecimal(roman: string): number {
   }
 
   if (decimalToRoman(total) !== clean) {
-    throw new Error("Ese no es un número romano válido.");
+    throw new RomanError("Ese no es un número romano válido.");
   }
   return total;
 }

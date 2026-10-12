@@ -1,5 +1,6 @@
 "use client";
 import { useState, ChangeEvent } from "react";
+import ErrorMessage from "@/components/ErrorMessage";
 import { copyLabel, useCopy } from "@/lib/useCopy";
 import {
   EXTERNAL_TIMEOUT_MS,
@@ -7,6 +8,7 @@ import {
   MYMEMORY_QUOTA_MESSAGE,
   parseMyMemoryTranslation,
 } from "@/lib/external";
+import { MAX_TRANSLATION_BYTES, byteSize, translationInputError } from "@/lib/translation";
 
 const LANGUAGES = [
   { code: "es", label: "Español" },
@@ -23,12 +25,6 @@ const LANGUAGES = [
   { code: "ar", label: "Árabe" },
 ];
 
-const MAX_CHARS = 450; // margen de seguridad bajo el límite de ~500 bytes de MyMemory
-
-function getByteSize(str: string) {
-  return new Blob([str]).size;
-}
-
 export default function TranslatorForm() {
   const [sourceText, setSourceText] = useState("");
   const [translatedText, setTranslatedText] = useState("");
@@ -39,27 +35,28 @@ export default function TranslatorForm() {
   const { copy, statusOf } = useCopy();
 
   const charCount = sourceText.length;
-  const byteCount = getByteSize(sourceText);
-  const isOverLimit = byteCount > MAX_CHARS;
+  const byteCount = byteSize(sourceText);
+  const isOverLimit = byteCount > MAX_TRANSLATION_BYTES;
+  // Se avisa mientras se escribe, no al pulsar el botón, que queda deshabilitado.
+  const inputError = translationInputError(sourceText);
 
   const handleSourceChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
     setSourceText(e.target.value);
     setError("");
   };
 
+  // Sin traducción solo se intercambian los idiomas: copiar el resultado vacío
+  // al texto original borraba lo que se había escrito.
   const swapLanguages = () => {
     setSourceLang(targetLang);
     setTargetLang(sourceLang);
+    if (!translatedText) return;
     setSourceText(translatedText);
     setTranslatedText(sourceText);
   };
 
   const translateText = async () => {
-    if (!sourceText.trim()) return;
-    if (isOverLimit) {
-      setError(`El texto supera el límite de ${MAX_CHARS} bytes permitido por solicitud.`);
-      return;
-    }
+    if (!sourceText.trim() || inputError) return;
 
     setIsLoading(true);
     setError("");
@@ -150,18 +147,19 @@ export default function TranslatorForm() {
               />
               <div className="flex items-center justify-between text-xs">
                 <span className={isOverLimit ? "text-red-500 font-semibold" : "text-slate-400"}>
-                  {charCount} caracteres · {byteCount} / {MAX_CHARS} bytes
+                  {charCount} caracteres · {byteCount} / {MAX_TRANSLATION_BYTES} bytes
                 </span>
-                {isOverLimit && <span className="text-red-500 font-semibold">Límite excedido</span>}
               </div>
               <button
                 onClick={translateText}
-                disabled={isLoading || !sourceText.trim() || isOverLimit}
+                disabled={isLoading || !sourceText.trim() || !!inputError}
                 className="w-full py-3 bg-emerald-700 hover:bg-emerald-800 disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-bold rounded-xl transition-colors shadow-lg shadow-emerald-100"
               >
                 {isLoading ? "Traduciendo..." : "Traducir"}
               </button>
-              {error && <p className="text-xs text-red-500 text-center">{error}</p>}
+              {(inputError || error) && (
+                <ErrorMessage className="text-center">{inputError ?? error}</ErrorMessage>
+              )}
             </div>
           </div>
 
