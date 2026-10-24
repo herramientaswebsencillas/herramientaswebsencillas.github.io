@@ -40,3 +40,8 @@ updates:
       interval: weekly
     cooldown:
       default-days: 7
+    groups:
+      # init y analyze de CodeQL tienen que ir en la misma versión: por
+      # separado, el PR de uno falla el análisis hasta que se integra el otro.
+      codeql-action:
+        patterns: ["github/codeql-action*"]
