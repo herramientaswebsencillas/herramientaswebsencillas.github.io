@@ -153,7 +153,7 @@ Si hace falta volver ya, en la pestaña **Actions** abre la ejecución de un com
 
 `pnpm audit --audit-level=high` corre en cada pull request, antes de cada publicación y cada día en `external-apis.yml`. Un aviso alto bloquea el despliegue. Para resolverlo:
 
-1. Si la dependencia directa ya trae la versión corregida, actualízala (o integra el PR de Dependabot).
+1. Si la dependencia directa ya trae la versión corregida, actualízala (o integra el PR de Dependabot). Las dependencias peer que pnpm instala por su cuenta, como `vite` para `vitest`, no se actualizan con `pnpm update`; por eso `vite` está declarada en `devDependencies`.
 2. Si el aviso está en una dependencia transitiva, fuerza la versión corregida en `overrides` de `pnpm-workspace.yaml`, con el aviso y el camino por el que llega en un comentario. Quita el override cuando la dependencia directa ya la traiga.
 3. Si no existe versión corregida, evalúa si el aviso afecta al sitio publicado. Si no lo afecta (por ejemplo, porque solo llega a herramientas de desarrollo con datos del propio repositorio), añade su GHSA a `auditConfig.ignoreGhsas` con el motivo y la condición para quitarlo.
 
