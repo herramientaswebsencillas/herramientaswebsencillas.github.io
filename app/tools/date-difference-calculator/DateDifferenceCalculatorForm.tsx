@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 
 import {
@@ -229,7 +230,16 @@ function CountdownLinkDialog({ onClose }: { onClose: () => void }) {
    que es la forma de repintar con datos del navegador sin discrepancias. */
 const subscribeToNothing = () => () => {};
 
-export default function DateDifferenceCalculatorForm() {
+/** `header` y `guide` son la cabecera (ToolHeader) y la guía de uso
+    (ToolGuide), que page.tsx renderiza en el servidor para que el catálogo y
+    sus textos no lleguen al JavaScript. */
+export default function DateDifferenceCalculatorForm({
+  header,
+  guide,
+}: {
+  header: ReactNode;
+  guide: ReactNode;
+}) {
   const isHydrated = useSyncExternalStore(
     subscribeToNothing,
     () => true,
@@ -324,16 +334,8 @@ export default function DateDifferenceCalculatorForm() {
     : [];
 
   return (
-    <main className="min-h-screen bg-slate-100 py-10 px-4 md:px-10 font-sans">
-      <div className="max-w-5xl mx-auto mb-10 text-center md:text-left">
-        <h1 className="text-3xl md:text-4xl font-extrabold text-slate-800 mb-3 tracking-tight">
-          Calculadora de Tiempo entre Fechas
-        </h1>
-        <p className="text-slate-500 text-lg max-w-2xl">
-          Calcula cuántos días, semanas, meses y años hay a partir de una fecha. Por defecto cuenta
-          desde el primer día del año en curso hasta hoy.
-        </p>
-      </div>
+    <main className="min-h-screen bg-slate-50 py-10 px-4 md:px-10 font-sans">
+      {header}
 
       {/* El resultado va primero en el DOM para que en móvil se lea antes que
           los controles. En escritorio ocupa dos de las tres columnas, así que
@@ -369,7 +371,7 @@ export default function DateDifferenceCalculatorForm() {
                         {card.label}
                       </span>
                       <div className={`text-3xl font-black ${style.value}`}>{card.value}</div>
-                      <span className="text-xs font-semibold text-slate-500">{card.detail}</span>
+                      <span className="text-xs font-semibold text-slate-600">{card.detail}</span>
                     </div>
                   );
                 })}
@@ -418,6 +420,7 @@ export default function DateDifferenceCalculatorForm() {
           y el diálogo nunca se renderiza durante el prerenderizado, donde
           window.location no existe. */}
       {isDialogOpen && <CountdownLinkDialog onClose={() => setIsDialogOpen(false)} />}
+      {guide}
     </main>
   );
 }

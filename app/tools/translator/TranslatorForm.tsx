@@ -1,14 +1,19 @@
 "use client";
+import type { ReactNode } from "react";
 import { useState, ChangeEvent } from "react";
 import ErrorMessage from "@/components/ErrorMessage";
 import { copyLabel, useCopy } from "@/lib/useCopy";
 import {
-  EXTERNAL_TIMEOUT_MS,
   ExternalServiceError,
   MYMEMORY_QUOTA_MESSAGE,
+  fetchJson,
+  isAbortError,
   parseMyMemoryTranslation,
 } from "@/lib/external";
 import { MAX_TRANSLATION_BYTES, byteSize, translationInputError } from "@/lib/translation";
+import { useLatestRequest } from "@/lib/useLatestRequest";
+
+const TRANSLATION_ERROR = "Error: No se pudo completar la traducción. Intenta de nuevo.";
 
 const LANGUAGES = [
   { code: "es", label: "Español" },
@@ -25,7 +30,10 @@ const LANGUAGES = [
   { code: "ar", label: "Árabe" },
 ];
 
-export default function TranslatorForm() {
+/** `header` y `guide` son la cabecera (ToolHeader) y la guía de uso
+    (ToolGuide), que page.tsx renderiza en el servidor para que el catálogo y
+    sus textos no lleguen al JavaScript. */
+export default function TranslatorForm({ header, guide }: { header: ReactNode; guide: ReactNode }) {
   const [sourceText, setSourceText] = useState("");
   const [translatedText, setTranslatedText] = useState("");
   const [sourceLang, setSourceLang] = useState("es");
@@ -33,6 +41,7 @@ export default function TranslatorForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const { copy, statusOf } = useCopy();
+  const nextRequest = useLatestRequest();
 
   const charCount = sourceText.length;
   const byteCount = byteSize(sourceText);
@@ -63,23 +72,21 @@ export default function TranslatorForm() {
     setTranslatedText("");
 
     try {
-      const res = await fetch(
+      const translation = await fetchJson(
         `https://api.mymemory.translated.net/get?q=${encodeURIComponent(
           sourceText
         )}&langpair=${sourceLang}|${targetLang}`,
-        { signal: AbortSignal.timeout(EXTERNAL_TIMEOUT_MS) }
+        parseMyMemoryTranslation,
+        {
+          signal: nextRequest(),
+          errorMessage: TRANSLATION_ERROR,
+          rateLimitMessage: MYMEMORY_QUOTA_MESSAGE,
+        }
       );
-
-      if (res.status === 429) throw new ExternalServiceError(MYMEMORY_QUOTA_MESSAGE);
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-
-      setTranslatedText(parseMyMemoryTranslation(await res.json()));
+      setTranslatedText(translation);
     } catch (e) {
-      setError(
-        e instanceof ExternalServiceError
-          ? e.message
-          : "Error: No se pudo completar la traducción. Intenta de nuevo."
-      );
+      if (isAbortError(e)) return;
+      setError(e instanceof ExternalServiceError ? e.message : TRANSLATION_ERROR);
     } finally {
       setIsLoading(false);
     }
@@ -88,17 +95,13 @@ export default function TranslatorForm() {
   return (
     <main className="min-h-screen bg-slate-50 py-12 px-6">
       <div className="max-w-5xl mx-auto">
-        <div className="mb-10 text-center">
-          <h1 className="text-3xl font-bold text-slate-800 mb-2">Traductor de Texto</h1>
-          <p className="text-slate-500">
-            Traduce texto entre múltiples idiomas usando una API gratuita.
-          </p>
-        </div>
+        {header}
 
         {/* Selector de idiomas */}
         <div className="flex items-center justify-center gap-4 mb-6 flex-wrap">
           <select
             value={sourceLang}
+            aria-label="Idioma original"
             onChange={(e) => setSourceLang(e.target.value)}
             className="px-4 py-2 bg-surface border border-slate-200 rounded-xl text-slate-700 font-medium shadow-sm focus:ring-2 focus:ring-emerald-500 outline-none"
           >
@@ -112,6 +115,7 @@ export default function TranslatorForm() {
           <button
             onClick={swapLanguages}
             title="Intercambiar idiomas"
+            aria-label="Intercambiar idiomas"
             className="p-2 bg-slate-700 hover:bg-slate-600 rounded-full text-white transition-colors"
           >
             ⇄
@@ -119,6 +123,7 @@ export default function TranslatorForm() {
 
           <select
             value={targetLang}
+            aria-label="Idioma de la traducción"
             onChange={(e) => setTargetLang(e.target.value)}
             className="px-4 py-2 bg-surface border border-slate-200 rounded-xl text-slate-700 font-medium shadow-sm focus:ring-2 focus:ring-blue-500 outline-none"
           >
@@ -146,7 +151,7 @@ export default function TranslatorForm() {
                 onChange={handleSourceChange}
               />
               <div className="flex items-center justify-between text-xs">
-                <span className={isOverLimit ? "text-red-500 font-semibold" : "text-slate-400"}>
+                <span className={isOverLimit ? "text-red-500 font-semibold" : "text-slate-500"}>
                   {charCount} caracteres · {byteCount} / {MAX_TRANSLATION_BYTES} bytes
                 </span>
               </div>
@@ -202,6 +207,7 @@ export default function TranslatorForm() {
           </div>
         </div>
       </div>
+      {guide}
     </main>
   );
 }

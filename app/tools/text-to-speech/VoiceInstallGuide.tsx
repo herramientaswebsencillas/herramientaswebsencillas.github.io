@@ -175,7 +175,7 @@ export default function VoiceInstallGuide() {
           </details>
         </div>
 
-        <p className="text-xs text-slate-400">
+        <p className="text-xs text-slate-500">
           Los nombres exactos de los menús cambian según la versión de cada sistema. Si una voz
           recién instalada no aparece en el selector, reinicia el navegador por completo antes de
           darla por perdida.

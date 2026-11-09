@@ -31,6 +31,10 @@ overrides:
   # GHSA-68fv-2mgg-jv7q — bloqueo del event loop con source maps indexados.
   # Llega vía postcss (next, @tailwindcss/postcss y vite).
   source-map-js@<1.2.2: ^1.2.2
+  # GHSA-g3hv-75wg-m249. Llega vía eslint-config-next (@typescript-eslint/
+  # typescript-estree pide minimatch 10). La rama 3.x no está afectada y se
+  # queda como está. Quitar cuando typescript-estree pida minimatch 11.
+  minimatch@>=7.0.0 <11.0.1: ^11.0.1
 
 # pnpm bloquea por defecto los scripts de instalación y exige decidir uno a uno.
 # unrs-resolver compila el binario que usa el resolver de eslint-config-next.

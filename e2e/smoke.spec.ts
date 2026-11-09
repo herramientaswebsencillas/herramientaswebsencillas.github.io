@@ -1,14 +1,6 @@
 import { expect, test } from "@playwright/test";
-import { CATEGORIES } from "../lib/tools";
+import { PAGES } from "./site";
 import { watchPage } from "./watch";
-
-const PAGES = [
-  "/",
-  "/about",
-  "/privacy",
-  "/terms",
-  ...CATEGORIES.flatMap((category) => category.tools.map((tool) => `/tools/${tool.slug}`)),
-];
 
 for (const path of PAGES) {
   test(`carga ${path} sin errores`, async ({ page }) => {

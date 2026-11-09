@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactNode } from "react";
 import React, { useState } from "react";
 import { PDFDocument } from "@cantoo/pdf-lib";
 import ErrorMessage from "@/components/ErrorMessage";
@@ -13,7 +14,10 @@ import {
   formatBytes,
 } from "@/lib/files";
 
-export default function PdfMergerForm() {
+/** `header` y `guide` son la cabecera (ToolHeader) y la guía de uso
+    (ToolGuide), que page.tsx renderiza en el servidor para que el catálogo y
+    sus textos no lleguen al JavaScript. */
+export default function PdfMergerForm({ header, guide }: { header: ReactNode; guide: ReactNode }) {
   const [files, setFiles] = useState<File[]>([]);
   const [merging, setMerging] = useState(false);
   const [error, setError] = useState("");
@@ -77,31 +81,10 @@ export default function PdfMergerForm() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 md:p-8 bg-[#f8fafc]">
+    <main className="min-h-screen px-4 py-12 md:px-8 bg-[#f8fafc]">
       {/* Contenedor principal para alinear cabecera y cuadro */}
-      <div className="w-full max-w-xl flex flex-col items-center">
-        {/* Cabecera extraída del cuadro blanco */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-red-100 rounded-2xl mb-6 shadow-sm border border-red-200">
-            <svg
-              className="w-8 h-8 text-red-500"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-              />
-            </svg>
-          </div>
-          <h1 className="text-3xl font-extrabold text-slate-800 mb-3">Unir PDF</h1>
-          <p className="text-slate-500 text-sm md:text-base px-4">
-            Combina múltiples archivos PDF en un solo documento manteniendo el orden seleccionado.
-          </p>
-        </div>
+      <div className="w-full max-w-xl mx-auto flex flex-col items-center">
+        {header}
 
         {/* Cuadro Blanco (Solo la funcionalidad) */}
         <div className="w-full bg-surface rounded-3xl shadow-lg shadow-slate-200/50 border border-slate-100 p-8 md:p-10 transition-all">
@@ -114,7 +97,7 @@ export default function PdfMergerForm() {
               >
                 <div className="flex flex-col items-center justify-center pt-5 pb-6">
                   <svg
-                    className="w-10 h-10 mb-3 text-slate-400 group-hover:text-blue-500 transition-colors"
+                    className="w-10 h-10 mb-3 text-slate-500 group-hover:text-blue-500 transition-colors"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -130,7 +113,7 @@ export default function PdfMergerForm() {
                     <span className="font-semibold text-blue-600">Haz clic para subir</span> o
                     arrastra tus archivos
                   </p>
-                  <p className="text-xs text-slate-400">
+                  <p className="text-xs text-slate-500">
                     PDF (Múltiples permitidos, hasta {formatBytes(MAX_PDF_BYTES)} cada uno y{" "}
                     {formatBytes(MAX_PDF_TOTAL_BYTES)} en total)
                   </p>
@@ -256,6 +239,7 @@ export default function PdfMergerForm() {
           </div>
         </div>
       </div>
-    </div>
+      {guide}
+    </main>
   );
 }

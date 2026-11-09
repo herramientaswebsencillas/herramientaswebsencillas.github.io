@@ -1,9 +1,19 @@
 "use client";
+import type { ReactNode } from "react";
 import React, { useState } from "react";
 import ErrorMessage from "@/components/ErrorMessage";
 import { BinaryError, binaryToText, textToBinary } from "@/lib/binary";
 
-export default function TextToBinaryForm() {
+/** `header` y `guide` son la cabecera (ToolHeader) y la guía de uso
+    (ToolGuide), que page.tsx renderiza en el servidor para que el catálogo y
+    sus textos no lleguen al JavaScript. */
+export default function TextToBinaryForm({
+  header,
+  guide,
+}: {
+  header: ReactNode;
+  guide: ReactNode;
+}) {
   const [text, setText] = useState("");
   const [binary, setBinary] = useState("");
   const [error, setError] = useState("");
@@ -35,16 +45,9 @@ export default function TextToBinaryForm() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-200 font-sans p-6 md:p-12">
+    <main className="min-h-screen bg-slate-950 text-slate-200 font-sans p-6 md:p-12">
       <div className="max-w-5xl mx-auto">
-        <header className="text-center mb-12">
-          <h1 className="text-4xl md:text-5xl font-extrabold bg-gradient-to-r from-blue-400 to-emerald-400 bg-clip-text text-transparent mb-4">
-            Texto a Binario
-          </h1>
-          <p className="text-slate-400 text-lg">
-            Convierte texto a codificación binaria y viceversa en tiempo real.
-          </p>
-        </header>
+        {header}
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           <div className="flex flex-col">
@@ -86,10 +89,11 @@ export default function TextToBinaryForm() {
           </button>
         </div>
 
-        <footer className="mt-20 pt-8 border-t border-slate-900 text-center text-slate-500 text-sm">
+        <footer className="mt-20 pt-8 border-t border-slate-900 text-center text-slate-400 text-sm">
           <p>Codifica el texto en UTF-8: cada byte es un grupo de 8 bits.</p>
         </footer>
       </div>
-    </div>
+      {guide}
+    </main>
   );
 }

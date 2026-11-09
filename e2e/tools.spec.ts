@@ -469,7 +469,7 @@ test.describe("traductor", () => {
     await page.goto("/tools/translator");
 
     await page.getByPlaceholder(/Escribe o pega el texto/).fill("hola mundo");
-    await page.getByRole("button", { name: "⇄" }).click();
+    await page.getByRole("button", { name: "Intercambiar idiomas" }).click();
     await expect(page.getByPlaceholder(/Escribe o pega el texto/)).toHaveValue("hola mundo");
     await expect(page.getByRole("combobox").first()).toHaveValue("en");
     await check();

@@ -1,12 +1,20 @@
 import { Metadata } from "next";
+import ToolGuide from "@/components/ToolGuide";
+import ToolHeader from "@/components/ToolHeader";
+import { toolMetadata } from "@/lib/tools";
 import CurrencyConverterForm from "./CurrencyConverterForm";
 
-export const metadata: Metadata = {
-  title: "Conversor de Divisas y Tipo de Cambio",
-  description:
-    "Convierte entre 165 monedas con tasas de referencia de bancos centrales y consulta la evolución histórica del tipo de cambio.",
-};
+export const metadata: Metadata = toolMetadata("currency-converter");
 
 export default function Page() {
-  return <CurrencyConverterForm />;
+  return (
+    <CurrencyConverterForm
+      guide={<ToolGuide slug="currency-converter" />}
+      header={
+        <ToolHeader slug="currency-converter">
+          Convierte entre 165 monedas y consulta cómo ha evolucionado el tipo de cambio.
+        </ToolHeader>
+      }
+    />
+  );
 }

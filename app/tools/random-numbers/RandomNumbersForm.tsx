@@ -1,10 +1,20 @@
 "use client";
+import type { ReactNode } from "react";
 import { useState } from "react";
 import ErrorMessage from "@/components/ErrorMessage";
 import { RandomRangeError, randomInt, randomUniqueInts } from "@/lib/random";
 import { copyLabel, useCopy } from "@/lib/useCopy";
 
-export default function RandomNumbersForm() {
+/** `header` y `guide` son la cabecera (ToolHeader) y la guía de uso
+    (ToolGuide), que page.tsx renderiza en el servidor para que el catálogo y
+    sus textos no lleguen al JavaScript. */
+export default function RandomNumbersForm({
+  header,
+  guide,
+}: {
+  header: ReactNode;
+  guide: ReactNode;
+}) {
   const [result, setResult] = useState<number[]>([]);
   const [error, setError] = useState("");
   const { copy, statusOf, reset: resetCopy } = useCopy();
@@ -42,19 +52,20 @@ export default function RandomNumbersForm() {
   const copyToClipboard = () => copy(result.join(", "));
 
   return (
-    <div className="min-h-screen bg-slate-50 py-20 px-4">
+    <main className="min-h-screen bg-slate-50 py-12 px-4">
+      {header}
       <div className="max-w-md mx-auto bg-surface rounded-3xl shadow-xl border border-gray-100 p-8">
-        <h2 className="text-2xl font-extrabold mb-6 text-slate-800 tracking-tight text-center">
-          Generador de Números
-        </h2>
-
         <div className="space-y-6 mb-8">
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-bold text-slate-400 uppercase mb-2 text-center">
+              <label
+                htmlFor="numbers-1"
+                className="block text-xs font-bold text-slate-500 uppercase mb-2 text-center"
+              >
                 Mínimo
               </label>
               <input
+                id="numbers-1"
                 type="number"
                 step={1}
                 value={config.min}
@@ -63,10 +74,14 @@ export default function RandomNumbersForm() {
               />
             </div>
             <div>
-              <label className="block text-xs font-bold text-slate-400 uppercase mb-2 text-center">
+              <label
+                htmlFor="numbers-2"
+                className="block text-xs font-bold text-slate-500 uppercase mb-2 text-center"
+              >
                 Máximo
               </label>
               <input
+                id="numbers-2"
                 type="number"
                 step={1}
                 value={config.max}
@@ -77,11 +92,15 @@ export default function RandomNumbersForm() {
           </div>
 
           <div>
-            <label className="flex justify-between text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">
+            <label
+              htmlFor="numbers-3"
+              className="flex justify-between text-xs font-bold text-slate-500 uppercase tracking-widest mb-3"
+            >
               <span>Cantidad de números</span>
               <span className="text-blue-600 font-black">{config.count}</span>
             </label>
             <input
+              id="numbers-3"
               type="range"
               min="1"
               max="50"
@@ -149,6 +168,7 @@ export default function RandomNumbersForm() {
           </div>
         )}
       </div>
-    </div>
+      {guide}
+    </main>
   );
 }

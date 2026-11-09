@@ -1,11 +1,13 @@
 import { Metadata } from "next";
+import { pageMetadata } from "@/lib/site";
 import Link from "next/link";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata({
+  path: "/about",
   title: "Acerca de este sitio",
   description:
     "Conoce qué es Herramientas Web Sencillas: una colección de utilidades web gratuitas, rápidas y fáciles de usar.",
-};
+});
 
 export default function AboutPage() {
   return (

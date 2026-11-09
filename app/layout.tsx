@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import Navbar from "@/components/Navbar";
 import { contentSecurityPolicy } from "@/lib/csp.mjs";
+import { SITE_DESCRIPTION, SITE_NAME, SITE_URL, pageMetadata } from "@/lib/site";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -15,26 +16,18 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  // Los del inicio. Cada página define los suyos con pageMetadata.
+  ...pageMetadata({ path: "/", description: SITE_DESCRIPTION }),
   title: {
-    default: "Herramientas Web Sencillas",
-    template: "%s | Herramientas Web Sencillas",
+    default: SITE_NAME,
+    template: `%s | ${SITE_NAME}`,
   },
-  description:
-    "Colección de herramientas web rápidas, gratuitas y fáciles de usar para mejorar tu productividad y resolver tareas comunes en segundos.",
-  metadataBase: new URL("https://herramientaswebsencillas.github.io"),
+  metadataBase: new URL(SITE_URL),
   // GitHub Pages no permite la cabecera Referrer-Policy, pero la etiqueta
   // <meta> equivalente sí funciona: a otros sitios solo llega el origen.
   referrer: "strict-origin-when-cross-origin",
   icons: {
     icon: "/favicon.ico",
-  },
-  openGraph: {
-    type: "website",
-    locale: "es_MX",
-    url: "https://herramientaswebsencillas.github.io",
-    siteName: "Herramientas Web Sencillas",
-    // La imagen sale de app/opengraph-image.png (y su .alt.txt), que Next.js
-    // añade sola a todas las páginas.
   },
 };
 

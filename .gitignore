@@ -40,6 +40,10 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
+# instrucciones para agentes de IA: `next dev` vuelve a escribir AGENTS.md
+AGENTS.md
+CLAUDE.md
+
 # playwright
 /test-results/
 /playwright-report/

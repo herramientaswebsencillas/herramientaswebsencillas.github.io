@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { useState } from "react";
 import ErrorMessage from "@/components/ErrorMessage";
 import { copyLabel, useCopy } from "@/lib/useCopy";
@@ -23,7 +24,16 @@ const CURRENT_NOTE = `Clave derivada con PBKDF2-SHA256 (${PBKDF2_ITERATIONS.toLo
 
 type Mode = "encrypt" | "decrypt";
 
-export default function TextEncryptorForm() {
+/** `header` y `guide` son la cabecera (ToolHeader) y la guía de uso
+    (ToolGuide), que page.tsx renderiza en el servidor para que el catálogo y
+    sus textos no lleguen al JavaScript. */
+export default function TextEncryptorForm({
+  header,
+  guide,
+}: {
+  header: ReactNode;
+  guide: ReactNode;
+}) {
   const [mode, setMode] = useState<Mode>("encrypt");
   const [input, setInput] = useState("");
   const [passphrase, setPassphrase] = useState("");
@@ -64,15 +74,7 @@ export default function TextEncryptorForm() {
 
   return (
     <main className="flex-1 flex flex-col items-center px-4 py-12 sm:py-20 bg-slate-950 min-h-screen">
-      <div className="w-full max-w-2xl mx-auto mb-10 text-center">
-        <h1 className="text-3xl sm:text-4xl font-semibold text-slate-100 tracking-tight">
-          Encripta un texto con tu propia frase secreta
-        </h1>
-        <p className="text-slate-400 mt-3 text-sm sm:text-base max-w-lg mx-auto">
-          Escribe una frase secreta y protege cualquier mensaje con AES-256. Todo ocurre en tu
-          navegador, nada se guarda ni se envía.
-        </p>
-      </div>
+      {header}
 
       <div className="w-full max-w-2xl mx-auto">
         {/* Toggle encriptar / desencriptar */}
@@ -138,14 +140,14 @@ export default function TextEncryptorForm() {
                   type="button"
                   onClick={() => copy(passphrase, "passphrase")}
                   disabled={!passphrase}
-                  className="text-slate-500 hover:text-teal-400 text-xs cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:text-slate-500"
+                  className="text-slate-400 hover:text-teal-400 text-xs cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:text-slate-500"
                 >
                   {copyLabel(statusOf("passphrase"), "copiar", "copiada ✓")}
                 </button>
                 <button
                   type="button"
                   onClick={() => setShowPassphrase((v) => !v)}
-                  className="text-slate-500 hover:text-teal-400 text-xs cursor-pointer"
+                  className="text-slate-400 hover:text-teal-400 text-xs cursor-pointer"
                 >
                   {showPassphrase ? "ocultar" : "ver"}
                 </button>
@@ -162,7 +164,7 @@ export default function TextEncryptorForm() {
           {/* Indicador del formato */}
           <div className="flex items-center justify-between gap-4 rounded-lg border border-slate-800 bg-slate-950 px-3.5 py-2.5">
             <p className="text-xs text-slate-200 whitespace-nowrap">{CURRENT_LABEL}</p>
-            <p className="text-[11px] text-slate-500 hidden sm:block max-w-[20rem] text-right">
+            <p className="text-[11px] text-slate-400 hidden sm:block max-w-[20rem] text-right">
               {CURRENT_NOTE}
             </p>
           </div>
@@ -206,10 +208,11 @@ export default function TextEncryptorForm() {
           )}
         </div>
 
-        <p className="text-center text-[11px] text-slate-600 mt-5">
+        <p className="text-center text-[11px] text-slate-400 mt-5">
           Todo el cifrado ocurre en tu navegador. Nada se envía a un servidor.
         </p>
       </div>
+      {guide}
     </main>
   );
 }

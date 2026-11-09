@@ -42,35 +42,27 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      # Debe ir antes de setup-node: la caché de pnpm necesita el binario ya
-      # disponible. La versión sale del campo "packageManager" de package.json.
-      - name: Install pnpm
-        uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
-      - name: Setup Node
-        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
-        with:
-          # La misma versión que en local; pnpm 11 exige Node >= 22.13.
-          node-version-file: .nvmrc
-          cache: pnpm
       # Sin static_site_generator: esa opción busca next.config.js, no encuentra
       # next.config.ts y crea uno vacío que Next usa en su lugar, así que la
       # configuración del proyecto se ignoraba. next.config.ts ya define todo
-      # lo que Pages necesita (output: 'export', basePath, images.unoptimized).
+      # lo que Pages necesita (output: 'export', images.unoptimized).
       - name: Setup Pages
         if: github.event_name != 'pull_request'
         uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6.0.0
+      # Antes de instalar: con node_modules presente, hashFiles recorrería
+      # también los archivos de las dependencias.
       - name: Restore cache
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: |
             .next/cache
-          # Generate a new cache whenever packages or source files change.
-          key: ${{ runner.os }}-nextjs-${{ hashFiles('**/pnpm-lock.yaml') }}-${{ hashFiles('**.[jt]s', '**.[jt]sx') }}
-          # If source files changed but packages didn't, rebuild from a prior cache.
+          # Una caché nueva cada vez que cambian las dependencias o el código.
+          key: ${{ runner.os }}-nextjs-${{ hashFiles('**/pnpm-lock.yaml') }}-${{ hashFiles('**.[jt]s', '**.[jt]sx', '**.mjs', '**.mts', '**.css') }}
+          # Si solo cambió el código, se parte de la caché anterior.
           restore-keys: |
             ${{ runner.os }}-nextjs-${{ hashFiles('**/pnpm-lock.yaml') }}-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+      - name: Setup pnpm, Node and dependencies
+        uses: ./.github/actions/setup
       - name: Lint
         run: pnpm lint --max-warnings=0
       - name: Check formatting
