@@ -26,9 +26,6 @@ export const metadata: Metadata = {
   // GitHub Pages no permite la cabecera Referrer-Policy, pero la etiqueta
   // <meta> equivalente sí funciona: a otros sitios solo llega el origen.
   referrer: "strict-origin-when-cross-origin",
-  icons: {
-    icon: "/favicon.ico",
-  },
 };
 
 export default function RootLayout({
@@ -46,9 +43,9 @@ export default function RootLayout({
     process.env.NODE_ENV === "development" ? contentSecurityPolicy(["'unsafe-inline'"]) : null;
 
   return (
-    <html lang="es">
+    <html lang="es" className={`${geistSans.variable} ${geistMono.variable}`}>
       <head>{devCsp && <meta httpEquiv="Content-Security-Policy" content={devCsp} />}</head>
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+      <body className="antialiased">
         <Navbar />
         {children}
       </body>

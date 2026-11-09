@@ -30,7 +30,7 @@ export default function CompoundInterestCalculatorForm({
   const termError = monthsError(months);
 
   return (
-    <main className="min-h-screen bg-slate-50 py-10 px-4 md:px-10 font-sans">
+    <main className="min-h-screen bg-slate-50 py-10 px-4 md:px-10">
       {header}
 
       <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8">

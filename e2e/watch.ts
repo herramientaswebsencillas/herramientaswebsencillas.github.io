@@ -1,11 +1,6 @@
 import { expect, type Page } from "@playwright/test";
 import { SITE_ORIGIN } from "./site";
 
-/* Violaciones de CSP toleradas por página, con su motivo. Hoy no hay
-   ninguna: Dividir PDF usaba jszip, que probaba Function(...) y la CSP lo
-   bloqueaba; fflate no recurre a eval. */
-const TOLERATED_VIOLATIONS: Record<string, RegExp> = {};
-
 declare global {
   interface Window {
     __cspViolations: string[];
@@ -21,7 +16,7 @@ declare global {
  * con page.route después de llamar a esta función: Playwright aplica primero
  * la ruta registrada al final.
  */
-export async function watchPage(page: Page, path = "") {
+export async function watchPage(page: Page) {
   const errors: string[] = [];
 
   await page.addInitScript(() => {
@@ -48,10 +43,7 @@ export async function watchPage(page: Page, path = "") {
   });
 
   return async () => {
-    const tolerated = TOLERATED_VIOLATIONS[path];
-    const violations = (await page.evaluate(() => window.__cspViolations)).filter(
-      (violation) => !tolerated?.test(violation)
-    );
+    const violations = await page.evaluate(() => window.__cspViolations);
     expect(violations, "violaciones de CSP").toEqual([]);
     expect(errors, "errores en la página").toEqual([]);
   };

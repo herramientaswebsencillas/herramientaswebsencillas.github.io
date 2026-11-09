@@ -15,7 +15,7 @@ const BLOCKING = new Set(["serious", "critical"]);
 
 for (const path of PAGES) {
   test(`${path} no tiene problemas graves de accesibilidad`, async ({ page }) => {
-    await watchPage(page, path);
+    await watchPage(page);
     await page.goto(path);
     await page.waitForLoadState("networkidle");
 

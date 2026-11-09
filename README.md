@@ -46,11 +46,11 @@ El sitio se genera como export estático (`output: 'export'`) y se publica en Gi
 - `lib/cipher.fixtures.ts` — textos cifrados fijos del formato `v2:`, compartidos por las pruebas unitarias y las E2E (ver "Compatibilidad")
 - `lib/external.ts` — `fetchJson`, que hace cada petición a un servicio externo con su espera máxima y su mensaje de error, y la validación de las respuestas; `lib/external.live.test.ts` los consulta de verdad para el monitoreo diario
 - `e2e/` — pruebas con Playwright sobre el export estático: `smoke.spec.ts` recorre todas las páginas, `pages.spec.ts` revisa su accesibilidad con axe (WCAG 2.1 AA), que cada herramienta se titule como en el catálogo y el sitemap, y `tools.spec.ts` prueba los flujos de archivos, de servicios externos (con respuestas simuladas), del encriptador y de la calculadora de fechas. `site.ts` define contra qué sitio corren
-- `scripts/serve-out.mjs` — servidor estático de `out/` para `pnpm start` y las pruebas de humo
+- `scripts/serve-out.mjs` — servidor estático de `out/` para `pnpm start` y las pruebas E2E
 - `scripts/csp-hashes.mjs` — inserta la CSP con hashes en cada HTML de `out/` después de `next build`
 - `scripts/third-party-licenses.mjs` — reúne en `out/third-party-licenses.txt` las licencias de las dependencias de producción, que el minificador quita del JavaScript; lo enlazan "Acerca de" y los Términos de uso
 - `next.config.ts`, `package.json`, `tsconfig.json` — configuración del proyecto
-- `pnpm-workspace.yaml` — ajustes de pnpm (antigüedad mínima de las versiones, overrides de seguridad, avisos de `pnpm audit` ignorados con su motivo y scripts de instalación permitidos)
+- `pnpm-workspace.yaml` — ajustes de pnpm (antigüedad mínima de las versiones, overrides de seguridad y scripts de instalación permitidos; ahí van también, si hacen falta, los avisos que `pnpm audit` debe ignorar)
 - `.github/actions/setup/` — prepara pnpm, Node y las dependencias igual en todos los jobs
 - `.github/workflows/nextjs.yml` — verificación en cada pull request, y verificación y despliegue a GitHub Pages en cada push a `main`
 - `.github/workflows/codeql.yml`, `.github/dependabot.yml` — análisis de seguridad y actualizaciones automáticas de dependencias
@@ -141,6 +141,16 @@ Un valor que no exista como fecha (`31/02/2024`) se ignora y cae en el valor por
 
 Que el extremo ausente sea hoy es lo que hace útil al enlace corto: `?hasta=25/12/2026` cuenta lo que falta para esa fecha y se recalcula en cada visita, en vez de quedar congelado en el día de quien lo compartió. Por eso, al escribir la URL, el extremo que coincide con hoy se omite en lugar de fijarse.
 
+## Buscadores y agentes de IA
+
+El sitio se publica como HTML estático, así que buscadores y agentes de IA leen el contenido sin ejecutar JavaScript. Todo sale del catálogo de `lib/tools.ts`:
+
+- `app/sitemap.ts` y `app/robots.ts` generan `/sitemap.xml` y `/robots.txt`. `robots.txt` permite todos los rastreadores, incluidos los de IA.
+- Cada página declara su URL canónica y su `og:url` con `pageMetadata` (`lib/site.ts`). GitHub Pages sirve el mismo contenido en `/ruta` y `/ruta.html`, y la canónica evita que cuenten como duplicados.
+- Cada herramienta lleva su guía de `lib/toolGuides.ts` y datos estructurados (WebApplication y FAQPage); el inicio, los de WebSite y la lista de herramientas.
+
+`e2e/pages.spec.ts` comprueba la canónica, los datos estructurados y el sitemap de cada página. Para ver cómo se indexa el sitio y enviar el sitemap están Google Search Console y Bing Webmaster Tools; Bing alimenta además la búsqueda de ChatGPT y Copilot.
+
 ## Despliegue
 
 Cada push a `main` dispara el workflow de GitHub Actions. Instala con `pnpm install --frozen-lockfile`, ejecuta lint, la comprobación de formato, `pnpm audit`, las pruebas unitarias, `pnpm build`, el presupuesto de peso (`pnpm size`) y las pruebas E2E, y solo si todo pasa publica `out/` en GitHub Pages. En los pull request se ejecutan las mismas verificaciones sin publicar. Cada publicación deja además un SBOM (inventario de dependencias en formato CycloneDX) como artefacto de la ejecución, en la pestaña **Actions**.
@@ -161,7 +171,7 @@ Si hace falta volver ya, en la pestaña **Actions** abre la ejecución de un com
 
 **Si la auditoría de dependencias bloquea la vuelta atrás.** Los dos caminos pasan por `pnpm audit --audit-level=high`. Si el motivo del rollback es justo una dependencia con un aviso nuevo, el aviso hará fallar el build:
 
-- **En el pull request del revert**, añade el GHSA a `auditConfig.ignoreGhsas` de `pnpm-workspace.yaml` en el mismo PR, con la fecha, el motivo ("rollback de emergencia") y la condición para quitarlo. Es el camino preferido: el check `build` es obligatorio para integrar en `main`, y la excepción queda en el historial.
+- **En el pull request del revert**, añade el GHSA a `auditConfig.ignoreGhsas` de `pnpm-workspace.yaml` (la sección se crea si no existe) en el mismo PR, con la fecha, el motivo ("rollback de emergencia") y la condición para quitarlo. Es el camino preferido: el check `build` es obligatorio para integrar en `main`, y la excepción queda en el historial.
 - **Para volver a publicar `main` sin la auditoría**, en **Actions → Deploy Next.js site to Pages → Run workflow** marca *Omitir la auditoría de dependencias*. Construye y publica la punta de `main` con el resto de verificaciones. Sirve cuando `main` ya tiene el código correcto pero el aviso apareció después de integrarlo. La ejecución queda registrada con la casilla marcada. No sirve para el **Re-run** de una ejecución anterior, que usa el workflow de su propio commit.
 
 ## Dependencias
@@ -170,7 +180,9 @@ Si hace falta volver ya, en la pestaña **Actions** abre la ejecución de un com
 
 1. Si la dependencia directa ya trae la versión corregida, actualízala (o integra el PR de Dependabot). Las dependencias peer que pnpm instala por su cuenta, como `vite` para `vitest`, no se actualizan con `pnpm update`; por eso `vite` está declarada en `devDependencies`.
 2. Si el aviso está en una dependencia transitiva, fuerza la versión corregida en `overrides` de `pnpm-workspace.yaml`, con el aviso y el camino por el que llega en un comentario. Quita el override cuando la dependencia directa ya la traiga.
-3. Si no existe versión corregida, evalúa si el aviso afecta al sitio publicado. Si no lo afecta (por ejemplo, porque solo llega a herramientas de desarrollo con datos del propio repositorio), añade su GHSA a `auditConfig.ignoreGhsas` con el motivo y la condición para quitarlo.
+3. Si no existe versión corregida, evalúa si el aviso afecta al sitio publicado. Si no lo afecta (por ejemplo, porque solo llega a herramientas de desarrollo con datos del propio repositorio), añade su GHSA a `auditConfig.ignoreGhsas` de `pnpm-workspace.yaml` (la sección se crea si no existe) con el motivo y la condición para quitarlo. Hoy no se ignora ninguno.
+
+Los overrides y los avisos ignorados se revisan de vez en cuando, porque las dependencias acaban trayendo la versión corregida. Para saber si uno sigue haciendo falta, quítalo en una copia de `package.json`, `pnpm-lock.yaml` y `pnpm-workspace.yaml` en otra carpeta y ejecuta allí `pnpm install --lockfile-only` y `pnpm audit`: si el aviso no vuelve, se puede quitar.
 
 Las versiones nuevas no se adoptan en cuanto salen: pnpm no instala nada publicado hace menos de 3 días (`minimumReleaseAge` en `pnpm-workspace.yaml`) y Dependabot espera 7 días, o 14 en las versiones mayores de npm (`cooldown` en `.github/dependabot.yml`). Así un paquete comprometido tiene tiempo de detectarse y retirarse antes de llegar al sitio. Si un aviso de seguridad obliga a adoptar antes una versión, se añade a `minimumReleaseAgeExclude` con el aviso en un comentario.
 

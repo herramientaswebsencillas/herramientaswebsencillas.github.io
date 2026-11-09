@@ -4,7 +4,7 @@ import { watchPage } from "./watch";
 
 for (const path of PAGES) {
   test(`carga ${path} sin errores`, async ({ page }) => {
-    const check = await watchPage(page, path);
+    const check = await watchPage(page);
     const response = await page.goto(path);
     expect(response?.status()).toBe(200);
     await expect(page.getByRole("heading").first()).toBeVisible();

@@ -45,7 +45,7 @@ export default function TextToBinaryForm({
   };
 
   return (
-    <main className="min-h-screen bg-slate-950 text-slate-200 font-sans p-6 md:p-12">
+    <main className="min-h-screen bg-slate-950 text-slate-200 p-6 md:p-12">
       <div className="max-w-5xl mx-auto">
         {header}
 

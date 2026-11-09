@@ -334,7 +334,7 @@ export default function DateDifferenceCalculatorForm({
     : [];
 
   return (
-    <main className="min-h-screen bg-slate-50 py-10 px-4 md:px-10 font-sans">
+    <main className="min-h-screen bg-slate-50 py-10 px-4 md:px-10">
       {header}
 
       {/* El resultado va primero en el DOM para que en móvil se lea antes que
