@@ -1,6 +1,8 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   ExternalServiceError,
+  fetchJson,
+  isAbortError,
   MYMEMORY_QUOTA_MESSAGE,
   parseFrankfurterRates,
   parseLanguageToolMatches,
@@ -124,5 +126,76 @@ describe("parseFrankfurterRates", () => {
     expect(() => parseFrankfurterRates({ status: 422, message: "invalid currency: XXX" })).toThrow(
       ExternalServiceError
     );
+  });
+});
+
+describe("fetchJson", () => {
+  const options = { errorMessage: "Falló.", rateLimitMessage: "Cuota agotada." };
+  const respond = (body: unknown, status = 200) =>
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => new Response(JSON.stringify(body), { status }))
+    );
+
+  afterEach(() => vi.unstubAllGlobals());
+
+  it("devuelve lo que entrega el validador", async () => {
+    respond({ value: 3 });
+    await expect(
+      fetchJson("https://x.test", (data) => (data as { value: number }).value, options)
+    ).resolves.toBe(3);
+  });
+
+  it("convierte un HTTP de error en el mensaje indicado", async () => {
+    respond({}, 500);
+    await expect(fetchJson("https://x.test", () => 1, options)).rejects.toThrow(
+      new ExternalServiceError("Falló.")
+    );
+  });
+
+  it("usa el mensaje de cuota con un 429, si lo hay", async () => {
+    respond({}, 429);
+    await expect(fetchJson("https://x.test", () => 1, options)).rejects.toThrow("Cuota agotada.");
+    await expect(fetchJson("https://x.test", () => 1, { errorMessage: "Falló." })).rejects.toThrow(
+      "Falló."
+    );
+  });
+
+  it("convierte un fallo de red o un JSON inválido en el mensaje indicado", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => Promise.reject(new TypeError("Failed to fetch")))
+    );
+    await expect(fetchJson("https://x.test", () => 1, options)).rejects.toThrow("Falló.");
+
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => new Response("<html>"))
+    );
+    await expect(fetchJson("https://x.test", () => 1, options)).rejects.toThrow("Falló.");
+  });
+
+  it("conserva el mensaje de los errores del validador", async () => {
+    respond({ matches: "no" });
+    await expect(
+      fetchJson("https://x.test", (data) => parseLanguageToolMatches(data, ""), options)
+    ).rejects.toThrow("formato inesperado");
+  });
+
+  it("relanza la cancelación tal cual, para que la página la ignore", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(
+        (_url: string, init?: RequestInit) =>
+          new Promise((_resolve, reject) =>
+            init?.signal?.addEventListener("abort", () => reject(init.signal?.reason))
+          )
+      )
+    );
+    const controller = new AbortController();
+    const request = fetchJson("https://x.test", () => 1, { ...options, signal: controller.signal });
+    controller.abort();
+    const error = await request.catch((e: unknown) => e);
+    expect(isAbortError(error)).toBe(true);
   });
 });

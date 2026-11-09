@@ -10,27 +10,13 @@
 minimumReleaseAge: 4320
 
 # Versiones forzadas de dependencias transitivas con avisos de seguridad.
-# next fija postcss 8.4.31 de forma exacta, de ahí que haga falta el override.
+# Cada una con el aviso y el camino por el que llega; se quita cuando la
+# dependencia que la trae ya pide una versión corregida.
 overrides:
-  # GHSA-r28c-9q8g-f849 — path traversal al cargar sourceMappingURL.
-  postcss: ^8.5.18
-  # GHSA-52cp-r559-cp3m, GHSA-5p4m-2wfm-xmqj y GHSA-2883-xcg3-v3hh — consumo
-  # de CPU con merge keys y con !!omap.
-  js-yaml@>=4.0.0 <4.3.2: 4.3.2
-  # GHSA-3jxr-9vmj-r5cp, GHSA-mh99-v99m-4gvg y GHSA-rgw5-rvv9-x895 — expansión
-  # sin límite de grupos {}. La rama 1.x se queda en 1.x porque saltar a 5.x
-  # rompería minimatch 3.x.
-  brace-expansion@<1.1.21: 1.1.21
-  brace-expansion@>=3.0.0 <5.0.12: 5.0.12
-  # GHSA-c83g-rgw3-j3cx y GHSA-73wf-gq98-2v4g — memoria sin límite y escritura
-  # en el prototipo con consultas no confiables. Llega vía @babel/core de next.
-  browserslist@<4.28.7: ^4.28.7
-  # GHSA-wq5f-xc86-pv6w. Llega vía next; no se compila (ver allowBuilds) ni se
-  # usa con images.unoptimized, pero el aviso bloquea `pnpm audit`.
-  sharp@<0.35.5: ^0.35.5
-  # GHSA-68fv-2mgg-jv7q — bloqueo del event loop con source maps indexados.
-  # Llega vía postcss (next, @tailwindcss/postcss y vite).
-  source-map-js@<1.2.2: ^1.2.2
+  # GHSA-g3hv-75wg-m249. Llega vía eslint-config-next (@typescript-eslint/
+  # typescript-estree pide minimatch 10). La rama 3.x no está afectada y se
+  # queda como está. Quitar cuando typescript-estree pida minimatch 11.
+  minimatch@>=7.0.0 <11.0.1: ^11.0.1
 
 # pnpm bloquea por defecto los scripts de instalación y exige decidir uno a uno.
 # unrs-resolver compila el binario que usa el resolver de eslint-config-next.
@@ -39,14 +25,3 @@ overrides:
 allowBuilds:
   sharp: false
   unrs-resolver: true
-
-# Avisos que `pnpm audit` ignora a sabiendas. Cada uno con su motivo y la
-# condición para quitarlo; cualquier otro aviso alto sigue bloqueando el CI.
-auditConfig:
-  ignoreGhsas:
-    # braces: agotamiento de pila con patrones anidados. No hay versión
-    # corregida (la última es 3.0.3) y solo llega por el lint de Next
-    # (eslint-config-next > fast-glob > micromatch), que procesa patrones
-    # del propio repositorio, no del visitante. Quitar cuando salga braces
-    # 3.0.4 o eslint-config-next deje de depender de ella.
-    - GHSA-vfj7-8cjw-p6xm

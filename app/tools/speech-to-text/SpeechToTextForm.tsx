@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import ErrorMessage from "@/components/ErrorMessage";
 import { downloadBlob } from "@/lib/files";
@@ -105,7 +106,16 @@ const RECOGNITION_ERRORS: Record<string, string> = {
 
 /* -------------------------------- Componente ------------------------------ */
 
-export default function SpeechToTextForm() {
+/** `header` y `guide` son la cabecera (ToolHeader) y la guía de uso
+    (ToolGuide), que page.tsx renderiza en el servidor para que el catálogo y
+    sus textos no lleguen al JavaScript. */
+export default function SpeechToTextForm({
+  header,
+  guide,
+}: {
+  header: ReactNode;
+  guide: ReactNode;
+}) {
   // Soporte del navegador: null durante el render del servidor y la hidratación.
   const isSupported = useSyncExternalStore<boolean | null>(
     subscribeToSupport,
@@ -221,13 +231,7 @@ export default function SpeechToTextForm() {
   return (
     <main className="min-h-screen bg-slate-50 py-12 px-6">
       <div className="max-w-3xl mx-auto">
-        <div className="mb-10 text-center">
-          <h1 className="text-3xl font-bold text-slate-800 mb-2">Convertidor de Voz a Texto</h1>
-          <p className="text-slate-500">
-            Dicta con el micrófono y convierte tu voz en texto que puedes editar, copiar o
-            descargar.
-          </p>
-        </div>
+        {header}
 
         <div className="bg-surface rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
           <div className="bg-rose-700 p-4">
@@ -285,7 +289,7 @@ export default function SpeechToTextForm() {
               }}
             />
 
-            <div className="flex items-center justify-between text-xs text-slate-400">
+            <div className="flex items-center justify-between text-xs text-slate-500">
               <span>{transcript.length} caracteres</span>
               {isListening && <span className="text-rose-600 font-semibold">Escuchando...</span>}
             </div>
@@ -316,13 +320,14 @@ export default function SpeechToTextForm() {
 
             {error && <ErrorMessage className="text-center">{error}</ErrorMessage>}
 
-            <p className="text-xs text-slate-400 text-center">
+            <p className="text-xs text-slate-500 text-center">
               El dictado necesita permiso del micrófono. En Chrome y Edge el audio se procesa en los
               servidores del navegador, no en esta página.
             </p>
           </div>
         </div>
       </div>
+      {guide}
     </main>
   );
 }

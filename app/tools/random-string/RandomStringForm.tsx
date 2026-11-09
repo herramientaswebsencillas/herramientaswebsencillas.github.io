@@ -1,4 +1,5 @@
 "use client";
+import type { ReactNode } from "react";
 import { useState } from "react";
 import ErrorMessage from "@/components/ErrorMessage";
 import { randomString } from "@/lib/random";
@@ -14,7 +15,16 @@ const CHARSETS = {
 
 type Charset = keyof typeof CHARSETS;
 
-export default function RandomStringForm() {
+/** `header` y `guide` son la cabecera (ToolHeader) y la guía de uso
+    (ToolGuide), que page.tsx renderiza en el servidor para que el catálogo y
+    sus textos no lleguen al JavaScript. */
+export default function RandomStringForm({
+  header,
+  guide,
+}: {
+  header: ReactNode;
+  guide: ReactNode;
+}) {
   const [result, setResult] = useState("");
   const [error, setError] = useState("");
   const [length, setLength] = useState(12);
@@ -48,15 +58,15 @@ export default function RandomStringForm() {
   const copyToClipboard = () => copy(result);
 
   return (
-    <div className="min-h-screen bg-slate-50 py-20 px-4">
+    <main className="min-h-screen bg-slate-50 py-12 px-4">
+      {header}
       <div className="max-w-md mx-auto bg-surface rounded-3xl shadow-xl border border-gray-100 p-8">
-        <h2 className="text-2xl font-extrabold mb-6 text-slate-800 tracking-tight text-center">
-          Generador de Cadena de Caracteres
-        </h2>
-
         <div className="mb-8">
           <div className="flex justify-between mb-2">
-            <label className="text-sm font-semibold text-slate-600 uppercase tracking-wide">
+            <label
+              htmlFor="string-length"
+              className="text-sm font-semibold text-slate-600 uppercase tracking-wide"
+            >
               Longitud
             </label>
             <span className="text-blue-600 font-bold bg-blue-50 px-3 py-1 rounded-full text-xs">
@@ -64,6 +74,7 @@ export default function RandomStringForm() {
             </span>
           </div>
           <input
+            id="string-length"
             type="range"
             min="1"
             max="64"
@@ -74,7 +85,7 @@ export default function RandomStringForm() {
         </div>
 
         <div className="space-y-4 mb-8">
-          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+          <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">
             Configuración
           </p>
           <div className="grid grid-cols-2 gap-3">
@@ -134,7 +145,7 @@ export default function RandomStringForm() {
                 </span>
               </div>
             </div>
-            <p className="text-center text-[10px] text-slate-400 font-medium">
+            <p className="text-center text-[10px] text-slate-500 font-medium">
               {copied
                 ? "Texto guardado en el portapapeles"
                 : copyStatus === "failed"
@@ -144,6 +155,7 @@ export default function RandomStringForm() {
           </div>
         )}
       </div>
-    </div>
+      {guide}
+    </main>
   );
 }

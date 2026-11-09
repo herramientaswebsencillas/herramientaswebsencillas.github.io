@@ -6,7 +6,7 @@ El sitio se genera como export estático (`output: 'export'`) y se publica en Gi
 
 ## Requisitos
 
-- **Node.js 22.13 o superior** — lo exige pnpm 11. La versión de referencia está en `.nvmrc` (con nvm: `nvm use`) y es la que usa el workflow de CI.
+- **Node.js 24 o superior**. La versión de referencia está en `.nvmrc` (con nvm: `nvm use`) y es la que usa el CI. `@types/node` va en la misma versión mayor, para que los tipos no ofrezcan APIs que esa versión no tiene; al cambiar de Node se actualizan juntos.
 - **pnpm**. Si no lo tienes, actívalo con `corepack enable`; la versión está fijada en el campo `packageManager` de `package.json`.
 
 ## Comandos útiles
@@ -20,10 +20,9 @@ El sitio se genera como export estático (`output: 'export'`) y se publica en Gi
 - **Comprobar tipos**: `pnpm exec tsc --noEmit`
 - **Pruebas unitarias**: `pnpm test` — Vitest sobre la lógica de `lib/`
 - **Servicios externos**: `pnpm test:apis` — consulta de verdad LanguageTool, MyMemory y Frankfurter y comprueba el formato de sus respuestas
-- **Pruebas de humo**: `pnpm test:e2e` — Playwright abre cada página del build; hace falta `pnpm build` antes y, la primera vez, `pnpm exec playwright install chromium`. Con `E2E_BASE_URL=https://herramientaswebsencillas.github.io pnpm test:e2e e2e/smoke.spec.ts` se prueban sobre el sitio publicado, como hace el monitoreo diario
+- **Pruebas E2E**: `pnpm test:e2e` — Playwright abre cada página del build y revisa su accesibilidad; hace falta `pnpm build` antes y, la primera vez, `pnpm exec playwright install chromium`. Con `E2E_BASE_URL=https://herramientaswebsencillas.github.io pnpm test:e2e e2e/smoke.spec.ts` se prueban sobre el sitio publicado, como hace el monitoreo diario
 - **Peso del JavaScript**: `pnpm size` — comprueba el presupuesto de `.size-limit.mjs` sobre `out/`; hace falta `pnpm build` antes
 
-> Nota: los scripts están definidos en `package.json`. `pnpm export` es un alias de `pnpm build`, ya que el build estático ya escribe `out/`.
 
 ## Estructura relevante
 
@@ -33,22 +32,26 @@ El sitio se genera como export estático (`output: 'export'`) y se publica en Gi
 - `app/privacy/` — qué herramientas envían datos a servicios externos
 - `app/terms/` — términos de uso: servicio sin garantías, resultados orientativos y servicios de terceros
 - `app/tools/` — cada subcarpeta contiene una herramienta con su `page.tsx` y el componente del formulario
-- `components/` — componentes compartidos: `Navbar.tsx` y `ErrorMessage.tsx`, el mensaje de error en línea que usan las herramientas en lugar de `alert()`
-- `lib/tools.ts` — catálogo de herramientas y categorías que se muestra en la página de inicio
+- `components/` — componentes compartidos: `Navbar.tsx`, `ToolHeader.tsx` (título y subtítulo de cada herramienta, con el nombre del catálogo), `ToolGuide.tsx` ("Cómo se usa" y preguntas frecuentes, con sus datos estructurados), `JsonLd.tsx` y `ErrorMessage.tsx`, el mensaje de error en línea que usan las herramientas en lugar de `alert()`
+- `lib/tools.ts` — catálogo de herramientas y categorías: de ahí salen la página de inicio, el `<title>` y el `<h1>` de cada herramienta (`toolMetadata`, `ToolHeader`) y el sitemap
+- `lib/toolGuides.ts` — pasos de uso y preguntas frecuentes de cada herramienta
+- `lib/site.ts` — dirección y nombre del sitio, y `pageMetadata`, que da a cada página su URL canónica sin perder los datos comunes de Open Graph
 - `lib/currencies.ts` — nombres de divisas en español, usados por el conversor
 - `lib/csp.mjs` — la Content Security Policy del sitio (ver "Seguridad")
 - `lib/files.ts` — límites de tamaño (por archivo y en total), decodificación de Base64 y descargas de las herramientas de archivos
 - `lib/base64.ts` — conversión entre Base64, bytes y texto UTF-8, compartida por los conversores y el encriptador
 - `lib/useCopy.ts` — hook para copiar al portapapeles; el botón dice si se copió o si el navegador no lo permitió
+- `lib/useLatestRequest.ts` — hook que cancela la petición anterior y la que quede al salir de la página (corrector y traductor)
 - `lib/*.ts` — lógica pura de las herramientas (fechas, finanzas, romanos, aleatorios, cifrado, binario, traducción, texto a voz), separada de los componentes y probada en `lib/*.test.ts`
 - `lib/cipher.fixtures.ts` — textos cifrados fijos del formato `v2:`, compartidos por las pruebas unitarias y las E2E (ver "Compatibilidad")
-- `lib/external.ts` — validación de las respuestas de los servicios externos; `lib/external.live.test.ts` los consulta de verdad para el monitoreo diario
-- `e2e/` — pruebas con Playwright sobre el export estático: `smoke.spec.ts` recorre todas las páginas y `tools.spec.ts` prueba los flujos de archivos, de servicios externos (con respuestas simuladas), del encriptador y de la calculadora de fechas. `site.ts` define contra qué sitio corren
-- `scripts/serve-out.mjs` — servidor estático de `out/` para `pnpm start` y las pruebas de humo
+- `lib/external.ts` — `fetchJson`, que hace cada petición a un servicio externo con su espera máxima y su mensaje de error, y la validación de las respuestas; `lib/external.live.test.ts` los consulta de verdad para el monitoreo diario
+- `e2e/` — pruebas con Playwright sobre el export estático: `smoke.spec.ts` recorre todas las páginas, `pages.spec.ts` revisa su accesibilidad con axe (WCAG 2.1 AA), que cada herramienta se titule como en el catálogo y el sitemap, y `tools.spec.ts` prueba los flujos de archivos, de servicios externos (con respuestas simuladas), del encriptador y de la calculadora de fechas. `site.ts` define contra qué sitio corren
+- `scripts/serve-out.mjs` — servidor estático de `out/` para `pnpm start` y las pruebas E2E
 - `scripts/csp-hashes.mjs` — inserta la CSP con hashes en cada HTML de `out/` después de `next build`
 - `scripts/third-party-licenses.mjs` — reúne en `out/third-party-licenses.txt` las licencias de las dependencias de producción, que el minificador quita del JavaScript; lo enlazan "Acerca de" y los Términos de uso
 - `next.config.ts`, `package.json`, `tsconfig.json` — configuración del proyecto
-- `pnpm-workspace.yaml` — ajustes de pnpm (antigüedad mínima de las versiones, overrides de seguridad, avisos de `pnpm audit` ignorados con su motivo y scripts de instalación permitidos)
+- `pnpm-workspace.yaml` — ajustes de pnpm (antigüedad mínima de las versiones, overrides de seguridad y scripts de instalación permitidos; ahí van también, si hacen falta, los avisos que `pnpm audit` debe ignorar)
+- `.github/actions/setup/` — prepara pnpm, Node y las dependencias igual en todos los jobs
 - `.github/workflows/nextjs.yml` — verificación en cada pull request, y verificación y despliegue a GitHub Pages en cada push a `main`
 - `.github/workflows/codeql.yml`, `.github/dependabot.yml` — análisis de seguridad y actualizaciones automáticas de dependencias
 - `.github/workflows/external-apis.yml` — monitoreo diario del sitio publicado, de los servicios externos y de los avisos de seguridad de las dependencias
@@ -57,7 +60,17 @@ El sitio se genera como export estático (`output: 'export'`) y se publica en Gi
 
 ## Añadir una herramienta
 
-1. Crea `app/tools/<slug>/page.tsx` con su `metadata` y el componente del formulario al lado. Si la herramienta usa estado o APIs del navegador, el formulario lleva `"use client"`.
+1. Crea `app/tools/<slug>/page.tsx` y el componente del formulario al lado. Si la herramienta usa estado o APIs del navegador, el formulario lleva `"use client"`. El título y la descripción salen del catálogo (paso 2), así que la página queda así:
+
+   ```tsx
+   export const metadata: Metadata = toolMetadata("<slug>");
+
+   export default function Page() {
+     return <MiHerramientaForm header={<ToolHeader slug="<slug>">Subtítulo opcional.</ToolHeader>} />;
+   }
+   ```
+
+   El formulario recibe `header` y `guide` (la guía de uso, `<ToolGuide slug="<slug>" />`) y los coloca arriba y al final de su `<main>`. Ambos se renderizan aquí, en el servidor, y no dentro del formulario: si los importara un componente `"use client"`, el catálogo y las guías acabarían en el JavaScript de cada herramienta.
 2. Añade una entrada al array de la categoría correspondiente en `lib/tools.ts`:
 
    ```ts
@@ -70,7 +83,9 @@ El sitio se genera como export estático (`output: 'export'`) y se publica en Gi
 
    La página de inicio se genera desde ese catálogo: la ruta, la tarjeta y los colores salen de ahí, y las columnas se reequilibran solas.
 
-3. Si la herramienta tiene lógica no trivial, sácala a `lib/` y añade sus pruebas junto a ella. Las pruebas de humo la incluyen sola, porque recorren el catálogo.
+   Añade también su guía en `lib/toolGuides.ts`: al menos tres pasos y dos preguntas frecuentes. Es el texto que leen los buscadores y los agentes de IA, que no ejecutan la herramienta; las pruebas fallan si falta. Cada afirmación debe coincidir con lo que hace la herramienta.
+
+3. Si la herramienta tiene lógica no trivial, sácala a `lib/` y añade sus pruebas junto a ella. Las pruebas de humo, las de accesibilidad y el sitemap la incluyen solos, porque recorren el catálogo. Cada campo de formulario necesita una etiqueta asociada (`<label htmlFor>` o `aria-label`) y el texto pequeño, un gris de `slate-500` o más oscuro sobre fondo claro: axe falla con menos contraste.
 
 4. Para una categoría nueva, añade también su acento al mapa `ACCENTS` del mismo archivo. Las clases se escriben completas a propósito — Tailwind rastrea literales en el código, así que un nombre de clase construido en tiempo de ejecución no generaría ningún estilo.
 
@@ -98,7 +113,7 @@ El workflow `.github/workflows/external-apis.yml` consulta cada día los tres se
 
 **Si el monitoreo deja de ejecutarse.** GitHub desactiva los workflows programados de un repositorio público (este y el análisis semanal de CodeQL) tras 60 días sin actividad, y avisa antes por correo. Si el sitio pasa una temporada sin cambios, revisa en **Actions** que *External APIs* y *CodeQL* sigan activos y, si no, actívalos con **Enable workflow**. Integrar los PR semanales de Dependabot cuenta como actividad.
 
-Cada petición a un servicio externo se corta a los 15 segundos (`EXTERNAL_TIMEOUT_MS` en `lib/external.ts`) y la herramienta muestra su mensaje de error, en lugar de quedarse cargando.
+Las peticiones pasan por `fetchJson` de `lib/external.ts`: se cortan a los 15 segundos (`EXTERNAL_TIMEOUT_MS`) y cualquier fallo llega como un error con un mensaje que se puede mostrar, en lugar de dejar la herramienta cargando. Una herramienta nueva que consulte una API la usa también.
 
 **Al añadir una herramienta que llame a un servicio externo hay que incluir su dominio en `connect-src`**, dentro de la CSP de `lib/csp.mjs`, y listarla en la página de Privacidad (`app/privacy/page.tsx`) y en "Servicios de terceros" de los Términos de uso (`app/terms/page.tsx`). Sin lo primero el navegador bloquea las peticiones y las pruebas de humo fallan con la violación de CSP.
 
@@ -126,6 +141,16 @@ Un valor que no exista como fecha (`31/02/2024`) se ignora y cae en el valor por
 
 Que el extremo ausente sea hoy es lo que hace útil al enlace corto: `?hasta=25/12/2026` cuenta lo que falta para esa fecha y se recalcula en cada visita, en vez de quedar congelado en el día de quien lo compartió. Por eso, al escribir la URL, el extremo que coincide con hoy se omite en lugar de fijarse.
 
+## Buscadores y agentes de IA
+
+El sitio se publica como HTML estático, así que buscadores y agentes de IA leen el contenido sin ejecutar JavaScript. Todo sale del catálogo de `lib/tools.ts`:
+
+- `app/sitemap.ts` y `app/robots.ts` generan `/sitemap.xml` y `/robots.txt`. `robots.txt` permite todos los rastreadores, incluidos los de IA.
+- Cada página declara su URL canónica y su `og:url` con `pageMetadata` (`lib/site.ts`). GitHub Pages sirve el mismo contenido en `/ruta` y `/ruta.html`, y la canónica evita que cuenten como duplicados.
+- Cada herramienta lleva su guía de `lib/toolGuides.ts` y datos estructurados (WebApplication y FAQPage); el inicio, los de WebSite y la lista de herramientas.
+
+`e2e/pages.spec.ts` comprueba la canónica, los datos estructurados y el sitemap de cada página. Para ver cómo se indexa el sitio y enviar el sitemap están Google Search Console y Bing Webmaster Tools; Bing alimenta además la búsqueda de ChatGPT y Copilot.
+
 ## Despliegue
 
 Cada push a `main` dispara el workflow de GitHub Actions. Instala con `pnpm install --frozen-lockfile`, ejecuta lint, la comprobación de formato, `pnpm audit`, las pruebas unitarias, `pnpm build`, el presupuesto de peso (`pnpm size`) y las pruebas E2E, y solo si todo pasa publica `out/` en GitHub Pages. En los pull request se ejecutan las mismas verificaciones sin publicar. Cada publicación deja además un SBOM (inventario de dependencias en formato CycloneDX) como artefacto de la ejecución, en la pestaña **Actions**.
@@ -146,7 +171,7 @@ Si hace falta volver ya, en la pestaña **Actions** abre la ejecución de un com
 
 **Si la auditoría de dependencias bloquea la vuelta atrás.** Los dos caminos pasan por `pnpm audit --audit-level=high`. Si el motivo del rollback es justo una dependencia con un aviso nuevo, el aviso hará fallar el build:
 
-- **En el pull request del revert**, añade el GHSA a `auditConfig.ignoreGhsas` de `pnpm-workspace.yaml` en el mismo PR, con la fecha, el motivo ("rollback de emergencia") y la condición para quitarlo. Es el camino preferido: el check `build` es obligatorio para integrar en `main`, y la excepción queda en el historial.
+- **En el pull request del revert**, añade el GHSA a `auditConfig.ignoreGhsas` de `pnpm-workspace.yaml` (la sección se crea si no existe) en el mismo PR, con la fecha, el motivo ("rollback de emergencia") y la condición para quitarlo. Es el camino preferido: el check `build` es obligatorio para integrar en `main`, y la excepción queda en el historial.
 - **Para volver a publicar `main` sin la auditoría**, en **Actions → Deploy Next.js site to Pages → Run workflow** marca *Omitir la auditoría de dependencias*. Construye y publica la punta de `main` con el resto de verificaciones. Sirve cuando `main` ya tiene el código correcto pero el aviso apareció después de integrarlo. La ejecución queda registrada con la casilla marcada. No sirve para el **Re-run** de una ejecución anterior, que usa el workflow de su propio commit.
 
 ## Dependencias
@@ -155,7 +180,9 @@ Si hace falta volver ya, en la pestaña **Actions** abre la ejecución de un com
 
 1. Si la dependencia directa ya trae la versión corregida, actualízala (o integra el PR de Dependabot). Las dependencias peer que pnpm instala por su cuenta, como `vite` para `vitest`, no se actualizan con `pnpm update`; por eso `vite` está declarada en `devDependencies`.
 2. Si el aviso está en una dependencia transitiva, fuerza la versión corregida en `overrides` de `pnpm-workspace.yaml`, con el aviso y el camino por el que llega en un comentario. Quita el override cuando la dependencia directa ya la traiga.
-3. Si no existe versión corregida, evalúa si el aviso afecta al sitio publicado. Si no lo afecta (por ejemplo, porque solo llega a herramientas de desarrollo con datos del propio repositorio), añade su GHSA a `auditConfig.ignoreGhsas` con el motivo y la condición para quitarlo.
+3. Si no existe versión corregida, evalúa si el aviso afecta al sitio publicado. Si no lo afecta (por ejemplo, porque solo llega a herramientas de desarrollo con datos del propio repositorio), añade su GHSA a `auditConfig.ignoreGhsas` de `pnpm-workspace.yaml` (la sección se crea si no existe) con el motivo y la condición para quitarlo. Hoy no se ignora ninguno.
+
+Los overrides y los avisos ignorados se revisan de vez en cuando, porque las dependencias acaban trayendo la versión corregida. Para saber si uno sigue haciendo falta, quítalo en una copia de `package.json`, `pnpm-lock.yaml` y `pnpm-workspace.yaml` en otra carpeta y ejecuta allí `pnpm install --lockfile-only` y `pnpm audit`: si el aviso no vuelve, se puede quitar.
 
 Las versiones nuevas no se adoptan en cuanto salen: pnpm no instala nada publicado hace menos de 3 días (`minimumReleaseAge` en `pnpm-workspace.yaml`) y Dependabot espera 7 días, o 14 en las versiones mayores de npm (`cooldown` en `.github/dependabot.yml`). Así un paquete comprometido tiene tiempo de detectarse y retirarse antes de llegar al sitio. Si un aviso de seguridad obliga a adoptar antes una versión, se añade a `minimumReleaseAgeExclude` con el aviso en un comentario.
 

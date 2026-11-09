@@ -17,6 +17,53 @@ export const EXTERNAL_TIMEOUT_MS = 15_000;
 /** Error con un mensaje que se puede mostrar tal cual al usuario. */
 export class ExternalServiceError extends Error {}
 
+/** Si el error es una cancelación pedida por la propia página (al desmontar
+    o al lanzar otra petición). Esas se ignoran; el timeout llega como
+    TimeoutError y se trata como cualquier otro fallo. */
+export const isAbortError = (error: unknown) =>
+  error instanceof DOMException && error.name === "AbortError";
+
+export interface FetchJsonOptions {
+  init?: RequestInit;
+  /** Cancela la petición, p. ej. al desmontar el componente (ver useLatestRequest). */
+  signal?: AbortSignal;
+  /** Mensaje para fallos de red, espera agotada, HTTP de error o JSON inválido. */
+  errorMessage: string;
+  /** Mensaje para un 429. Sin él, un 429 se trata como cualquier otro error. */
+  rateLimitMessage?: string;
+}
+
+/**
+ * Pide un JSON a un servicio externo, con la espera máxima de
+ * EXTERNAL_TIMEOUT_MS, y lo pasa por su validador. Todo fallo llega como
+ * ExternalServiceError con un mensaje que se puede mostrar, salvo la
+ * cancelación, que se relanza tal cual (ver isAbortError). Los errores del
+ * validador conservan su propio mensaje.
+ */
+export async function fetchJson<T>(
+  url: string,
+  parse: (data: unknown) => T,
+  { init, signal, errorMessage, rateLimitMessage }: FetchJsonOptions
+): Promise<T> {
+  const timeout = AbortSignal.timeout(EXTERNAL_TIMEOUT_MS);
+  let data: unknown;
+  try {
+    const res = await fetch(url, {
+      ...init,
+      signal: signal ? AbortSignal.any([signal, timeout]) : timeout,
+    });
+    if (res.status === 429 && rateLimitMessage) {
+      throw new ExternalServiceError(rateLimitMessage);
+    }
+    if (!res.ok) throw new ExternalServiceError(errorMessage);
+    data = await res.json();
+  } catch (error) {
+    if (error instanceof ExternalServiceError || isAbortError(error)) throw error;
+    throw new ExternalServiceError(errorMessage);
+  }
+  return parse(data);
+}
+
 type Json = Record<string, unknown>;
 
 const isObject = (value: unknown): value is Json =>

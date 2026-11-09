@@ -1,11 +1,21 @@
 import { Metadata } from "next";
+import ToolGuide from "@/components/ToolGuide";
+import ToolHeader from "@/components/ToolHeader";
+import { toolMetadata } from "@/lib/tools";
 import TextEncryptorForm from "./TextEncryptorForm";
 
-export const metadata: Metadata = {
-  title: "Encriptador y Desencriptador de Texto",
-  description: "Encripta y desencripta tu texto con AES-256 y una frase secreta que elijas.",
-};
+export const metadata: Metadata = toolMetadata("text-encryptor");
 
 export default function Page() {
-  return <TextEncryptorForm />;
+  return (
+    <TextEncryptorForm
+      guide={<ToolGuide slug="text-encryptor" tone="dark" />}
+      header={
+        <ToolHeader slug="text-encryptor" tone="dark">
+          Escribe una frase secreta y protege cualquier mensaje con AES-256. Todo ocurre en tu
+          navegador, nada se guarda ni se envía.
+        </ToolHeader>
+      }
+    />
+  );
 }

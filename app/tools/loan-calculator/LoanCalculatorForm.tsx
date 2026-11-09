@@ -1,10 +1,20 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { useMemo, useState } from "react";
 import ErrorMessage from "@/components/ErrorMessage";
 import { MAX_MONTHS, calculateLoan, monthsError, type AmortizationSystem } from "@/lib/finance";
 
-export default function LoanCalculatorForm() {
+/** `header` y `guide` son la cabecera (ToolHeader) y la guía de uso
+    (ToolGuide), que page.tsx renderiza en el servidor para que el catálogo y
+    sus textos no lleguen al JavaScript. */
+export default function LoanCalculatorForm({
+  header,
+  guide,
+}: {
+  header: ReactNode;
+  guide: ReactNode;
+}) {
   const [loanAmount, setLoanAmount] = useState<number>(100000);
   const [annualRate, setAnnualRate] = useState<number>(12);
   const [months, setMonths] = useState<number>(24);
@@ -28,17 +38,8 @@ export default function LoanCalculatorForm() {
   const termError = monthsError(months);
 
   return (
-    <main className="min-h-screen bg-slate-100 py-10 px-4 md:px-10 font-sans">
-      {/* CABECERA */}
-      <div className="max-w-6xl mx-auto mb-10 text-center md:text-left">
-        <h1 className="text-3xl md:text-4xl font-extrabold text-slate-800 mb-3 tracking-tight">
-          Calculadora de Préstamos
-        </h1>
-        <p className="text-slate-500 text-lg max-w-2xl">
-          Calcula tu cuota, compara sistemas de amortización y visualiza tu tabla de pagos
-          incluyendo seguros, impuestos y otros gastos.
-        </p>
-      </div>
+    <main className="min-h-screen bg-slate-50 py-10 px-4 md:px-10">
+      {header}
 
       <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* COLUMNA IZQUIERDA: CONFIGURACIÓN */}
@@ -62,10 +63,14 @@ export default function LoanCalculatorForm() {
 
           <div className="space-y-5">
             <div>
-              <label className="block text-xs font-bold text-slate-500 uppercase mb-1">
+              <label
+                htmlFor="loan-1"
+                className="block text-xs font-bold text-slate-500 uppercase mb-1"
+              >
                 Monto del Préstamo ($)
               </label>
               <input
+                id="loan-1"
                 type="number"
                 value={loanAmount}
                 onChange={(e) => setLoanAmount(Number(e.target.value))}
@@ -75,10 +80,14 @@ export default function LoanCalculatorForm() {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-bold text-slate-500 uppercase mb-1">
+                <label
+                  htmlFor="loan-2"
+                  className="block text-xs font-bold text-slate-500 uppercase mb-1"
+                >
                   Tasa Anual %
                 </label>
                 <input
+                  id="loan-2"
                   type="number"
                   value={annualRate}
                   onChange={(e) => setAnnualRate(Number(e.target.value))}
@@ -86,10 +95,14 @@ export default function LoanCalculatorForm() {
                 />
               </div>
               <div>
-                <label className="block text-xs font-bold text-slate-500 uppercase mb-1">
+                <label
+                  htmlFor="loan-3"
+                  className="block text-xs font-bold text-slate-500 uppercase mb-1"
+                >
                   Plazo (Meses)
                 </label>
                 <input
+                  id="loan-3"
                   type="number"
                   min={1}
                   max={MAX_MONTHS}
@@ -105,10 +118,14 @@ export default function LoanCalculatorForm() {
 
             <div className="space-y-4">
               <div>
-                <label className="block text-xs font-bold text-slate-500 uppercase mb-1">
+                <label
+                  htmlFor="loan-4"
+                  className="block text-xs font-bold text-slate-500 uppercase mb-1"
+                >
                   Sistema de Pago
                 </label>
                 <select
+                  id="loan-4"
                   value={amortizationSystem}
                   onChange={(e) => setAmortizationSystem(e.target.value as AmortizationSystem)}
                   className="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 font-bold outline-none focus:ring-2 focus:ring-indigo-500 transition-shadow cursor-pointer"
@@ -121,10 +138,14 @@ export default function LoanCalculatorForm() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-bold text-slate-500 uppercase mb-1">
+                  <label
+                    htmlFor="loan-5"
+                    className="block text-xs font-bold text-slate-500 uppercase mb-1"
+                  >
                     Gastos Extra ($)
                   </label>
                   <input
+                    id="loan-5"
                     type="number"
                     value={monthlyInsurance}
                     onChange={(e) => setMonthlyInsurance(Number(e.target.value))}
@@ -132,10 +153,14 @@ export default function LoanCalculatorForm() {
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-500 uppercase mb-1">
+                  <label
+                    htmlFor="loan-6"
+                    className="block text-xs font-bold text-slate-500 uppercase mb-1"
+                  >
                     Impuestos (%)
                   </label>
                   <input
+                    id="loan-6"
                     type="number"
                     value={taxRate}
                     onChange={(e) => setTaxRate(Number(e.target.value))}
@@ -274,33 +299,39 @@ export default function LoanCalculatorForm() {
             </div>
             {/* Fondo gris claro en lugar de blanco: una tabla larga a pantalla
                 completa en blanco puro deslumbra al leerla. */}
-            <div className="max-h-[400px] overflow-y-auto custom-scrollbar bg-slate-50">
+            {/* Enfocable para que la tabla se pueda desplazar con el teclado. */}
+            <div
+              className="max-h-[400px] overflow-y-auto custom-scrollbar bg-slate-50"
+              tabIndex={0}
+              role="region"
+              aria-label="Tabla de amortización"
+            >
               <table className="w-full text-left border-collapse">
                 <thead className="bg-slate-100 sticky top-0 z-10 shadow-sm">
                   <tr>
-                    <th className="p-4 text-[10px] font-bold text-slate-500 uppercase whitespace-nowrap">
+                    <th className="p-4 text-[10px] font-bold text-slate-600 uppercase whitespace-nowrap">
                       Mes
                     </th>
-                    <th className="p-4 text-[10px] font-bold text-slate-500 uppercase whitespace-nowrap">
+                    <th className="p-4 text-[10px] font-bold text-slate-600 uppercase whitespace-nowrap">
                       Cuota Total
                     </th>
-                    <th className="p-4 text-[10px] font-bold text-slate-500 uppercase whitespace-nowrap hidden sm:table-cell">
+                    <th className="p-4 text-[10px] font-bold text-slate-600 uppercase whitespace-nowrap hidden sm:table-cell">
                       Abono a Capital
                     </th>
-                    <th className="p-4 text-[10px] font-bold text-slate-500 uppercase whitespace-nowrap hidden sm:table-cell">
+                    <th className="p-4 text-[10px] font-bold text-slate-600 uppercase whitespace-nowrap hidden sm:table-cell">
                       Pago Interés
                     </th>
                     {taxRate > 0 && (
-                      <th className="p-4 text-[10px] font-bold text-slate-500 uppercase whitespace-nowrap hidden md:table-cell">
+                      <th className="p-4 text-[10px] font-bold text-slate-600 uppercase whitespace-nowrap hidden md:table-cell">
                         Impuestos
                       </th>
                     )}
                     {monthlyInsurance > 0 && (
-                      <th className="p-4 text-[10px] font-bold text-slate-500 uppercase whitespace-nowrap hidden md:table-cell">
+                      <th className="p-4 text-[10px] font-bold text-slate-600 uppercase whitespace-nowrap hidden md:table-cell">
                         Gastos Extra
                       </th>
                     )}
-                    <th className="p-4 text-[10px] font-bold text-slate-500 uppercase whitespace-nowrap">
+                    <th className="p-4 text-[10px] font-bold text-slate-600 uppercase whitespace-nowrap">
                       Saldo Pendiente
                     </th>
                   </tr>
@@ -308,7 +339,7 @@ export default function LoanCalculatorForm() {
                 <tbody className="divide-y divide-slate-200 text-slate-900">
                   {amortizationTable.map((row) => (
                     <tr key={row.month} className="hover:bg-slate-100 transition-colors">
-                      <td className="p-4 font-bold text-slate-400">{row.month}</td>
+                      <td className="p-4 font-bold text-slate-500">{row.month}</td>
                       <td className="p-4 font-bold text-slate-800">
                         $
                         {row.totalPayment.toLocaleString(undefined, {
@@ -363,6 +394,7 @@ export default function LoanCalculatorForm() {
           </div>
         </div>
       </div>
+      {guide}
     </main>
   );
 }

@@ -1,11 +1,13 @@
 import { Metadata } from "next";
+import { pageMetadata } from "@/lib/site";
 import Link from "next/link";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata({
+  path: "/privacy",
   title: "Privacidad",
   description:
     "Qué datos salen de tu navegador al usar Herramientas Web Sencillas y a qué servicios llegan.",
-};
+});
 
 // Actualizar al cambiar qué datos salen del navegador o hacia dónde.
 const LAST_UPDATED = "28 de septiembre de 2026";
@@ -76,7 +78,7 @@ export default function PrivacyPage() {
                   <Link href={item.href} className="hover:text-blue-600">
                     {item.tool}
                   </Link>
-                  <span className="text-slate-400 font-normal"> → </span>
+                  <span className="text-slate-500 font-normal"> → </span>
                   {item.url ? (
                     <a
                       href={item.url}
@@ -139,7 +141,7 @@ export default function PrivacyPage() {
             .
           </p>
 
-          <p className="text-sm text-slate-400 mt-6">Última actualización: {LAST_UPDATED}.</p>
+          <p className="text-sm text-slate-500 mt-6">Última actualización: {LAST_UPDATED}.</p>
         </div>
       </div>
     </main>

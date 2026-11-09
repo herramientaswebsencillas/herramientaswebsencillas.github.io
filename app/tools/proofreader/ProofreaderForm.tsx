@@ -1,13 +1,16 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { useState, useRef, useCallback, JSX } from "react";
 import ErrorMessage from "@/components/ErrorMessage";
 import {
-  EXTERNAL_TIMEOUT_MS,
   ExternalServiceError,
+  fetchJson,
+  isAbortError,
   parseLanguageToolMatches,
   type LTMatch,
 } from "@/lib/external";
+import { useLatestRequest } from "@/lib/useLatestRequest";
 
 // LanguageTool: API pública, sin key, ideal para uso personal/demo.
 // Límite ~20 req/min y ~20,000 caracteres por request en el servidor gratuito.
@@ -66,7 +69,16 @@ function isSpelling(match: LTMatch): boolean {
   return categoryLabel(match) === "Ortografía";
 }
 
-export default function ProofreaderForm() {
+/** `header` y `guide` son la cabecera (ToolHeader) y la guía de uso
+    (ToolGuide), que page.tsx renderiza en el servidor para que el catálogo y
+    sus textos no lleguen al JavaScript. */
+export default function ProofreaderForm({
+  header,
+  guide,
+}: {
+  header: ReactNode;
+  guide: ReactNode;
+}) {
   const [text, setText] = useState<string>(
     "Avia una ves un lugar donde las palabras se escribian sin cuidado, y nadie se daba cuenta de los herrores asta que era demaciado tarde."
   );
@@ -76,33 +88,35 @@ export default function ProofreaderForm() {
   const [language, setLanguage] = useState<string>("es");
   const [error, setError] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const nextRequest = useLatestRequest();
 
   const checkText = useCallback(async () => {
     if (!text.trim()) return;
     setStatus("checking");
     setActiveId(null);
     try {
-      const params = new URLSearchParams({
-        text,
-        language,
-      });
-      const res = await fetch(LANGUAGETOOL_ENDPOINT, {
-        method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: params,
-        signal: AbortSignal.timeout(EXTERNAL_TIMEOUT_MS),
-      });
-
-      if (res.status === 429) throw new ExternalServiceError(RATE_LIMIT_ERROR);
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-
-      setMatches(parseLanguageToolMatches(await res.json(), text));
+      const matches = await fetchJson(
+        LANGUAGETOOL_ENDPOINT,
+        (data) => parseLanguageToolMatches(data, text),
+        {
+          init: {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body: new URLSearchParams({ text, language }),
+          },
+          signal: nextRequest(),
+          errorMessage: CONNECTION_ERROR,
+          rateLimitMessage: RATE_LIMIT_ERROR,
+        }
+      );
+      setMatches(matches);
       setStatus("done");
     } catch (err) {
+      if (isAbortError(err)) return;
       setError(err instanceof ExternalServiceError ? err.message : CONNECTION_ERROR);
       setStatus("error");
     }
-  }, [text, language]);
+  }, [text, language, nextRequest]);
 
   const applyFix = (match: LTMatch, replacement: string) => {
     const before = text.slice(0, match.offset);
@@ -181,7 +195,7 @@ export default function ProofreaderForm() {
 
               {m.replacements?.length > 0 && (
                 <div className="mb-3">
-                  <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-wide text-slate-400">
+                  <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-wide text-slate-500">
                     Sugerencias
                   </p>
                   <div className="flex flex-wrap gap-1.5">
@@ -200,7 +214,7 @@ export default function ProofreaderForm() {
 
               <button
                 onClick={() => dismissMatch(m)}
-                className="text-xs font-medium text-slate-400 underline-offset-2 hover:text-slate-600 hover:underline"
+                className="text-xs font-medium text-slate-500 underline-offset-2 hover:text-slate-600 hover:underline"
               >
                 Ignorar esta observación
               </button>
@@ -224,19 +238,13 @@ export default function ProofreaderForm() {
   const isAtLimit = charCount >= MAX_CHARS;
 
   return (
-    <div className="min-h-screen bg-slate-50 px-4 py-20">
+    <main className="min-h-screen bg-slate-50 px-4 py-12">
+      {header}
       <div className="mx-auto max-w-2xl rounded-3xl border border-gray-100 bg-surface p-8 shadow-xl">
-        <h2 className="mb-2 text-center text-2xl font-extrabold tracking-tight text-slate-800">
-          Corrector de texto
-        </h2>
-        <p className="mb-8 text-center text-sm font-medium text-slate-400">
-          Escribe tu texto, revisa las observaciones y aplica las correcciones con un clic.
-        </p>
-
         <div className="mb-4 flex items-center justify-between gap-3">
           <label
             htmlFor="language-select"
-            className="text-xs font-semibold uppercase tracking-wide text-slate-400"
+            className="text-xs font-semibold uppercase tracking-wide text-slate-500"
           >
             Idioma del texto
           </label>
@@ -276,7 +284,7 @@ export default function ProofreaderForm() {
         {(status === "idle" || status === "error") && (
           <p
             className={`mt-2 text-right text-xs font-medium ${
-              isAtLimit ? "text-red-500" : isNearLimit ? "text-amber-500" : "text-slate-400"
+              isAtLimit ? "text-red-500" : isNearLimit ? "text-amber-500" : "text-slate-500"
             }`}
           >
             {charCount.toLocaleString("es")} / {MAX_CHARS.toLocaleString("es")} caracteres
@@ -336,6 +344,7 @@ export default function ProofreaderForm() {
           . El texto que ingreses para corregir se comparte con este servicio.
         </p>
       </div>
-    </div>
+      {guide}
+    </main>
   );
 }

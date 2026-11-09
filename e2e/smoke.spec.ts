@@ -1,18 +1,10 @@
 import { expect, test } from "@playwright/test";
-import { CATEGORIES } from "../lib/tools";
+import { PAGES } from "./site";
 import { watchPage } from "./watch";
-
-const PAGES = [
-  "/",
-  "/about",
-  "/privacy",
-  "/terms",
-  ...CATEGORIES.flatMap((category) => category.tools.map((tool) => `/tools/${tool.slug}`)),
-];
 
 for (const path of PAGES) {
   test(`carga ${path} sin errores`, async ({ page }) => {
-    const check = await watchPage(page, path);
+    const check = await watchPage(page);
     const response = await page.goto(path);
     expect(response?.status()).toBe(200);
     await expect(page.getByRole("heading").first()).toBeVisible();

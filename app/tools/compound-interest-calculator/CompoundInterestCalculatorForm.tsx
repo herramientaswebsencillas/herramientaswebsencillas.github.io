@@ -1,10 +1,20 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { useMemo, useState } from "react";
 import ErrorMessage from "@/components/ErrorMessage";
 import { MAX_MONTHS, calculateCompoundInterest, monthsError } from "@/lib/finance";
 
-export default function CompoundInterestCalculatorForm() {
+/** `header` y `guide` son la cabecera (ToolHeader) y la guía de uso
+    (ToolGuide), que page.tsx renderiza en el servidor para que el catálogo y
+    sus textos no lleguen al JavaScript. */
+export default function CompoundInterestCalculatorForm({
+  header,
+  guide,
+}: {
+  header: ReactNode;
+  guide: ReactNode;
+}) {
   const [initialAmount, setInitialAmount] = useState<number>(10000);
   const [monthlyContribution, setMonthlyContribution] = useState<number>(1000);
   const [months, setMonths] = useState<number>(12);
@@ -20,17 +30,8 @@ export default function CompoundInterestCalculatorForm() {
   const termError = monthsError(months);
 
   return (
-    <main className="min-h-screen bg-slate-100 py-10 px-4 md:px-10 font-sans">
-      {/* CABECERA */}
-      <div className="max-w-6xl mx-auto mb-10 text-center md:text-left">
-        <h1 className="text-3xl md:text-4xl font-extrabold text-slate-800 mb-3 tracking-tight">
-          Calculadora de Interés Compuesto
-        </h1>
-        <p className="text-slate-500 text-lg max-w-2xl">
-          Herramienta para calcular el crecimiento del interés a lo largo del tiempo basado en la
-          frecuencia, capital y tasa.
-        </p>
-      </div>
+    <main className="min-h-screen bg-slate-50 py-10 px-4 md:px-10">
+      {header}
 
       <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="bg-surface p-8 rounded-3xl shadow-lg border border-slate-200 h-fit">
@@ -39,10 +40,14 @@ export default function CompoundInterestCalculatorForm() {
           </h2>
           <div className="space-y-4">
             <div>
-              <label className="block text-xs font-bold text-slate-500 uppercase mb-1">
+              <label
+                htmlFor="interest-1"
+                className="block text-xs font-bold text-slate-500 uppercase mb-1"
+              >
                 Inversión Inicial ($)
               </label>
               <input
+                id="interest-1"
                 type="number"
                 value={initialAmount}
                 onChange={(e) => setInitialAmount(Number(e.target.value))}
@@ -51,10 +56,14 @@ export default function CompoundInterestCalculatorForm() {
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-slate-500 uppercase mb-1">
+              <label
+                htmlFor="interest-2"
+                className="block text-xs font-bold text-slate-500 uppercase mb-1"
+              >
                 Aportación Mensual ($)
               </label>
               <input
+                id="interest-2"
                 type="number"
                 value={monthlyContribution}
                 onChange={(e) => setMonthlyContribution(Number(e.target.value))}
@@ -64,10 +73,14 @@ export default function CompoundInterestCalculatorForm() {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-bold text-slate-500 uppercase mb-1">
+                <label
+                  htmlFor="interest-3"
+                  className="block text-xs font-bold text-slate-500 uppercase mb-1"
+                >
                   Tasa Anual %
                 </label>
                 <input
+                  id="interest-3"
                   type="number"
                   value={rate}
                   onChange={(e) => setRate(Number(e.target.value))}
@@ -75,10 +88,14 @@ export default function CompoundInterestCalculatorForm() {
                 />
               </div>
               <div>
-                <label className="block text-xs font-bold text-slate-500 uppercase mb-1">
+                <label
+                  htmlFor="interest-4"
+                  className="block text-xs font-bold text-slate-500 uppercase mb-1"
+                >
                   Meses
                 </label>
                 <input
+                  id="interest-4"
                   type="number"
                   min={1}
                   max={MAX_MONTHS}
@@ -93,10 +110,14 @@ export default function CompoundInterestCalculatorForm() {
             {termError && <ErrorMessage>{termError}</ErrorMessage>}
 
             <div>
-              <label className="block text-xs font-bold text-slate-500 uppercase mb-1">
+              <label
+                htmlFor="interest-5"
+                className="block text-xs font-bold text-slate-500 uppercase mb-1"
+              >
                 Frecuencia de Rendimientos
               </label>
               <select
+                id="interest-5"
                 value={frequency}
                 onChange={(e) => setFrequency(Number(e.target.value))}
                 className="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 font-bold outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer"
@@ -166,15 +187,21 @@ export default function CompoundInterestCalculatorForm() {
             </div>
             {/* Fondo gris claro en lugar de blanco: una tabla larga a pantalla
                 completa en blanco puro deslumbra al leerla. */}
-            <div className="max-h-[350px] overflow-y-auto bg-slate-50">
+            {/* Enfocable para que la tabla se pueda desplazar con el teclado. */}
+            <div
+              className="max-h-[350px] overflow-y-auto bg-slate-50"
+              tabIndex={0}
+              role="region"
+              aria-label="Tabla de crecimiento mensual"
+            >
               <table className="w-full text-left border-collapse">
                 <thead className="bg-slate-100 sticky top-0">
                   <tr>
-                    <th className="p-4 text-[10px] font-bold text-slate-500 uppercase">Mes</th>
-                    <th className="p-4 text-[10px] font-bold text-slate-500 uppercase">
+                    <th className="p-4 text-[10px] font-bold text-slate-600 uppercase">Mes</th>
+                    <th className="p-4 text-[10px] font-bold text-slate-600 uppercase">
                       Saldo Acumulado
                     </th>
-                    <th className="p-4 text-[10px] font-bold text-slate-500 uppercase">
+                    <th className="p-4 text-[10px] font-bold text-slate-600 uppercase">
                       Rendimiento
                     </th>
                   </tr>
@@ -182,7 +209,7 @@ export default function CompoundInterestCalculatorForm() {
                 <tbody className="divide-y divide-slate-200 text-slate-900">
                   {amortizationTable.map((row) => (
                     <tr key={row.month} className="hover:bg-slate-100 transition-colors">
-                      <td className="p-4 font-bold text-slate-400">{row.month}</td>
+                      <td className="p-4 font-bold text-slate-500">{row.month}</td>
                       <td className="p-4 font-bold">
                         $
                         {row.balance.toLocaleString(undefined, {
@@ -205,6 +232,7 @@ export default function CompoundInterestCalculatorForm() {
           </div>
         </div>
       </div>
+      {guide}
     </main>
   );
 }

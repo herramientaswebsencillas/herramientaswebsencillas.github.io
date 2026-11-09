@@ -1,4 +1,5 @@
 "use client";
+import type { ReactNode } from "react";
 import { useState } from "react";
 import { PDFDocument } from "@cantoo/pdf-lib";
 import { zipSync, type Zippable } from "fflate";
@@ -11,7 +12,16 @@ import {
   formatBytes,
 } from "@/lib/files";
 
-export default function PdfPageSplitterForm() {
+/** `header` y `guide` son la cabecera (ToolHeader) y la guía de uso
+    (ToolGuide), que page.tsx renderiza en el servidor para que el catálogo y
+    sus textos no lleguen al JavaScript. */
+export default function PdfPageSplitterForm({
+  header,
+  guide,
+}: {
+  header: ReactNode;
+  guide: ReactNode;
+}) {
   const [file, setFile] = useState<File | null>(null);
   const [pageCount, setPageCount] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
@@ -94,27 +104,7 @@ export default function PdfPageSplitterForm() {
   return (
     <main className="min-h-screen bg-slate-50 py-16 px-6">
       <div className="max-w-3xl mx-auto">
-        <div className="text-center mb-10">
-          <div className="inline-block p-3 bg-red-100 rounded-2xl mb-4">
-            <svg
-              className="w-8 h-8 text-red-600"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-              />
-            </svg>
-          </div>
-          <h1 className="text-3xl font-extrabold text-slate-800">Divisor de PDF</h1>
-          <p className="text-slate-500 mt-2">
-            Separa cada página de tu PDF en archivos individuales dentro de un ZIP.
-          </p>
-        </div>
+        {header}
 
         <div className="bg-surface rounded-3xl shadow-xl shadow-slate-200/60 border border-slate-100 overflow-hidden">
           <div className="p-8 md:p-12">
@@ -125,6 +115,7 @@ export default function PdfPageSplitterForm() {
               <input
                 type="file"
                 accept="application/pdf"
+                aria-label="Archivo PDF a dividir"
                 onChange={handleFileChange}
                 className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
               />
@@ -133,7 +124,7 @@ export default function PdfPageSplitterForm() {
                 <>
                   <div className="w-16 h-16 bg-surface rounded-full shadow-sm flex items-center justify-center mb-4">
                     <svg
-                      className="w-8 h-8 text-slate-400"
+                      className="w-8 h-8 text-slate-500"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -147,7 +138,7 @@ export default function PdfPageSplitterForm() {
                     </svg>
                   </div>
                   <p className="text-slate-600 font-medium">Haz clic o arrastra tu PDF aquí</p>
-                  <p className="text-slate-400 text-sm mt-1">Máximo {formatBytes(MAX_PDF_BYTES)}</p>
+                  <p className="text-slate-500 text-sm mt-1">Máximo {formatBytes(MAX_PDF_BYTES)}</p>
                 </>
               ) : (
                 <div className="text-center">
@@ -210,7 +201,7 @@ export default function PdfPageSplitterForm() {
               )}
             </button>
 
-            <div className="mt-8 flex items-center justify-center gap-2 text-slate-400 bg-slate-50 py-3 rounded-xl border border-slate-100">
+            <div className="mt-8 flex items-center justify-center gap-2 text-slate-500 bg-slate-50 py-3 rounded-xl border border-slate-100">
               <svg className="w-4 h-4 text-emerald-500" fill="currentColor" viewBox="0 0 20 20">
                 <path
                   fillRule="evenodd"
@@ -225,6 +216,7 @@ export default function PdfPageSplitterForm() {
           </div>
         </div>
       </div>
+      {guide}
     </main>
   );
 }

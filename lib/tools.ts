@@ -2,6 +2,8 @@
    Para publicar una herramienta nueva basta con añadir una entrada a la
    categoría que le corresponda: el maquetado y los colores salen de aquí. */
 
+import { pageMetadata } from "./site";
+
 export interface Tool {
   /** Segmento de la ruta bajo /tools/ */
   slug: string;
@@ -213,3 +215,20 @@ export const CATEGORIES: Category[] = [
     ],
   },
 ];
+
+/** La herramienta del catálogo con ese slug. Lanza si no existe, para que un
+    slug mal escrito falle en el build y no publique una página sin título. */
+export function findTool(slug: string): Tool {
+  for (const category of CATEGORIES) {
+    const tool = category.tools.find((t) => t.slug === slug);
+    if (tool) return tool;
+  }
+  throw new Error(`La herramienta "${slug}" no está en el catálogo (lib/tools.ts).`);
+}
+
+/** Metadatos de la página de una herramienta, tomados del catálogo para que
+    la tarjeta de inicio, el <title> y el <h1> no se desincronicen. */
+export function toolMetadata(slug: string) {
+  const { name, description } = findTool(slug);
+  return pageMetadata({ path: `/tools/${slug}`, title: name, description });
+}

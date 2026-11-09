@@ -1,4 +1,5 @@
 "use client";
+import type { ReactNode } from "react";
 import { useState, ChangeEvent } from "react";
 import ErrorMessage from "@/components/ErrorMessage";
 import { copyLabel, useCopy } from "@/lib/useCopy";
@@ -11,7 +12,16 @@ import {
   formatBytes,
 } from "@/lib/files";
 
-export default function Base64FileConverterForm() {
+/** `header` y `guide` son la cabecera (ToolHeader) y la guía de uso
+    (ToolGuide), que page.tsx renderiza en el servidor para que el catálogo y
+    sus textos no lleguen al JavaScript. */
+export default function Base64FileConverterForm({
+  header,
+  guide,
+}: {
+  header: ReactNode;
+  guide: ReactNode;
+}) {
   const [base64Output, setBase64Output] = useState("");
   const [base64Input, setBase64Input] = useState("");
   const [fileName, setFileName] = useState("archivo_descargado");
@@ -67,12 +77,7 @@ export default function Base64FileConverterForm() {
   return (
     <main className="min-h-screen bg-slate-50 py-12 px-6">
       <div className="max-w-5xl mx-auto">
-        <div className="mb-10 text-center">
-          <h1 className="text-3xl font-bold text-slate-800 mb-2">Convertidor de Archivos Base64</h1>
-          <p className="text-slate-500">
-            Convierte imágenes, PDFs o cualquier archivo a Base64 y viceversa.
-          </p>
-        </div>
+        {header}
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           <div className="bg-surface rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
@@ -88,7 +93,7 @@ export default function Base64FileConverterForm() {
                 aria-label="Archivo a convertir"
                 className="w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100"
               />
-              <p className="text-xs text-slate-400">
+              <p className="text-xs text-slate-500">
                 Máximo {formatBytes(MAX_BASE64_FILE_BYTES)} por archivo.
               </p>
               {uploadError && <ErrorMessage>{uploadError}</ErrorMessage>}
@@ -134,7 +139,7 @@ export default function Base64FileConverterForm() {
               >
                 Descargar Archivo Reconstruido
               </button>
-              <p className="text-xs text-slate-400 italic text-center">
+              <p className="text-xs text-slate-500 italic text-center">
                 Nota: incluye la cabecera &quot;data:tipo/subtipo;base64,&quot; para que el archivo
                 conserve su tipo.
               </p>
@@ -142,6 +147,7 @@ export default function Base64FileConverterForm() {
           </div>
         </div>
       </div>
+      {guide}
     </main>
   );
 }

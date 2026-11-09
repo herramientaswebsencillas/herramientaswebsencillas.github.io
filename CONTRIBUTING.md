@@ -11,9 +11,9 @@ Requisitos y comandos: ver "Requisitos" y "Comandos útiles" en el README.
 
 ## Ramas y pull requests
 
-- `main` es lo que está publicado: cada push a `main` se despliega solo. Nada entra a `main` sin un pull request con el check `build` en verde.
+- `main` es lo que está publicado: cada push a `main` se despliega solo. Nada entra a `main` sin un pull request con el check `build` en verde y sin alertas de CodeQL de severidad alta o mayor.
 - Trabaja en una rama a partir de `main`, con un prefijo por tema y un nombre descriptivo en español, por ejemplo `seguridad/correcciones-auditoria`, `herramienta/calculadora-iva` o `correccion/traductor-cuota`.
-- Un pull request por tema. Llena la plantilla: el checklist recoge lo que suele olvidarse (catálogo de herramientas, CSP, Privacidad, compatibilidad).
+- Un pull request por tema. Llena la plantilla: el checklist recoge lo que suele olvidarse (CSP, Privacidad, compatibilidad, host con cabeceras).
 - Si el cambio rompe los parámetros de URL de la calculadora de fechas o el formato cifrado, la descripción empieza con **⚠ Compatibilidad** (ver "Compatibilidad" en el README).
 
 ## Commits

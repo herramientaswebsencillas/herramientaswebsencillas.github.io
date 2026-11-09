@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import ErrorMessage from "@/components/ErrorMessage";
 import { splitIntoChunks } from "@/lib/speech";
@@ -19,7 +20,16 @@ const getServerSupport = () => null;
 
 /* -------------------------------- Componente ------------------------------ */
 
-export default function TextToSpeechForm() {
+/** `header` y `guide` son la cabecera (ToolHeader) y la guía de uso
+    (ToolGuide), que page.tsx renderiza en el servidor para que el catálogo y
+    sus textos no lleguen al JavaScript. */
+export default function TextToSpeechForm({
+  header,
+  guide,
+}: {
+  header: ReactNode;
+  guide: ReactNode;
+}) {
   // Soporte del navegador: null durante el render del servidor y la hidratación.
   const isSupported = useSyncExternalStore<boolean | null>(
     subscribeToSupport,
@@ -144,12 +154,7 @@ export default function TextToSpeechForm() {
   return (
     <main className="min-h-screen bg-slate-50 py-12 px-6">
       <div className="max-w-3xl mx-auto">
-        <div className="mb-10 text-center">
-          <h1 className="text-3xl font-bold text-slate-800 mb-2">Convertidor de Texto a Voz</h1>
-          <p className="text-slate-500">
-            Escucha cualquier texto en voz alta con las voces de tu sistema o de tu navegador.
-          </p>
-        </div>
+        {header}
 
         <div className="bg-surface rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
           <div className="bg-indigo-700 p-4">
@@ -170,7 +175,7 @@ export default function TextToSpeechForm() {
               onChange={(e) => setText(e.target.value)}
             />
 
-            <div className="flex items-center justify-between text-xs text-slate-400">
+            <div className="flex items-center justify-between text-xs text-slate-500">
               <span>{text.length} caracteres</span>
               {progress.total > 0 && (
                 <span className="text-indigo-600 font-semibold">
@@ -294,7 +299,7 @@ export default function TextToSpeechForm() {
 
             {error && <ErrorMessage className="text-center">{error}</ErrorMessage>}
 
-            <p className="text-xs text-slate-400 text-center">
+            <p className="text-xs text-slate-500 text-center">
               Las voces disponibles las aporta tu sistema operativo y navegador, por lo que cambian
               de un equipo a otro. Si falta tu idioma, revisa la guía del final de la página.
             </p>
@@ -303,6 +308,7 @@ export default function TextToSpeechForm() {
 
         <VoiceInstallGuide />
       </div>
+      {guide}
     </main>
   );
 }

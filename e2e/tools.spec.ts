@@ -33,7 +33,7 @@ test.describe("conversor Base64 de archivos", () => {
   const PATH = "/tools/base64-file-converter";
 
   test("convierte un archivo a Base64 y lo reconstruye", async ({ page }) => {
-    const check = await watchPage(page, PATH);
+    const check = await watchPage(page);
     await page.goto(PATH);
 
     await page.getByLabel("Archivo a convertir").setInputFiles({
@@ -55,7 +55,7 @@ test.describe("conversor Base64 de archivos", () => {
   });
 
   test("rechaza una URL javascript: sin ejecutarla", async ({ page }) => {
-    const check = await watchPage(page, PATH);
+    const check = await watchPage(page);
     await page.goto(PATH);
 
     let downloads = 0;
@@ -70,7 +70,7 @@ test.describe("conversor Base64 de archivos", () => {
   });
 
   test("descarga un HTML pegado sin abrirlo ni ejecutarlo", async ({ page }) => {
-    const check = await watchPage(page, PATH);
+    const check = await watchPage(page);
     await page.goto(PATH);
 
     const html = "<script>parent.__pwned=1;window.__pwned=1</script><h1>x</h1>";
@@ -89,7 +89,7 @@ test.describe("conversor Base64 de archivos", () => {
   });
 
   test("rechaza archivos demasiado grandes", async ({ page }) => {
-    const check = await watchPage(page, PATH);
+    const check = await watchPage(page);
     await page.goto(PATH);
 
     await page.getByLabel("Archivo a convertir").setInputFiles({
@@ -104,7 +104,7 @@ test.describe("conversor Base64 de archivos", () => {
 });
 
 test("une varios PDF en uno", async ({ page }) => {
-  const check = await watchPage(page, "/tools/pdf-merger");
+  const check = await watchPage(page);
   await page.goto("/tools/pdf-merger");
 
   await page.locator("#pdf-upload").setInputFiles([
@@ -123,7 +123,7 @@ test("une varios PDF en uno", async ({ page }) => {
 });
 
 test("divide un PDF en páginas dentro de un ZIP", async ({ page }) => {
-  const check = await watchPage(page, "/tools/pdf-page-splitter");
+  const check = await watchPage(page);
   await page.goto("/tools/pdf-page-splitter");
 
   await page.locator('input[type="file"]').setInputFiles({
@@ -150,7 +150,7 @@ test("divide un PDF en páginas dentro de un ZIP", async ({ page }) => {
 test("dividir PDF rechaza un archivo que no es PDF sin quedarse con el anterior", async ({
   page,
 }) => {
-  const check = await watchPage(page, "/tools/pdf-page-splitter");
+  const check = await watchPage(page);
   await page.goto("/tools/pdf-page-splitter");
   const input = page.locator('input[type="file"]');
 
@@ -198,7 +198,7 @@ test.describe("convertidor Base64 de texto", () => {
 
   test("codifica y decodifica UTF-8 y copia el resultado", async ({ page, context }) => {
     await context.grantPermissions(["clipboard-read", "clipboard-write"]);
-    const check = await watchPage(page, PATH);
+    const check = await watchPage(page);
     await page.goto(PATH);
 
     await page.getByPlaceholder("Ingresa el texto normal aquí...").fill(TEXT);
@@ -216,7 +216,7 @@ test.describe("convertidor Base64 de texto", () => {
   });
 
   test("avisa si el navegador no permite copiar", async ({ page }) => {
-    const check = await watchPage(page, PATH);
+    const check = await watchPage(page);
     await page.addInitScript(() => {
       navigator.clipboard.writeText = () => Promise.reject(new DOMException("", "NotAllowedError"));
     });
@@ -231,7 +231,7 @@ test.describe("convertidor Base64 de texto", () => {
   });
 
   test("permite copiar un texto decodificado que contiene la palabra Error", async ({ page }) => {
-    const check = await watchPage(page, PATH);
+    const check = await watchPage(page);
     await page.goto(PATH);
 
     await page.getByPlaceholder("Pega el código Base64 aquí...").fill("RXJyb3IgNDA0");
@@ -243,7 +243,7 @@ test.describe("convertidor Base64 de texto", () => {
   });
 
   test("muestra el error aparte del resultado", async ({ page }) => {
-    const check = await watchPage(page, PATH);
+    const check = await watchPage(page);
     await page.goto(PATH);
 
     await page.getByPlaceholder("Pega el código Base64 aquí...").fill("no es base64!");
@@ -275,7 +275,7 @@ test.describe("texto a binario", () => {
   const PATH = "/tools/text-to-binary";
 
   test("codifica en UTF-8 y decodifica de vuelta", async ({ page }) => {
-    const check = await watchPage(page, PATH);
+    const check = await watchPage(page);
     await page.goto(PATH);
 
     await page.getByPlaceholder("Escribe algo aquí...").fill("ñ");
@@ -288,7 +288,7 @@ test.describe("texto a binario", () => {
   });
 
   test("conserva el texto y avisa si el binario no es válido", async ({ page }) => {
-    const check = await watchPage(page, PATH);
+    const check = await watchPage(page);
     await page.goto(PATH);
 
     await page.getByPlaceholder("Escribe algo aquí...").fill("Hola");
@@ -305,7 +305,7 @@ test.describe("encriptador", () => {
   const PATH = "/tools/text-encryptor";
 
   test("encripta y desencripta con el formato actual", async ({ page }) => {
-    const check = await watchPage(page, PATH);
+    const check = await watchPage(page);
     await page.goto(PATH);
 
     await page.getByPlaceholder("Escribe el mensaje que quieres proteger…").fill("Mensaje secreto");
@@ -321,7 +321,7 @@ test.describe("encriptador", () => {
   });
 
   test("desencripta un texto v2 ya compartido", async ({ page }) => {
-    const check = await watchPage(page, PATH);
+    const check = await watchPage(page);
     await page.goto(PATH);
 
     await page.getByRole("button", { name: "Desencriptar", exact: true }).click();
@@ -334,7 +334,7 @@ test.describe("encriptador", () => {
   });
 
   test("explica que el formato anterior ya no se admite", async ({ page }) => {
-    const check = await watchPage(page, PATH);
+    const check = await watchPage(page);
     await page.goto(PATH);
 
     await page.getByRole("button", { name: "Desencriptar", exact: true }).click();
@@ -350,7 +350,7 @@ test.describe("calculadora de fechas", () => {
   const PATH = "/tools/date-difference-calculator";
 
   test("lee el rango de los parámetros desde y hasta", async ({ page }) => {
-    const check = await watchPage(page, PATH);
+    const check = await watchPage(page);
     await page.goto(`${PATH}?desde=01/02/2020&hasta=03/04/2021`);
 
     await expect(page.getByLabel("Desde", { exact: true })).toHaveValue("01/02/2020");
@@ -362,7 +362,7 @@ test.describe("calculadora de fechas", () => {
   });
 
   test("escribe en la URL la fecha que se edita", async ({ page }) => {
-    const check = await watchPage(page, PATH);
+    const check = await watchPage(page);
     await page.goto(`${PATH}?hasta=25/12/2030`);
 
     await page.getByLabel("Desde", { exact: true }).fill("15/03/2024");
@@ -469,7 +469,7 @@ test.describe("traductor", () => {
     await page.goto("/tools/translator");
 
     await page.getByPlaceholder(/Escribe o pega el texto/).fill("hola mundo");
-    await page.getByRole("button", { name: "⇄" }).click();
+    await page.getByRole("button", { name: "Intercambiar idiomas" }).click();
     await expect(page.getByPlaceholder(/Escribe o pega el texto/)).toHaveValue("hola mundo");
     await expect(page.getByRole("combobox").first()).toHaveValue("en");
     await check();

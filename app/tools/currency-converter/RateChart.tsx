@@ -84,7 +84,7 @@ export default function RateChart({ points, from, to }: Props) {
             </>
           )}
         </p>
-        <p className={`text-sm font-semibold ${change >= 0 ? "text-emerald-600" : "text-red-600"}`}>
+        <p className={`text-sm font-semibold ${change >= 0 ? "text-emerald-700" : "text-red-600"}`}>
           {change >= 0 ? "▲" : "▼"} {Math.abs(change).toFixed(2)}% en el periodo
         </p>
       </div>
@@ -143,7 +143,7 @@ export default function RateChart({ points, from, to }: Props) {
         )}
       </svg>
 
-      <div className="flex justify-between text-xs text-slate-400 mt-1">
+      <div className="flex justify-between text-xs text-slate-500 mt-1">
         <span>{formatShortDate(first.date)}</span>
         <span>{formatShortDate(last.date)}</span>
       </div>

@@ -33,9 +33,14 @@ updates:
       # Quitar cuando eslint-config-next traiga una versión que lo soporte.
       - dependency-name: eslint
         update-types: ["version-update:semver-major"]
+      # @types/node sigue la versión mayor de Node de .nvmrc, que Dependabot no
+      # actualiza. Se suben juntos a mano al cambiar de Node.
+      - dependency-name: "@types/node"
+        update-types: ["version-update:semver-major"]
 
   - package-ecosystem: github-actions
-    directory: /
+    # "/" cubre .github/workflows/; la acción compuesta se lista aparte.
+    directories: ["/", "/.github/actions/setup"]
     schedule:
       interval: weekly
     cooldown:

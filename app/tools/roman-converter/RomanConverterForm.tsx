@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { useState } from "react";
 import ErrorMessage from "@/components/ErrorMessage";
 import { copyLabel, useCopy } from "@/lib/useCopy";
@@ -9,7 +10,16 @@ const errorMessage = (e: unknown) => (e instanceof RomanError ? e.message : "Ent
 
 /* -------------------------------- Página -------------------------------- */
 
-export default function RomanConverterForm() {
+/** `header` y `guide` son la cabecera (ToolHeader) y la guía de uso
+    (ToolGuide), que page.tsx renderiza en el servidor para que el catálogo y
+    sus textos no lleguen al JavaScript. */
+export default function RomanConverterForm({
+  header,
+  guide,
+}: {
+  header: ReactNode;
+  guide: ReactNode;
+}) {
   const [decimalInput, setDecimalInput] = useState("");
   const [romanOutput, setRomanOutput] = useState("");
   const [romanInput, setRomanInput] = useState("");
@@ -41,12 +51,7 @@ export default function RomanConverterForm() {
   return (
     <main className="min-h-screen bg-slate-50 py-12 px-6">
       <div className="max-w-5xl mx-auto">
-        <div className="mb-10 text-center">
-          <h1 className="text-3xl font-bold text-slate-800 mb-2">Convertidor de Números Romanos</h1>
-          <p className="text-slate-500">
-            Convierte números decimales a romanos y viceversa de forma instantánea.
-          </p>
-        </div>
+        {header}
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* SECCIÓN: DECIMAL A ROMANO */}
@@ -135,7 +140,7 @@ export default function RomanConverterForm() {
           </div>
         </div>
 
-        <div className="mt-12 text-center text-slate-400 text-sm">
+        <div className="mt-12 text-center text-slate-500 text-sm">
           <p>Herramienta procesada localmente en tu navegador para mayor privacidad.</p>
           <p>
             Rango válido: del {MIN_VALUE} al {MAX_VALUE} (el sistema romano clásico no representa
@@ -143,6 +148,7 @@ export default function RomanConverterForm() {
           </p>
         </div>
       </div>
+      {guide}
     </main>
   );
 }

@@ -1,11 +1,20 @@
 import { Metadata } from "next";
+import ToolGuide from "@/components/ToolGuide";
+import ToolHeader from "@/components/ToolHeader";
+import { toolMetadata } from "@/lib/tools";
 import TranslatorForm from "./TranslatorForm";
 
-export const metadata: Metadata = {
-  title: "Traductor de Texto",
-  description: "Traduce tu texto de un idioma a otro de forma rápida y sencilla.",
-};
+export const metadata: Metadata = toolMetadata("translator");
 
 export default function Page() {
-  return <TranslatorForm />;
+  return (
+    <TranslatorForm
+      guide={<ToolGuide slug="translator" />}
+      header={
+        <ToolHeader slug="translator">
+          Traduce texto entre múltiples idiomas usando una API gratuita.
+        </ToolHeader>
+      }
+    />
+  );
 }

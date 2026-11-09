@@ -1,11 +1,21 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { useState } from "react";
 import ErrorMessage from "@/components/ErrorMessage";
 import { base64ToText, textToBase64 } from "@/lib/base64";
 import { copyLabel, useCopy } from "@/lib/useCopy";
 
-export default function Base64ConverterForm() {
+/** `header` y `guide` son la cabecera (ToolHeader) y la guía de uso
+    (ToolGuide), que page.tsx renderiza en el servidor para que el catálogo y
+    sus textos no lleguen al JavaScript. */
+export default function Base64ConverterForm({
+  header,
+  guide,
+}: {
+  header: ReactNode;
+  guide: ReactNode;
+}) {
   const [textInput, setTextInput] = useState("");
   const [base64Output, setBase64Output] = useState("");
   const [base64Input, setBase64Input] = useState("");
@@ -39,12 +49,7 @@ export default function Base64ConverterForm() {
   return (
     <main className="min-h-screen bg-slate-50 py-12 px-6">
       <div className="max-w-5xl mx-auto">
-        <div className="mb-10 text-center">
-          <h1 className="text-3xl font-bold text-slate-800 mb-2">Convertidor Base64</h1>
-          <p className="text-slate-500">
-            Codifica y decodifica texto en formato Base64 de forma segura y rápida.
-          </p>
-        </div>
+        {header}
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* SECCIÓN: ENCODE */}
@@ -128,7 +133,7 @@ export default function Base64ConverterForm() {
           </div>
         </div>
 
-        <div className="mt-12 text-center text-slate-400 text-sm">
+        <div className="mt-12 text-center text-slate-500 text-sm">
           <p>Herramienta procesada localmente en tu navegador para mayor privacidad.</p>
           <p>
             Base64 es codificación, no cifrado. No protege datos sensibles como contraseñas o
@@ -136,6 +141,7 @@ export default function Base64ConverterForm() {
           </p>
         </div>
       </div>
+      {guide}
     </main>
   );
 }

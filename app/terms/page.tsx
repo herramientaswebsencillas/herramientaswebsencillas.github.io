@@ -1,11 +1,13 @@
 import { Metadata } from "next";
+import { pageMetadata } from "@/lib/site";
 import Link from "next/link";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata({
+  path: "/terms",
   title: "Términos de uso",
   description:
     "Condiciones para usar Herramientas Web Sencillas: un servicio gratuito, sin garantías, cuyos resultados son orientativos.",
-};
+});
 
 // Actualizar con cualquier cambio de fondo en estos términos.
 const LAST_UPDATED = "29 de septiembre de 2026";
@@ -148,7 +150,7 @@ export default function TermsPage() {
             </p>
           </Section>
 
-          <p className="text-sm text-slate-400 mt-8">Última actualización: {LAST_UPDATED}.</p>
+          <p className="text-sm text-slate-500 mt-8">Última actualización: {LAST_UPDATED}.</p>
         </div>
       </div>
     </main>

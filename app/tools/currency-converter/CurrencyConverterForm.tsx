@@ -1,9 +1,15 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import ErrorMessage from "@/components/ErrorMessage";
 import { CURRENCIES, CURRENCY_CODES, ECB_CURRENCIES } from "@/lib/currencies";
-import { EXTERNAL_TIMEOUT_MS, parseFrankfurterRates } from "@/lib/external";
+import {
+  ExternalServiceError,
+  fetchJson,
+  isAbortError,
+  parseFrankfurterRates,
+} from "@/lib/external";
 import RateChart, { RatePoint } from "./RateChart";
 
 const API = "https://api.frankfurter.dev";
@@ -43,12 +49,8 @@ interface SeriesResult {
   error: string;
 }
 
-/* Se cancela al desmontar (controller) o al agotarse la espera. Solo la
-   cancelación llega como AbortError, que se ignora; el timeout llega como
-   TimeoutError y se muestra como cualquier otro fallo. */
-function withTimeout(signal: AbortSignal) {
-  return AbortSignal.any([signal, AbortSignal.timeout(EXTERNAL_TIMEOUT_MS)]);
-}
+const RATES_ERROR = "No se pudieron obtener las tasas de cambio. Intenta de nuevo.";
+const SERIES_ERROR = "No se pudo cargar el histórico de este periodo.";
 
 function toApiDate(date: Date) {
   return date.toISOString().slice(0, 10);
@@ -73,7 +75,16 @@ function formatRate(value: number) {
   return value.toPrecision(4);
 }
 
-export default function CurrencyConverterForm() {
+/** `header` y `guide` son la cabecera (ToolHeader) y la guía de uso
+    (ToolGuide), que page.tsx renderiza en el servidor para que el catálogo y
+    sus textos no lleguen al JavaScript. */
+export default function CurrencyConverterForm({
+  header,
+  guide,
+}: {
+  header: ReactNode;
+  guide: ReactNode;
+}) {
   const [amount, setAmount] = useState("1");
   const [from, setFrom] = useState("USD");
   const [to, setTo] = useState("MXN");
@@ -95,14 +106,12 @@ export default function CurrencyConverterForm() {
   useEffect(() => {
     const controller = new AbortController();
 
-    fetch(RATES_URL, { signal: withTimeout(controller.signal) })
-      .then((res) => {
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        return res.json();
-      })
-      .then((data: unknown) => {
-        const entries = parseFrankfurterRates(data);
-        if (entries.length === 0) throw new Error("Respuesta vacía");
+    fetchJson(RATES_URL, parseFrankfurterRates, {
+      signal: controller.signal,
+      errorMessage: RATES_ERROR,
+    })
+      .then((entries) => {
+        if (entries.length === 0) throw new ExternalServiceError(RATES_ERROR);
         const quotes: Record<string, Quote> = {};
         for (const entry of entries) {
           quotes[entry.quote] = { rate: entry.rate, date: entry.date };
@@ -110,11 +119,8 @@ export default function CurrencyConverterForm() {
         setRates({ quotes, error: "" });
       })
       .catch((error: unknown) => {
-        if (error instanceof DOMException && error.name === "AbortError") return;
-        setRates({
-          quotes: {},
-          error: "No se pudieron obtener las tasas de cambio. Intenta de nuevo.",
-        });
+        if (isAbortError(error)) return;
+        setRates({ quotes: {}, error: RATES_ERROR });
       });
 
     return () => controller.abort();
@@ -133,16 +139,13 @@ export default function CurrencyConverterForm() {
     const start = new Date(end.getTime() - days * 24 * 60 * 60 * 1000);
     const controller = new AbortController();
 
-    fetch(
+    fetchJson(
       `${API}/v2/rates?from=${toApiDate(start)}&to=${toApiDate(end)}&base=${from}&quotes=${to}&providers=ECB`,
-      { signal: withTimeout(controller.signal) }
+      parseFrankfurterRates,
+      { signal: controller.signal, errorMessage: SERIES_ERROR }
     )
-      .then((res) => {
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        return res.json();
-      })
-      .then((data: unknown) => {
-        const points = parseFrankfurterRates(data)
+      .then((entries) => {
+        const points = entries
           .filter((entry) => entry.quote === to)
           .map((entry) => ({ date: entry.date, value: entry.rate }))
           // La lista llega ordenada, pero la API no lo garantiza.
@@ -150,12 +153,8 @@ export default function CurrencyConverterForm() {
         setSeriesResult({ key, points, error: "" });
       })
       .catch((error: unknown) => {
-        if (error instanceof DOMException && error.name === "AbortError") return;
-        setSeriesResult({
-          key,
-          points: [],
-          error: "No se pudo cargar el histórico de este periodo.",
-        });
+        if (isAbortError(error)) return;
+        setSeriesResult({ key, points: [], error: SERIES_ERROR });
       });
 
     return () => controller.abort();
@@ -219,14 +218,7 @@ export default function CurrencyConverterForm() {
   return (
     <main className="min-h-screen bg-slate-50 py-12 px-6">
       <div className="max-w-4xl mx-auto">
-        <div className="mb-10 text-center">
-          <h1 className="text-3xl font-bold text-slate-800 mb-2">
-            Conversor de Divisas y Tipo de Cambio
-          </h1>
-          <p className="text-slate-500">
-            Convierte entre 165 monedas y consulta cómo ha evolucionado el tipo de cambio.
-          </p>
-        </div>
+        {header}
 
         {/* ----------------------------- Conversión ---------------------------- */}
         <div className="bg-surface rounded-2xl shadow-sm border border-slate-200 overflow-hidden mb-8">
@@ -301,7 +293,7 @@ export default function CurrencyConverterForm() {
 
             {/* Resultado */}
             <div className="bg-slate-50 border border-slate-200 rounded-xl p-5 text-center">
-              {busy && <p className="text-slate-400 text-sm">Consultando tasas...</p>}
+              {busy && <p className="text-slate-500 text-sm">Consultando tasas...</p>}
 
               {!busy && failed && <ErrorMessage>{failed}</ErrorMessage>}
 
@@ -323,13 +315,13 @@ export default function CurrencyConverterForm() {
                     </p>
                   )}
                   {rateDate && (
-                    <p className="text-xs text-slate-400 mt-1">Tasa del {formatDate(rateDate)}</p>
+                    <p className="text-xs text-slate-500 mt-1">Tasa del {formatDate(rateDate)}</p>
                   )}
                 </>
               )}
 
               {!busy && !failed && !missingQuote && converted === null && (
-                <p className="text-slate-400 text-sm">
+                <p className="text-slate-500 text-sm">
                   Escribe una cantidad válida para ver la conversión.
                 </p>
               )}
@@ -387,7 +379,7 @@ export default function CurrencyConverterForm() {
                 </p>
 
                 {loadingSeries && (
-                  <p className="text-slate-400 text-sm text-center py-12">Cargando histórico...</p>
+                  <p className="text-slate-500 text-sm text-center py-12">Cargando histórico...</p>
                 )}
 
                 {!loadingSeries && seriesError && (
@@ -402,7 +394,7 @@ export default function CurrencyConverterForm() {
           </div>
         </div>
 
-        <p className="text-xs text-slate-400 text-center mt-6 max-w-2xl mx-auto">
+        <p className="text-xs text-slate-500 text-center mt-6 max-w-2xl mx-auto">
           Tasas de referencia diarias publicadas por bancos centrales vía{" "}
           <a
             href="https://frankfurter.dev/"
@@ -418,6 +410,7 @@ export default function CurrencyConverterForm() {
           personal.
         </p>
       </div>
+      {guide}
     </main>
   );
 }
