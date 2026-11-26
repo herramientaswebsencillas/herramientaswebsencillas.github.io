@@ -116,8 +116,9 @@ jobs:
   # hecho con el GITHUB_TOKEN no dispara el push a main, pero sí un
   # workflow_dispatch. Las versiones mayores (en un PR agrupado, basta una)
   # esperan revisión. --match-head-commit evita fusionar si Dependabot subió
-  # otro commit mientras corría build. Ver "Auto-merge de Dependabot" en el
-  # README.
+  # otro commit mientras corría build. --delete-branch hace falta porque el
+  # borrado automático del repositorio no se aplica a los merges del
+  # GITHUB_TOKEN. Ver "Auto-merge de Dependabot" en el README.
   automerge:
     if: >-
       github.event_name == 'pull_request' &&
@@ -139,7 +140,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR_URL: ${{ github.event.pull_request.html_url }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
-        run: gh pr merge "$PR_URL" --merge --match-head-commit "$HEAD_SHA"
+        run: gh pr merge "$PR_URL" --merge --match-head-commit "$HEAD_SHA" --delete-branch
       - name: Deploy main
         if: steps.metadata.outputs.update-type == 'version-update:semver-patch' || steps.metadata.outputs.update-type == 'version-update:semver-minor'
         env:
