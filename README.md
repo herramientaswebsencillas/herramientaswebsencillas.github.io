@@ -188,7 +188,7 @@ Las versiones nuevas no se adoptan en cuanto salen: pnpm no instala nada publica
 
 ### Auto-merge de Dependabot
 
-Los PR de Dependabot con parches o versiones menores se fusionan solos cuando pasa el check `build`, y el sitio se publica después. Los de versiones mayores, o los grupos que incluyen alguna, esperan revisión. Si un PR falla, se queda abierto: lo que haya que hacer se ve en el check que falló. Las ramas se borran al fusionar cualquier PR (ajuste *Automatically delete head branches* del repositorio).
+Los PR de Dependabot con parches o versiones menores se fusionan solos cuando pasa el check `build`, y el sitio se publica después. Los de versiones mayores, o los grupos que incluyen alguna, esperan revisión. Si un PR falla, se queda abierto: lo que haya que hacer se ve en el check que falló. Las ramas se borran al fusionar: las de los PR que fusiona una persona, con el ajuste *Automatically delete head branches* del repositorio; las de Dependabot, con `--delete-branch` en el job `automerge`, porque ese ajuste no se aplica a los merges del `GITHUB_TOKEN`.
 
 Lo hace el job `automerge` de `nextjs.yml`, que corre después de `build`. Fusiona con el `GITHUB_TOKEN` y luego lanza el mismo workflow sobre `main` con `gh workflow run`, porque un merge hecho con ese token no dispara el push a `main`. Por eso el job de despliegue usa `github.event_name != 'pull_request'` y no `== 'push'`: así también publica en los lanzamientos manuales. CodeQL no vuelve a correr sobre `main` tras esos merges; lo cubre su análisis semanal.
 
