@@ -191,15 +191,7 @@ Las versiones nuevas no se adoptan en cuanto salen: pnpm no instala nada publica
 
 Los PR de Dependabot con versiones menores o parches se fusionan solos cuando pasan los checks obligatorios de `main` (`build` y CodeQL). Los de versiones mayores, o los grupos que incluyen alguna, esperan revisión. Si un PR falla, se queda abierto: lo que haya que hacer se ve en el check que falló. Las ramas se borran al fusionar cualquier PR (ajuste *Automatically delete head branches* del repositorio).
 
-`dependabot-auto-merge.yml` activa el auto-merge con un token de una GitHub App y no con el `GITHUB_TOKEN`, porque una fusión hecha con el `GITHUB_TOKEN` no dispara los workflows de push a `main` y el sitio no se volvería a publicar. Para crear la App (solo una vez):
-
-1. En la organización, **Settings → Developer settings → GitHub Apps → New GitHub App**. Ponle un nombre, usa la URL del repositorio como *Homepage URL* y desmarca *Webhook → Active*.
-2. En *Repository permissions*, da **Read and write** a *Contents*, *Pull requests* y *Workflows* (este último hace falta para fusionar los PR que actualizan acciones en `.github/workflows/`). Deja *Only on this account* y crea la App.
-3. En la página de la App, copia el *Client ID* y genera una *private key*, que se descarga como `.pem`.
-4. En **Install App**, instálala en la organización solo para este repositorio.
-5. En el repositorio, **Settings → Secrets and variables → Dependabot**, crea los secretos `AUTOMERGE_APP_CLIENT_ID` (el Client ID) y `AUTOMERGE_APP_PRIVATE_KEY` (el contenido completo del `.pem`). Tienen que ser secretos de Dependabot y no de Actions: los workflows que lanza Dependabot solo ven los primeros. Después borra el `.pem` de tu equipo.
-
-Sin esos secretos, el job falla en *Create GitHub App token* y los PR se integran a mano como antes. Si hay que rotar la clave, genera una nueva en la App, actualiza `AUTOMERGE_APP_PRIVATE_KEY` y borra la anterior.
+`dependabot-auto-merge.yml` activa el auto-merge con el `GITHUB_TOKEN`. Una fusión hecha con ese token no dispara los workflows de push a `main`, así que tras un auto-merge el sitio no se vuelve a publicar ni corre CodeQL sobre `main`. Los cambios se publican con el siguiente merge hecho a mano o desde **Actions → Deploy Next.js site to Pages → Run workflow**. Casi todas las actualizaciones son de herramientas de desarrollo, que no cambian el sitio publicado. Si alguna vez hace falta que cada auto-merge publique solo, el workflow tiene que usar el token de una GitHub App en lugar del `GITHUB_TOKEN`.
 
 `@cantoo/pdf-lib` es a propósito el fork mantenido de `pdf-lib`, que dejó de publicar versiones en 2022.
 
