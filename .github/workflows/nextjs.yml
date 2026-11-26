@@ -3,7 +3,8 @@
 # En cada pull request se ejecutan las verificaciones (lint, auditoría de
 # dependencias, pruebas, build, presupuesto de peso y pruebas E2E con
 # accesibilidad) sin desplegar. En cada push a main se ejecuta lo mismo y, si
-# todo pasa, se publica out/ en Pages.
+# todo pasa, se publica out/ en Pages. Los PR de Dependabot de parches y
+# versiones menores se fusionan solos cuando build pasa (job automerge).
 name: Deploy Next.js site to Pages
 
 on:
@@ -109,6 +110,42 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1
+
+  # Fusiona los PR de Dependabot de parches y versiones menores cuando build
+  # pasa, y luego lanza este mismo workflow sobre main para publicar. Un merge
+  # hecho con el GITHUB_TOKEN no dispara el push a main, pero sí un
+  # workflow_dispatch. Las versiones mayores (en un PR agrupado, basta una)
+  # esperan revisión. --match-head-commit evita fusionar si Dependabot subió
+  # otro commit mientras corría build. Ver "Auto-merge de Dependabot" en el
+  # README.
+  automerge:
+    if: >-
+      github.event_name == 'pull_request' &&
+      github.event.pull_request.user.login == 'dependabot[bot]' &&
+      github.event.pull_request.head.repo.full_name == github.repository
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      actions: write
+    steps:
+      - name: Dependabot metadata
+        id: metadata
+        uses: dependabot/fetch-metadata@25dd0e34f4fe68f24cc83900b1fe3fe149efef98 # v3.1.0
+      - name: Merge
+        if: steps.metadata.outputs.update-type == 'version-update:semver-patch' || steps.metadata.outputs.update-type == 'version-update:semver-minor'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: gh pr merge "$PR_URL" --merge --match-head-commit "$HEAD_SHA"
+      - name: Deploy main
+        if: steps.metadata.outputs.update-type == 'version-update:semver-patch' || steps.metadata.outputs.update-type == 'version-update:semver-minor'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+        run: gh workflow run nextjs.yml --ref main
 
   # Inventario de dependencias (SBOM) de cada versión publicada, en formato
   # CycloneDX. Syft lo arma leyendo pnpm-lock.yaml. Va en un job aparte para

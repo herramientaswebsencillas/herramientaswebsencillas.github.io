@@ -52,7 +52,7 @@ El sitio se genera como export estático (`output: 'export'`) y se publica en Gi
 - `next.config.ts`, `package.json`, `tsconfig.json` — configuración del proyecto
 - `pnpm-workspace.yaml` — ajustes de pnpm (antigüedad mínima de las versiones, overrides de seguridad y scripts de instalación permitidos; ahí van también, si hacen falta, los avisos que `pnpm audit` debe ignorar)
 - `.github/actions/setup/` — prepara pnpm, Node y las dependencias igual en todos los jobs
-- `.github/workflows/nextjs.yml` — verificación en cada pull request, y verificación y despliegue a GitHub Pages en cada push a `main`
+- `.github/workflows/nextjs.yml` — verificación en cada pull request, y verificación y despliegue a GitHub Pages en cada push a `main`; también fusiona los PR de Dependabot de parches y versiones menores
 - `.github/workflows/codeql.yml`, `.github/dependabot.yml` — análisis de seguridad y actualizaciones automáticas de dependencias
 - `.github/workflows/external-apis.yml` — monitoreo diario del sitio publicado, de los servicios externos y de los avisos de seguridad de las dependencias
 - `.size-limit.mjs` — presupuesto de peso del JavaScript publicado
@@ -185,6 +185,14 @@ Si hace falta volver ya, en la pestaña **Actions** abre la ejecución de un com
 Los overrides y los avisos ignorados se revisan de vez en cuando, porque las dependencias acaban trayendo la versión corregida. Para saber si uno sigue haciendo falta, quítalo en una copia de `package.json`, `pnpm-lock.yaml` y `pnpm-workspace.yaml` en otra carpeta y ejecuta allí `pnpm install --lockfile-only` y `pnpm audit`: si el aviso no vuelve, se puede quitar.
 
 Las versiones nuevas no se adoptan en cuanto salen: pnpm no instala nada publicado hace menos de 3 días (`minimumReleaseAge` en `pnpm-workspace.yaml`) y Dependabot espera 7 días, o 14 en las versiones mayores de npm (`cooldown` en `.github/dependabot.yml`). Así un paquete comprometido tiene tiempo de detectarse y retirarse antes de llegar al sitio. Si un aviso de seguridad obliga a adoptar antes una versión, se añade a `minimumReleaseAgeExclude` con el aviso en un comentario.
+
+### Auto-merge de Dependabot
+
+Los PR de Dependabot con parches o versiones menores se fusionan solos cuando pasa el check `build`, y el sitio se publica después. Los de versiones mayores, o los grupos que incluyen alguna, esperan revisión. Si un PR falla, se queda abierto: lo que haya que hacer se ve en el check que falló. Las ramas se borran al fusionar cualquier PR (ajuste *Automatically delete head branches* del repositorio).
+
+Lo hace el job `automerge` de `nextjs.yml`, que corre después de `build`. Fusiona con el `GITHUB_TOKEN` y luego lanza el mismo workflow sobre `main` con `gh workflow run`, porque un merge hecho con ese token no dispara el push a `main`. Por eso el job de despliegue usa `github.event_name != 'pull_request'` y no `== 'push'`: así también publica en los lanzamientos manuales. CodeQL no vuelve a correr sobre `main` tras esos merges; lo cubre su análisis semanal.
+
+Si el merge falla (por ejemplo, porque el análisis de CodeQL del PR todavía no termina, que también es obligatorio en `main`), el PR se queda abierto: vuelve a lanzar el job `automerge` desde la ejecución del PR o intégralo a mano.
 
 `@cantoo/pdf-lib` es a propósito el fork mantenido de `pdf-lib`, que dejó de publicar versiones en 2022.
 
