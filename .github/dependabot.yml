@@ -1,7 +1,7 @@
 # Propone actualizaciones de dependencias y de acciones de GitHub cada semana.
 # Cada PR pasa por el workflow de verificación antes de poder integrarse.
 # Los de versiones menores y parches se fusionan solos cuando el CI pasa
-# (dependabot-auto-merge.yml).
+# (job automerge de nextjs.yml).
 #
 # cooldown: solo propone versiones con al menos 7 días publicadas (14 si son
 # versiones mayores de npm), para no adoptar un paquete comprometido antes de

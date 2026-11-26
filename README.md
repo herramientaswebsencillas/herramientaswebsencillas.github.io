@@ -52,9 +52,8 @@ El sitio se genera como export estático (`output: 'export'`) y se publica en Gi
 - `next.config.ts`, `package.json`, `tsconfig.json` — configuración del proyecto
 - `pnpm-workspace.yaml` — ajustes de pnpm (antigüedad mínima de las versiones, overrides de seguridad y scripts de instalación permitidos; ahí van también, si hacen falta, los avisos que `pnpm audit` debe ignorar)
 - `.github/actions/setup/` — prepara pnpm, Node y las dependencias igual en todos los jobs
-- `.github/workflows/nextjs.yml` — verificación en cada pull request, y verificación y despliegue a GitHub Pages en cada push a `main`
+- `.github/workflows/nextjs.yml` — verificación en cada pull request, y verificación y despliegue a GitHub Pages en cada push a `main`; también fusiona los PR de Dependabot de parches y versiones menores
 - `.github/workflows/codeql.yml`, `.github/dependabot.yml` — análisis de seguridad y actualizaciones automáticas de dependencias
-- `.github/workflows/dependabot-auto-merge.yml` — fusiona solos los PR de Dependabot de versiones menores y parches cuando el CI pasa
 - `.github/workflows/external-apis.yml` — monitoreo diario del sitio publicado, de los servicios externos y de los avisos de seguridad de las dependencias
 - `.size-limit.mjs` — presupuesto de peso del JavaScript publicado
 - `CONTRIBUTING.md` — cómo proponer un cambio
@@ -189,9 +188,11 @@ Las versiones nuevas no se adoptan en cuanto salen: pnpm no instala nada publica
 
 ### Auto-merge de Dependabot
 
-Los PR de Dependabot con versiones menores o parches se fusionan solos cuando pasan los checks obligatorios de `main` (`build` y CodeQL). Los de versiones mayores, o los grupos que incluyen alguna, esperan revisión. Si un PR falla, se queda abierto: lo que haya que hacer se ve en el check que falló. Las ramas se borran al fusionar cualquier PR (ajuste *Automatically delete head branches* del repositorio).
+Los PR de Dependabot con parches o versiones menores se fusionan solos cuando pasa el check `build`, y el sitio se publica después. Los de versiones mayores, o los grupos que incluyen alguna, esperan revisión. Si un PR falla, se queda abierto: lo que haya que hacer se ve en el check que falló. Las ramas se borran al fusionar cualquier PR (ajuste *Automatically delete head branches* del repositorio).
 
-`dependabot-auto-merge.yml` activa el auto-merge con el `GITHUB_TOKEN`. Una fusión hecha con ese token no dispara los workflows de push a `main`, así que tras un auto-merge el sitio no se vuelve a publicar ni corre CodeQL sobre `main`. Los cambios se publican con el siguiente merge hecho a mano o desde **Actions → Deploy Next.js site to Pages → Run workflow**. Casi todas las actualizaciones son de herramientas de desarrollo, que no cambian el sitio publicado. Si alguna vez hace falta que cada auto-merge publique solo, el workflow tiene que usar el token de una GitHub App en lugar del `GITHUB_TOKEN`.
+Lo hace el job `automerge` de `nextjs.yml`, que corre después de `build`. Fusiona con el `GITHUB_TOKEN` y luego lanza el mismo workflow sobre `main` con `gh workflow run`, porque un merge hecho con ese token no dispara el push a `main`. Por eso el job de despliegue usa `github.event_name != 'pull_request'` y no `== 'push'`: así también publica en los lanzamientos manuales. CodeQL no vuelve a correr sobre `main` tras esos merges; lo cubre su análisis semanal.
+
+Si el merge falla (por ejemplo, porque el análisis de CodeQL del PR todavía no termina, que también es obligatorio en `main`), el PR se queda abierto: vuelve a lanzar el job `automerge` desde la ejecución del PR o intégralo a mano.
 
 `@cantoo/pdf-lib` es a propósito el fork mantenido de `pdf-lib`, que dejó de publicar versiones en 2022.
 
