@@ -54,6 +54,7 @@ El sitio se genera como export estático (`output: 'export'`) y se publica en Gi
 - `.github/actions/setup/` — prepara pnpm, Node y las dependencias igual en todos los jobs
 - `.github/workflows/nextjs.yml` — verificación en cada pull request, y verificación y despliegue a GitHub Pages en cada push a `main`
 - `.github/workflows/codeql.yml`, `.github/dependabot.yml` — análisis de seguridad y actualizaciones automáticas de dependencias
+- `.github/workflows/dependabot-auto-merge.yml` — fusiona solos los PR de Dependabot de versiones menores y parches cuando el CI pasa
 - `.github/workflows/external-apis.yml` — monitoreo diario del sitio publicado, de los servicios externos y de los avisos de seguridad de las dependencias
 - `.size-limit.mjs` — presupuesto de peso del JavaScript publicado
 - `CONTRIBUTING.md` — cómo proponer un cambio
@@ -185,6 +186,20 @@ Si hace falta volver ya, en la pestaña **Actions** abre la ejecución de un com
 Los overrides y los avisos ignorados se revisan de vez en cuando, porque las dependencias acaban trayendo la versión corregida. Para saber si uno sigue haciendo falta, quítalo en una copia de `package.json`, `pnpm-lock.yaml` y `pnpm-workspace.yaml` en otra carpeta y ejecuta allí `pnpm install --lockfile-only` y `pnpm audit`: si el aviso no vuelve, se puede quitar.
 
 Las versiones nuevas no se adoptan en cuanto salen: pnpm no instala nada publicado hace menos de 3 días (`minimumReleaseAge` en `pnpm-workspace.yaml`) y Dependabot espera 7 días, o 14 en las versiones mayores de npm (`cooldown` en `.github/dependabot.yml`). Así un paquete comprometido tiene tiempo de detectarse y retirarse antes de llegar al sitio. Si un aviso de seguridad obliga a adoptar antes una versión, se añade a `minimumReleaseAgeExclude` con el aviso en un comentario.
+
+### Auto-merge de Dependabot
+
+Los PR de Dependabot con versiones menores o parches se fusionan solos cuando pasan los checks obligatorios de `main` (`build` y CodeQL). Los de versiones mayores, o los grupos que incluyen alguna, esperan revisión. Si un PR falla, se queda abierto: lo que haya que hacer se ve en el check que falló. Las ramas se borran al fusionar cualquier PR (ajuste *Automatically delete head branches* del repositorio).
+
+`dependabot-auto-merge.yml` activa el auto-merge con un token de una GitHub App y no con el `GITHUB_TOKEN`, porque una fusión hecha con el `GITHUB_TOKEN` no dispara los workflows de push a `main` y el sitio no se volvería a publicar. Para crear la App (solo una vez):
+
+1. En la organización, **Settings → Developer settings → GitHub Apps → New GitHub App**. Ponle un nombre, usa la URL del repositorio como *Homepage URL* y desmarca *Webhook → Active*.
+2. En *Repository permissions*, da **Read and write** a *Contents*, *Pull requests* y *Workflows* (este último hace falta para fusionar los PR que actualizan acciones en `.github/workflows/`). Deja *Only on this account* y crea la App.
+3. En la página de la App, copia el *Client ID* y genera una *private key*, que se descarga como `.pem`.
+4. En **Install App**, instálala en la organización solo para este repositorio.
+5. En el repositorio, **Settings → Secrets and variables → Dependabot**, crea los secretos `AUTOMERGE_APP_CLIENT_ID` (el Client ID) y `AUTOMERGE_APP_PRIVATE_KEY` (el contenido completo del `.pem`). Tienen que ser secretos de Dependabot y no de Actions: los workflows que lanza Dependabot solo ven los primeros. Después borra el `.pem` de tu equipo.
+
+Sin esos secretos, el job falla en *Create GitHub App token* y los PR se integran a mano como antes. Si hay que rotar la clave, genera una nueva en la App, actualiza `AUTOMERGE_APP_PRIVATE_KEY` y borra la anterior.
 
 `@cantoo/pdf-lib` es a propósito el fork mantenido de `pdf-lib`, que dejó de publicar versiones en 2022.
 

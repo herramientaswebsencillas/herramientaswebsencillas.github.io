@@ -1,0 +1,57 @@
+# Activa el auto-merge en los PR de Dependabot de versiones menores y parches.
+# GitHub los fusiona solo cuando pasan los checks obligatorios de main (build
+# y CodeQL); si alguno falla, el PR se queda abierto para revisarlo a mano.
+# Las versiones mayores nunca se fusionan solas.
+#
+# En un PR agrupado, Dependabot informa el salto más grande del grupo, así que
+# basta una versión mayor para que el grupo entero espere revisión.
+#
+# El token es de la GitHub App de auto-merge y no el GITHUB_TOKEN: una fusión
+# hecha con el GITHUB_TOKEN no dispara los workflows de push a main, y el
+# sitio no se publicaría. Ver "Auto-merge de Dependabot" en el README.
+name: Dependabot auto-merge
+
+on:
+  pull_request:
+    branches: ["main"]
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  auto-merge:
+    # Solo cuando Dependabot abrió el PR y fue quien hizo el último push: si
+    # alguien más sube un commit a su rama, el PR ya no se fusiona solo.
+    if: github.event.pull_request.user.login == 'dependabot[bot]' && github.actor == 'dependabot[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Dependabot metadata
+        id: metadata
+        uses: dependabot/fetch-metadata@25dd0e34f4fe68f24cc83900b1fe3fe149efef98 # v3.1.0
+      # workflows: write hace falta para fusionar los PR que actualizan
+      # acciones en .github/workflows/.
+      - name: Create GitHub App token
+        id: app-token
+        uses: actions/create-github-app-token@f418cff399f7aef4c2f0ad47e25ca7a6abbdd6fc # v3.4.0
+        with:
+          client-id: ${{ secrets.AUTOMERGE_APP_CLIENT_ID }}
+          private-key: ${{ secrets.AUTOMERGE_APP_PRIVATE_KEY }}
+          permission-contents: write
+          permission-pull-requests: write
+          permission-workflows: write
+      - name: Enable auto-merge
+        if: steps.metadata.outputs.update-type == 'version-update:semver-minor' || steps.metadata.outputs.update-type == 'version-update:semver-patch'
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+        run: gh pr merge --auto --merge "$PR_URL"
+      # Si Dependabot actualiza un PR agrupado y ahora incluye una versión
+      # mayor, se quita el auto-merge que se activó antes.
+      - name: Disable auto-merge
+        if: steps.metadata.outputs.update-type == 'version-update:semver-major'
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+        run: gh pr merge --disable-auto "$PR_URL" || true
